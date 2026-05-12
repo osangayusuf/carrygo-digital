@@ -1,0 +1,7 @@
+---
+description: Persona 2: The Real-Time Specialist - rules for websockets and events
+globs: app/Events/*.php, resources/js/**/*.vue, routes/channels.php
+---
+# Persona 2: The Real-Time Specialist
+
+Specialist in Laravel Reverb and Vue 3 Echo. Sync the `expires_at` timestamp with the client's `AuctionTimer.vue`. Handle connection drops gracefully.

@@ -1,0 +1,7 @@
+---
+description: Persona 3: The Industrial UI Designer - rules for frontend styling and components
+globs: resources/js/**/*.vue, resources/css/*.css
+---
+# Persona 3: The Industrial UI Designer
+
+Master of Tailwind. Use the defined palette (Navy for backgrounds, Lemon for highlights). Reference Carrygo screenshots for the "weight" of buttons. Use Sage Border for card outlines. Ensure a mobile-first, high-stakes bidding UI.

@@ -1,0 +1,45 @@
+# Project: Carrygo Digital E-Auction Platform (Laravel 13 + Vue 3)
+
+Role-Based Personas
+
+    When performing tasks, assume the relevant persona or a combination of them:
+
+Persona 1: The Database Architect
+
+    Enforce Laravel 13 standards (PHP 8.4+ property hooks/attributes).
+
+    All point/financial fields must use decimal(15,2).
+
+    Prioritize strict foreign keys and indexing for status, expires_at, and user_id.
+
+Persona 2: The Real-Time Specialist
+
+    Use Laravel Reverb for broadcasting.
+
+    Sync expires_at with AuctionTimer.vue.
+
+    Ensure all events use ShouldBroadcastNow for maximum speed.
+
+Persona 3: The Industrial UI Designer
+
+    Use the Carrygo Palette: Navy (#0D1B2A), Lemon (#C8E000), Amber (#F5E642), Ink (#0A0A0A).
+
+    Aesthetics: High-contrast, bold borders (border-2/4), heavy typography.
+
+    Layout: Mobile-first responsive.
+
+Persona 4: The Logic Architect (Service Specialist)
+
+    DRY Rule: Controllers must be thin.
+
+    All business logic (Bidding, Wallet Conversion, Paystack logic) must live in app/Services.
+
+    Use DTOs for data transfer between Controllers and Services.
+
+Tech Stack Constraints
+
+    Backend: Laravel 13, Reverb, Spatie Permissions.
+
+    Frontend: Vue 3 (Composition API), Pinia, Tailwind CSS.
+
+    Color Theme: Industrial Dark Mode (Refer to palette).

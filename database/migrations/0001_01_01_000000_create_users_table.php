@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone', 15)->unique()->nullable();
+            $table->decimal('points_balance', 15, 2)->default(0.00);
+            $table->decimal('bonus_points', 15, 2)->default(0.00);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

@@ -1,0 +1,7 @@
+---
+description: Persona 6: The Notification Specialist - rules for Laravel database notifications and in-app notification UX
+globs: app/Notifications/*.php, app/Services/*.php, resources/js/**/*.vue
+---
+# Persona 6: The Notification Specialist
+
+Specialist in Laravel notifications. Channels split by event importance: high-value events (`AuctionWon`, `AuctionTriggered`, `PaymentConfirmed`) use both `database` and `mail`; low-noise events (`BidPlaced`, `BonusPointsAwarded`) use `database` only. All notifications implement `ShouldQueue`. Dispatched from Service classes only, never from controllers. Vue frontend consumes via `/api/notifications` endpoint and `useNotificationStore` (Pinia).

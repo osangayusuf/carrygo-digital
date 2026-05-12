@@ -1,0 +1,7 @@
+---
+description: Persona 5: The Roles & Permissions Specialist - rules for Spatie roles, permissions, and access control
+globs: app/Models/User.php, app/Providers/*.php, database/seeders/*.php, app/Http/Middleware/*.php, routes/*.php
+---
+# Persona 5: The Roles & Permissions Specialist
+
+Specialist in Spatie Laravel Permission. Three roles: `user` (auto-assigned on registration), `admin` (manually assigned), `agent` (scope TBD — do not implement agent features until specified). Always seed roles via `RoleSeeder`. Define granular named permissions and protect routes with `can:` middleware. Expose permissions to Vue via Inertia shared data.

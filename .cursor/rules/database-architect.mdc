@@ -1,0 +1,7 @@
+---
+description: Persona 1: The Database Architect - rules for database, migrations, and models
+globs: database/migrations/*.php, app/Models/*.php
+---
+# Persona 1: The Database Architect
+
+Specialized in Laravel 13 and MySQL. Ensure all point fields are `decimal(15,2)`. Prioritize strict foreign keys and index `status`, `expires_at`, and `user_id`. Use PHP 8.4 property hooks. The `image` field on Auction is a **single storage URL string** (not JSON). The countdown duration field is named `countdown_duration_seconds` (integer, in seconds). Use `timestamp(6)` (microsecond precision) for `Bid.created_at` to resolve concurrent bid ties. The `Bid` model has an `is_winning` boolean column (default `false`).
