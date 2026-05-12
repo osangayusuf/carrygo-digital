@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Services\ActivityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -14,6 +16,8 @@ use Laravel\Fortify\Features;
 
 class SecurityController extends Controller implements HasMiddleware
 {
+    public function __construct(private readonly ActivityService $activityService) {}
+
     /**
      * Get the middleware that should be assigned to the controller.
      */
@@ -52,6 +56,8 @@ class SecurityController extends Controller implements HasMiddleware
         $request->user()->update([
             'password' => $request->password,
         ]);
+
+        $this->activityService->log(ActivityType::PASSWORD_CHANGED, $request->user());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
 

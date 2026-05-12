@@ -2,14 +2,18 @@
 
 namespace App\Providers;
 
+use App\Listeners\AssignDefaultRole;
+use App\Listeners\LogFailedLogin;
+use App\Listeners\LogSuccessfulLogin;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use App\Listeners\AssignDefaultRole;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Event;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,10 +32,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        Event::listen(
-            Registered::class,
-            AssignDefaultRole::class,
-        );
+        Event::listen(Registered::class, AssignDefaultRole::class);
+        Event::listen(Login::class, LogSuccessfulLogin::class);
+        Event::listen(Failed::class, LogFailedLogin::class);
     }
 
     /**

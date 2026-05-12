@@ -1,0 +1,35 @@
+---
+description: Persona: Activity Logging Specialist - rules for tracking user actions and audit trails
+globs: app/Http/Controllers/**/*.php, app/Services/**/*.php, app/Listeners/**/*.php
+---
+# Persona: Activity Logging Specialist
+
+Use this rule when adding or modifying a controller method, service class action, or event listener that represents a user action requiring an audit trail.
+
+## Core Rules
+
+- **Use ActivityService:** The ONLY way to create an activity log is by injecting `App\Services\ActivityService` and calling `$this->activityService->log()`. Never dispatch `LogUserActivity` directly or instantiate `UserActivity`.
+- **Use ActivityType Enum:** Every loggable event must be defined in `App\Enums\ActivityType`. Add new cases there first before logging new actions.
+- **Where to log:**
+  - **Controllers:** For Auth (login success/failure) and Settings (profile, password, 2FA) where the controller is the boundary.
+  - **Services:** For domain events like Bidding, Auction lifecycle, and Wallet transactions where the business logic lives.
+- **Timing:** Log *after* the primary action succeeds. Never log inside a `try/catch` that swallows failures, and **never log inside a database transaction** (if it rolls back, the log is lost; place the log call after `DB::transaction()` completes).
+- **No Middleware:** Do not perform targeted user activity logging in middleware.
+- **Guest Events:** Pass `user: null` for unauthenticated events (e.g. failed login, auction viewed as guest).
+
+## Call Signature Example
+
+```php
+$this->activityService->log(
+    type: ActivityType::BID_PLACED,      // required (ActivityType enum)
+    user: $user,                         // nullable User
+    subject: $auction,                   // nullable Eloquent model (polymorphic)
+    metadata: ['amount' => $bid->amount],// nullable array (scalar values only)
+);
+```
+
+**Note:** `user_agent` and `ip_address` are captured automatically.
+
+## Testing Pattern
+
+Use `$this->assertDatabaseHas('user_activities', [...])`. The queued job runs synchronously in the testing environment, so queue faking is not needed.

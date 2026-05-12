@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Services\ActivityService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +16,8 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    public function __construct(private readonly ActivityService $activityService) {}
+
     /**
      * Show the user's profile settings page.
      */
@@ -37,6 +41,8 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
+        $this->activityService->log(ActivityType::PROFILE_UPDATED, $request->user());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
