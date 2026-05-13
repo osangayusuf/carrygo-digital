@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
-use App\Enums\TransactionStatus;
-use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'user_id',
-    'paystack_transaction_id',
-    'type',
+    'reference',
+    'access_code',
     'amount',
-    'naira_amount',
-    'exchange_rate',
-    'provider_reference',
     'status',
+    'channel',
+    'currency',
+    'paid_at',
     'metadata',
 ])]
-class PointTransaction extends Model
+class PaystackTransaction extends Model
 {
     protected function casts(): array
     {
         return [
-            'type' => TransactionType::class,
-            'status' => TransactionStatus::class,
+            'paid_at' => 'datetime',
             'metadata' => 'array',
         ];
     }

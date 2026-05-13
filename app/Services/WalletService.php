@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\PointTransaction;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+
+class WalletService
+{
+    /**
+     * Process a user deposit, converting Naira to Points.
+     */
+    public function processDeposit(User $user, float $nairaAmount, string $reference, array $metadata = [], ?int $paystackTransactionId = null): PointTransaction
+    {
+        return DB::transaction(function () use ($user, $nairaAmount, $reference, $metadata, $paystackTransactionId) {
+            $exchangeRate = (float) config('points.points_per_naira');
+            $pointsAmount = $nairaAmount * $exchangeRate;
+
+            // Lock user for update to prevent race conditions during point balance updates
+            $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+            $user->points_balance += $pointsAmount;
+            $user->save();
+
+            return PointTransaction::create([
+                'user_id' => $user->id,
+                'paystack_transaction_id' => $paystackTransactionId,
+                'type' => 'deposit',
+                'amount' => $pointsAmount,
+                'naira_amount' => $nairaAmount,
+                'exchange_rate' => $exchangeRate,
+                'provider_reference' => $reference,
+                'status' => 'completed',
+                'metadata' => $metadata,
+            ]);
+        });
+    }
+
+    /**
+     * Award bonus points to a user.
+     */
+    public function awardBonusPoints(User $user, float $bonusAmount, array $metadata = []): PointTransaction
+    {
+        return DB::transaction(function () use ($user, $bonusAmount, $metadata) {
+            $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+            $user->bonus_points += $bonusAmount;
+            $user->save();
+
+            return PointTransaction::create([
+                'user_id' => $user->id,
+                'type' => 'bonus_award',
+                'amount' => $bonusAmount,
+                'exchange_rate' => 1.0,
+                'status' => 'completed',
+                'metadata' => $metadata,
+            ]);
+        });
+    }
+
+    /**
+     * Claim bonus points, converting them to spendable points balance.
+     */
+    public function claimBonusPoints(User $user, float $bonusAmount): PointTransaction
+    {
+        return DB::transaction(function () use ($user, $bonusAmount) {
+            $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+
+            if ($user->bonus_points < $bonusAmount) {
+                throw new InvalidArgumentException('Insufficient bonus points balance.');
+            }
+
+            $conversionRate = (float) config('points.bonus_conversion_rate');
+            $spendablePoints = $bonusAmount * $conversionRate;
+
+            $user->bonus_points -= $bonusAmount;
+            $user->points_balance += $spendablePoints;
+            $user->save();
+
+            return PointTransaction::create([
+                'user_id' => $user->id,
+                'type' => 'bonus_claim',
+                'amount' => $spendablePoints,
+                'exchange_rate' => 1.0,
+                'status' => 'completed',
+                'metadata' => [
+                    'bonus_claimed' => $bonusAmount,
+                    'conversion_rate' => $conversionRate,
+                ],
+            ]);
+        });
+    }
+}

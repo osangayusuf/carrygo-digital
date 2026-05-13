@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AuctionStatus;
+use Database\Factories\AuctionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Auction extends Model
 {
-    /** @use HasFactory<\Database\Factories\AuctionFactory> */
+    /** @use HasFactory<AuctionFactory> */
     use HasFactory;
 
     protected function casts(): array
