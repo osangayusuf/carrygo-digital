@@ -10,8 +10,9 @@ return new class extends Migration
     {
         Schema::create('bids', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('auction_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignId('auction_id')->constrained(indexName: 'fk_bids_auction_id')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained(indexName: 'fk_bids_user_id')->cascadeOnDelete();
+            $table->index('user_id', 'bids_user_id_index');
             $table->integer('amount');
             $table->boolean('is_winning')->default(false);
             $table->timestamp('created_at', 6)->nullable();

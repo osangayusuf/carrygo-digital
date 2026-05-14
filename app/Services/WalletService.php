@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\PointTransaction;
 use App\Models\User;
+use App\Notifications\BonusPointsAwarded;
+use App\Notifications\PaymentConfirmed;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -23,7 +25,7 @@ class WalletService
             $user->points_balance += $pointsAmount;
             $user->save();
 
-            return PointTransaction::create([
+            $transaction = PointTransaction::create([
                 'user_id' => $user->id,
                 'paystack_transaction_id' => $paystackTransactionId,
                 'type' => 'deposit',
@@ -34,6 +36,10 @@ class WalletService
                 'status' => 'completed',
                 'metadata' => $metadata,
             ]);
+
+            $user->notify(new PaymentConfirmed($transaction));
+
+            return $transaction;
         });
     }
 
@@ -47,7 +53,7 @@ class WalletService
             $user->bonus_points += $bonusAmount;
             $user->save();
 
-            return PointTransaction::create([
+            $transaction = PointTransaction::create([
                 'user_id' => $user->id,
                 'type' => 'bonus_award',
                 'amount' => $bonusAmount,
@@ -55,6 +61,10 @@ class WalletService
                 'status' => 'completed',
                 'metadata' => $metadata,
             ]);
+
+            $user->notify(new BonusPointsAwarded($transaction));
+
+            return $transaction;
         });
     }
 

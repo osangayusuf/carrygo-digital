@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('countdown_duration_seconds');
             $table->timestamp('triggered_at')->nullable();
             $table->timestamp('expires_at')->nullable()->index();
-            $table->foreignId('winner_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('winner_id')->nullable()->constrained('users', indexName: 'fk_auctions_winner_id')->nullOnDelete();
             $table->timestamps();
         });
     }

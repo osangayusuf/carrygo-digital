@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('user_activities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained(indexName: 'fk_user_activities_user_id')->nullOnDelete();
             $table->string('type');
             $table->nullableMorphs('subject');
             $table->json('metadata')->nullable();

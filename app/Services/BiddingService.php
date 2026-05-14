@@ -10,6 +10,8 @@ use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\PointTransaction;
 use App\Models\User;
+use App\Notifications\AuctionTriggered;
+use App\Notifications\BidPlaced;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -68,6 +70,8 @@ class BiddingService
             $auction->increment('bid_count');
             $auction->refresh();
 
+            $justTriggered = false;
+
             if ($wasActive && $auction->current_points >= $auction->opening_points) {
                 $auction->status = AuctionStatus::TRIGGERED;
                 $auction->triggered_at = now();
@@ -75,9 +79,11 @@ class BiddingService
                 $auction->save();
 
                 CloseAuctionJob::dispatch($auction->id)->delay($auction->countdown_duration_seconds);
+
+                $justTriggered = true;
             }
 
-            PointTransaction::create([
+            $pointTransaction = PointTransaction::create([
                 'user_id' => $user->id,
                 'type' => TransactionType::BID_DEBIT,
                 'amount' => $amount,
@@ -88,6 +94,22 @@ class BiddingService
                     'bid_id' => $bid->id,
                 ],
             ]);
+
+            // Notify the bidding user — afterCommit ensures this only queues after the transaction commits.
+            $user->notify(new BidPlaced($bid, $auction));
+
+            // If the auction just triggered, notify all distinct bidders (including the current user).
+            if ($justTriggered) {
+                $bidderIds = Bid::where('auction_id', $auction->id)
+                    ->distinct()
+                    ->pluck('user_id');
+
+                $bidders = User::whereIn('id', $bidderIds)->get();
+
+                foreach ($bidders as $bidder) {
+                    $bidder->notify(new AuctionTriggered($auction));
+                }
+            }
 
             return $bid;
         });

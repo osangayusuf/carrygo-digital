@@ -11,7 +11,8 @@ return new class extends Migration
     {
         Schema::create('point_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignId('user_id')->constrained(indexName: 'fk_point_transactions_user_id')->cascadeOnDelete();
+            $table->index('user_id', 'point_transactions_user_id_index');
             $table->string('type');
             $table->decimal('amount', 15, 2);
             $table->decimal('naira_amount', 15, 2)->nullable();

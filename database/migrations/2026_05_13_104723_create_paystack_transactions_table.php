@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('paystack_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained(indexName: 'fk_paystack_transactions_user_id')->onDelete('cascade');
             $table->string('reference')->unique();
             $table->string('access_code')->nullable();
             $table->integer('amount')->comment('Amount in kobo');

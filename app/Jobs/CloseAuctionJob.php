@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Enums\AuctionStatus;
 use App\Models\Auction;
+use App\Models\User;
+use App\Notifications\AuctionWon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +30,11 @@ class CloseAuctionJob implements ShouldQueue
             $auction->status = AuctionStatus::CLOSED;
             $auction->winner_id = $winningBid?->user_id;
             $auction->save();
+
+            if ($auction->winner_id) {
+                $winner = User::find($auction->winner_id);
+                $winner?->notify(new AuctionWon($auction));
+            }
         });
     }
 }

@@ -1,6 +1,8 @@
 /.phpunit.cache
+/.postman
 /bootstrap/ssr
 /node_modules
+/postman
 /public/build
 /public/hot
 /public/storage
