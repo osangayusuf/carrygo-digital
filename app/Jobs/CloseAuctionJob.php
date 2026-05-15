@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\AuctionStatus;
+use App\Events\AuctionClosedEvent;
 use App\Models\Auction;
 use App\Models\User;
 use App\Notifications\AuctionWon;
@@ -35,6 +36,14 @@ class CloseAuctionJob implements ShouldQueue
                 $winner = User::find($auction->winner_id);
                 $winner?->notify(new AuctionWon($auction));
             }
+
+            DB::afterCommit(function () use ($auction) {
+                AuctionClosedEvent::dispatch(
+                    $auction->id,
+                    $auction->winner_id,
+                    $auction->status->value,
+                );
+            });
         });
     }
 }

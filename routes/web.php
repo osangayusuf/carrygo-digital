@@ -6,12 +6,37 @@ use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'Welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\TrendingController;
+use App\Http\Controllers\OpenBidsController;
+use App\Http\Controllers\EventItemsController;
+use App\Http\Controllers\WinnersController;
+use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\HowToPlayController;
+use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\WalletController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProfileController;
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('trending', [TrendingController::class, 'index'])->name('trending');
+Route::get('open-bids', [OpenBidsController::class, 'index'])->name('open-bids');
+Route::get('event-items', [EventItemsController::class, 'index'])->name('event-items');
+Route::get('winners', [WinnersController::class, 'index'])->name('winners');
+Route::get('leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+Route::get('how-to-play', [HowToPlayController::class, 'index'])->name('how-to-play');
+Route::get('auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
+Route::get('search', [SearchController::class, 'index'])->name('search');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::inertia('dashboard', 'Dashboard')->name('dashboard'); // TODO: might remove later
+
+    Route::get('wallet', [WalletController::class, 'index'])->name('wallet');
+    Route::post('wallet/deposit', [WalletController::class, 'deposit'])->name('wallet.deposit');
+    Route::post('wallet/claim-bonus', [WalletController::class, 'claimBonus'])->name('wallet.claim-bonus');
+    Route::get('tasks', [TaskController::class, 'index'])->name('tasks');
+    Route::get('profile', [ProfileController::class, 'index'])->name('profile');
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');

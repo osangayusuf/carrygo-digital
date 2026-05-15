@@ -25,7 +25,7 @@ it('can process deposit and convert naira to points', function () {
 
 it('can award bonus points', function () {
     $user = User::factory()->create(['bonus_points' => 0]);
-    $service = new WalletService();
+    $service = new WalletService;
 
     $transaction = $service->awardBonusPoints($user, 200, ['reason' => 'signup']);
 
@@ -42,7 +42,7 @@ it('can award bonus points', function () {
 it('can claim bonus points to spendable points', function () {
     config(['points.bonus_conversion_rate' => 1.0]);
     $user = User::factory()->create(['bonus_points' => 500, 'points_balance' => 0]);
-    $service = new WalletService();
+    $service = new WalletService;
 
     $transaction = $service->claimBonusPoints($user, 200);
 

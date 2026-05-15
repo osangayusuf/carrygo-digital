@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\AuctionStatus;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
+use App\Events\AuctionTriggeredEvent;
+use App\Events\BidPlacedEvent;
 use App\Jobs\CloseAuctionJob;
 use App\Models\Auction;
 use App\Models\Bid;
@@ -110,6 +112,29 @@ class BiddingService
                     $bidder->notify(new AuctionTriggered($auction));
                 }
             }
+
+            // Resolve the current winning user for the broadcast payload.
+            $winningBid = Bid::where('auction_id', $auction->id)
+                ->where('is_winning', true)
+                ->first();
+
+            // Dispatch broadcast events after the transaction commits so the DB state is visible to clients.
+            DB::afterCommit(function () use ($auction, $justTriggered, $winningBid) {
+                BidPlacedEvent::dispatch(
+                    $auction->id,
+                    $auction->current_points,
+                    $auction->bid_count,
+                    $winningBid?->user_id,
+                );
+
+                if ($justTriggered) {
+                    AuctionTriggeredEvent::dispatch(
+                        $auction->id,
+                        $auction->expires_at->toISOString(),
+                        $auction->status->value,
+                    );
+                }
+            });
 
             return $bid;
         });

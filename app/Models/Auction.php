@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'opening_points',
     'current_points',
     'status',
+    'event',
     'image',
     'bid_count',
     'countdown_duration_seconds',
@@ -33,6 +34,7 @@ class Auction extends Model
     {
         return [
             'status' => AuctionStatus::class,
+            'event' => 'boolean',
             'triggered_at' => 'datetime',
             'expires_at' => 'datetime',
         ];

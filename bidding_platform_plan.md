@@ -317,7 +317,7 @@ Events: `AuctionWon`, `AuctionTriggered`, `BidPlaced`, `PaymentConfirmed`, `Bonu
 
 ---
 
-**Step 5: Real-Time Bidding Interface**
+**Step 5: Real-Time Bidding Interface [COMPLETED]**
 *Goal: Auction state updates live in the browser without page reloads.*
 - Install and configure Laravel Reverb.
 - Create broadcast events (public `auction.{id}` channel):
