@@ -1,0 +1,217 @@
+<script setup lang="ts">
+import { router, usePage } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import { home, profile } from '@/routes';
+import { store as claimStore } from '@/actions/App/Http/Controllers/RewardClaimController';
+import AchievementBadgesSection from '@/components/rewards/AchievementBadgesSection.vue';
+import DailyCheckinSection from '@/components/rewards/DailyCheckinSection.vue';
+import SpinWheelSection from '@/components/rewards/SpinWheelSection.vue';
+import WeeklyLeaderboardSection from '@/components/rewards/WeeklyLeaderboardSection.vue';
+
+defineProps<{
+    checkin: {
+        streak: number;
+        last_date: string | null;
+        can_checkin: boolean;
+        week_days: Array<{
+            label: string;
+            date: string;
+            checked: boolean;
+            is_today: boolean;
+        }>;
+    };
+    achievements: Array<{
+        key: string;
+        label: string;
+        description: string;
+        icon: string;
+        points: number;
+        target: number;
+        progress: number;
+        completed_at: string | null;
+    }>;
+    spin: {
+        available_spins: number;
+        segment_labels: string[];
+    };
+    leaderboard: {
+        top_users: Array<{
+            rank: number;
+            msisdn_masked: string;
+            total_bid_pts: number;
+        }>;
+        week_ends_at: string;
+        user_rank: number | null;
+    };
+    wallet: {
+        unclaimed_points: number;
+        recent_rewards: Array<{
+            source: string;
+            description: string;
+            points: number;
+            claimed_at: string | null;
+            created_at: string;
+        }>;
+    };
+    user_points: number;
+}>();
+
+// Toast system
+const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+let toastTimer: ReturnType<typeof setTimeout>;
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+    toast.value = { message, type };
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        toast.value = null;
+    }, 4000);
+}
+
+// Watch for Inertia flash data
+const page = usePage();
+watch(
+    () => page.props.flash as Record<string, string> | undefined,
+    (flash) => {
+        if (flash?.success) {
+            showToast(flash.success, 'success');
+        } else if (flash?.error) {
+            showToast(flash.error, 'error');
+        }
+    },
+);
+
+function onSpun(pointsWon: number) {
+    showToast(`🎉 You won ${pointsWon} pts! Claim them from your wallet above.`);
+    router.reload({ only: ['wallet'] });
+}
+</script>
+
+<template>
+    <Head title="Task Center" />
+
+    <div class="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <div class="mx-auto max-w-3xl">
+            <!-- Page header -->
+            <div class="mb-8">
+                <h1 class="font-headline text-3xl font-black tracking-tight text-on-surface">
+                    Task Center
+                </h1>
+                <p class="mt-1 text-on-surface-variant">Complete tasks to earn points</p>
+            </div>
+
+            <!-- Unclaimed wallet banner -->
+            <Transition
+                enter-active-class="transition duration-300 ease-out"
+                enter-from-class="-translate-y-2 opacity-0"
+                enter-to-class="translate-y-0 opacity-100"
+            >
+                <div
+                    v-if="wallet.unclaimed_points > 0"
+                    class="mb-6 overflow-hidden rounded-2xl bg-primary p-5 text-white shadow-lg shadow-primary/20"
+                >
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🎁</span>
+                            <div>
+                                <p class="font-headline font-bold">Unclaimed Rewards</p>
+                                <p class="text-sm opacity-80">
+                                    You have
+                                    <span class="font-black">{{ wallet.unclaimed_points }} pts</span>
+                                    ready to claim
+                                </p>
+                            </div>
+                        </div>
+                        <Form :action="claimStore.url()" method="post">
+                            <button
+                                type="submit"
+                                class="shrink-0 rounded-xl bg-white px-4 py-2 text-sm font-black text-primary shadow-sm transition hover:bg-primary-container active:scale-95"
+                            >
+                                Claim Now →
+                            </button>
+                        </Form>
+                    </div>
+                </div>
+            </Transition>
+
+            <!-- Sections -->
+            <div class="space-y-6">
+                <DailyCheckinSection :checkin="checkin" />
+                <AchievementBadgesSection :achievements="achievements" />
+
+                <!-- Invite & Earn -->
+                <div class="rounded-3xl border border-outline-variant/30 bg-surface p-6 shadow-sm sm:p-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="font-headline text-xl font-bold text-on-surface">
+                                Invite &amp; Earn
+                            </h2>
+                            <p class="mt-1 text-sm text-on-surface-variant">
+                                Share your referral code and earn when friends join and bid
+                            </p>
+                        </div>
+                        <Link
+                            :href="profile.url()"
+                            class="flex items-center gap-1.5 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition hover:bg-primary/20"
+                        >
+                            <span class="material-symbols-outlined text-base!">share</span>
+                            Share
+                        </Link>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <div class="flex items-center gap-2 rounded-xl bg-background px-4 py-2 text-sm">
+                            <span class="h-2 w-2 rounded-full bg-primary"></span>
+                            <span class="text-on-surface-variant">Friend registers:</span>
+                            <span class="font-bold text-on-surface">10 pts</span>
+                        </div>
+                        <div class="flex items-center gap-2 rounded-xl bg-background px-4 py-2 text-sm">
+                            <span class="h-2 w-2 rounded-full bg-primary-container"></span>
+                            <span class="text-on-surface-variant">Friend buys points:</span>
+                            <span class="font-bold text-on-surface">20 pts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <SpinWheelSection :spin="spin" @spun="onSpun" />
+                <WeeklyLeaderboardSection :leaderboard="leaderboard" />
+            </div>
+
+            <!-- Back link -->
+            <div class="mt-10 text-center">
+                <Link
+                    :href="home.url()"
+                    class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+                >
+                    <span class="material-symbols-outlined text-lg!">arrow_back</span>
+                    Back to Bidding
+                </Link>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-y-4 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+    >
+        <div
+            v-if="toast"
+            class="fixed right-4 bottom-24 z-50 flex max-w-xs items-start gap-3 rounded-2xl p-4 shadow-2xl sm:right-6 sm:bottom-8"
+            :class="
+                toast.type === 'success'
+                    ? 'bg-on-surface text-surface'
+                    : 'bg-error-container text-on-error-container'
+            "
+        >
+            <span class="material-symbols-outlined shrink-0 text-xl!">
+                {{ toast.type === 'success' ? 'check_circle' : 'error' }}
+            </span>
+            <p class="text-sm font-medium leading-snug">{{ toast.message }}</p>
+        </div>
+    </Transition>
+</template>

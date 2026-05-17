@@ -11,7 +11,7 @@
 /resources/js/actions
 /resources/js/routes
 /resources/js/wayfinder
-/template-resources
+# /template-resources
 /vendor
 .DS_Store
 .env
