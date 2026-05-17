@@ -157,17 +157,35 @@ GET  /profile                ProfileController@index      profile
 **File:** `pages/Home/Index.vue`
 **Layout:** `PublicLayout`
 
-**Sections:**
-1. **Hero** — Forest dark card: headline, "Start Bidding" + "How It Works" CTAs, 3 stats
-2. **Promo Carousel** — Auto-slide with arrows + dots
-3. **Category Sidebar** (desktop) + **Auction Grid** — side-by-side layout
+**Sections (template-based):**
+1. **`HomeHeroSection`** — categories sidebar (desktop) + forest-dark hero banner with image carousel, "Win More. Carry More." headline, 3 stat chips, "Start Bidding" + "How It Works" CTAs
+2. **`HomeBidItemsSection`** — "Live Opportunities" grid (2–5 columns), inline bid modal, progress bars, countdown timers, image overlay
+3. **`HomeWinnersSection`** — pinned latest-winner card + infinite marquee of additional winners (masked phone numbers)
+4. **`HomeTestimonialsSection`** — 3-column star-rating review cards with social handle display
+5. **`HomePromoSection`** — "Win More Points" task-center CTA card + "Verified Integrity" info card
 
-**Backend props:**
-- `liveAuctions` (deferred) — `active` + `triggered`, paginated 20
-- `categories` (deferred) — `DISTINCT category` from active auctions
-- `stats` — winners count, total bids
+**TypeScript types** (exported from `pages/Home/Index.vue` and imported by section components):
+```ts
+export interface Bid { id, name, image, price, status (0|1|2), open_points, bid_entry_points, ends_at }
+export interface Winner { id, msisdn, total_points, created_at, bid: { name } }
+export interface Review { id, rating, comment, user_id, social_platform, social_handle, bid: { name } }
+```
 
-**Test:** Confirms page loads, returns `liveAuctions` and `categories` in props
+**Backend props (all deferred except `userPoints`):**
+- `bids` — active + triggered auctions mapped to `Bid` shape (status 1 = active/triggered, 2 = closed)
+- `categories` — `DISTINCT category` from active/triggered auctions
+- `winners` — closed auctions with winner user, mapped to `Winner` shape (`user.phone` → `msisdn`)
+- `reviews` — latest 12 `Review` records with user + auction relations
+- `userPoints` — `auth()->user()?->points_balance` (non-deferred)
+
+**New infrastructure delivered in this step:**
+- `auctions.price` column (migration `add_price_to_auctions_table`)
+- `reviews` table + `Review` model + `ReviewFactory`
+- `primeicons` installed; `app.css` updated with full template token set
+- `HandleInertiaRequests` now shares `asset_url` and `notifications`
+- `lib/utils.ts` extended with `formatPrice`, `formatDate`, `calcProgress`, `getRemainingTime`, `formatMsisdn`, `getDaysAgo`
+
+**Test:** Confirms page loads; `bids`, `categories`, `winners`, `reviews` present in deferred props
 
 ---
 
@@ -374,10 +392,17 @@ pages/HowToPlay/Index.vue
 layouts/PublicLayout.vue
 ```
 
-### New Components (14)
+### New Components (19)
 ```
-components/AppFooter.vue
-components/LiveTicker.vue
+components/AppFooter.vue          ← replaced with template version
+components/AppNavbar.vue          ← replaced with template version
+components/home/HomeHeroSection.vue
+components/home/HomeBidItemsSection.vue
+components/home/HomeSectionRow.vue
+components/home/HomeWinnersSection.vue
+components/home/HomeTestimonialsSection.vue
+components/home/HomePromoSection.vue
+components/LiveTicker.vue         ← removed from PublicLayout (marquee now in AppNavbar)
 components/NotificationBell.vue
 components/SearchModal.vue
 components/PointsBadge.vue
@@ -404,7 +429,14 @@ AuctionResource, BidResource, PointTransactionResource,
 LeaderboardEntryResource, WinnerAuctionResource
 ```
 
-### New Migration (1)
+### New Migrations (3)
 ```
 add_event_to_auctions_table
+add_price_to_auctions_table
+create_reviews_table
+```
+
+### New Models (1)
+```
+Review  (with ReviewFactory)
 ```

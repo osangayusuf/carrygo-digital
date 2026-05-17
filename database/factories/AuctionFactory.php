@@ -14,16 +14,19 @@ class AuctionFactory extends Factory
 {
     public function definition(): array
     {
+        $open_points = fake()->numberBetween(100, 10000);
+
         return [
-            'category' => fake()->randomElement(['Electronics', 'Furniture', 'Clothing', 'Vehicles', 'Appliances']),
+            'category' => fake()->randomElement(['Electronics', 'Furniture', 'Clothing', 'Vehicles', 'Appliances', 'Computing', 'Gaming', 'Kitchen']),
             'name' => fake()->words(3, true),
             'description' => fake()->paragraph(),
-            'opening_points' => fake()->numberBetween(100, 10000),
+            'opening_points' => $open_points,
             'current_points' => 0,
             'status' => AuctionStatus::DRAFT,
-            'image' => 'auctions/placeholder.jpg',
+            'price' => $open_points * 10,
+            'image' => 'https://images.unsplash.com/photo-1611348586755-53860f7ae57a?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHBsYWNlaG9sZGVyfGVufDB8fDB8fHww',
             'bid_count' => 0,
-            'countdown_duration_seconds' => fake()->randomElement([60, 120, 300, 600]),
+            'countdown_duration_seconds' => fake()->randomElement([3600, 7200, 10800, 14400]),
             'triggered_at' => null,
             'expires_at' => null,
             'winner_id' => null,

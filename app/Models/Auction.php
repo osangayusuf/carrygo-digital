@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'category',
     'name',
+    'price',
     'description',
     'opening_points',
     'current_points',
@@ -33,6 +34,7 @@ class Auction extends Model
     protected function casts(): array
     {
         return [
+            'price' => 'decimal:2',
             'status' => AuctionStatus::class,
             'event' => 'boolean',
             'triggered_at' => 'datetime',

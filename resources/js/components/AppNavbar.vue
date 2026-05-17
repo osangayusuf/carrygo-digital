@@ -1,198 +1,357 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Search, Menu, X } from 'lucide-vue-next';
-import NotificationBell from '@/components/NotificationBell.vue';
+import { router } from '@inertiajs/vue3';
+import { useDebounceFn } from '@vueuse/core';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { formatDate } from '@/lib/utils';
 import {
-    home,
-    login,
-    logout,
-    register,
-    trending,
-    openBids,
     eventItems,
-    winners,
-    leaderboard,
+    home,
     howToPlay,
-    wallet,
+    leaderboard,
+    login as loginShow,
+    register,
+    logout as logoutRoute,
+    openBids,
     profile,
+    tasks,
+    trending,
+    winners,
 } from '@/routes/index';
 
-const page = usePage();
-const mobileMenuOpen = ref(false);
+interface Notification {
+    id: number;
+    title: string;
+    body: string;
+    icon: string;
+    created_at: string;
+    action_route?: string;
+    action_label?: string;
+}
 
-// Two-row mobile state
-const showAllLinks = ref(false);
+const page = usePage();
+const notificationsOpen = ref(false);
+const currentPath = computed(() => page.url.split('?')[0]);
+
+const notifications = computed<Notification[]>(() => (page.props.notifications as Notification[]) ?? []);
+
+const LS_KEY = 'carrygo_read_notification_ids';
+
+function loadReadIds(): number[] {
+    try {
+        return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as number[];
+    } catch {
+        return [];
+    }
+}
+
+const readIds = ref<number[]>(loadReadIds());
+
+const unreadCount = computed(() => notifications.value.filter((n) => !readIds.value.includes(n.id)).length);
+
+function isUnread(id: number): boolean {
+    return !readIds.value.includes(id);
+}
+
+function markAllRead(): void {
+    readIds.value = notifications.value.map((n) => n.id);
+    localStorage.setItem(LS_KEY, JSON.stringify(readIds.value));
+}
+
+function toggleNotifications(): void {
+    notificationsOpen.value = !notificationsOpen.value;
+}
+
+function closeNotifications(event: MouseEvent): void {
+    const panel = document.getElementById('notification-panel');
+    const button = document.getElementById('notification-btn');
+
+    if (panel && !panel.contains(event.target as Node) && button && !button.contains(event.target as Node)) {
+        notificationsOpen.value = false;
+    }
+}
+
+onMounted(() => document.addEventListener('click', closeNotifications));
+onBeforeUnmount(() => document.removeEventListener('click', closeNotifications));
+
+const search = ref(new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('search') ?? '');
+
+function visit(extra: Record<string, string | number> = {}) {
+    const currentParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const existing: Record<string, string> = {};
+    currentParams.forEach((value, key) => {
+        existing[key] = value;
+    });
+
+    router.get(
+        currentPath.value,
+        {
+            ...existing,
+            ...(search.value ? { search: search.value } : { search: undefined }),
+            ...extra,
+        },
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+}
+
+const onSearch = useDebounceFn(() => visit({ page: 1 }), 400);
 
 const navLinks = [
-    { name: 'Trending', href: trending.url() },
-    { name: 'Open Bids', href: openBids.url() },
-    { name: 'Event Items', href: eventItems.url() },
-    { name: 'Winners', href: winners.url() },
-    { name: 'Wallet', href: wallet.url() },
-    { name: 'Leaderboard', href: leaderboard.url() },
-    { name: 'How to Play', href: howToPlay.url() },
+    { label: 'Home', href: home.url(), icon: 'pi pi-home' },
+    { label: 'Trending', href: trending.url(), icon: 'pi pi-chart-line' },
+    { label: 'Open Bids', href: openBids.url(), icon: 'pi pi-box' },
+    { label: 'Event Items', href: eventItems.url(), icon: 'pi pi-calendar' },
+    { label: 'Winners', href: winners.url(), icon: 'pi pi-history' },
+    { label: 'Leaderboard', href: leaderboard.url(), icon: 'pi pi-chart-bar' },
+    { label: 'Tasks', href: tasks.url(), icon: 'pi pi-check-square' },
+    { label: 'How to play', href: howToPlay.url(), icon: 'pi pi-question-circle' },
 ];
 
-const currentUrl = computed(() => page.url);
+const firstLineLinks = computed(() => navLinks.slice(0, 4));
+const secondLineLinks = computed(() => navLinks.slice(4));
 
-function isActive(href: string): boolean {
-    return currentUrl.value === href || currentUrl.value.startsWith(href + '?');
+const currentUser = computed(() => (page.props.auth?.user as any) ?? null);
+
+const routeMap: Record<string, any> = {
+    openBids,
+    eventItems,
+    leaderboard,
+    tasks,
+};
+
+function getNotificationLink(routeKey?: string): string | null {
+    if (!routeKey || !routeMap[routeKey]) {
+        return null;
+    }
+
+    return routeMap[routeKey].url();
+}
+
+function navItemClass(href: string): string {
+    const path = href.split('?')[0];
+    const active =
+        href !== '#' &&
+        (path === home.url()
+            ? page.url === home.url() || page.url === ''
+            : page.url.startsWith(path));
+    const base = 'font-headline px-1 py-0.5 tracking-tight transition-colors';
+
+    if (active) {
+        return `${base} border-b-2 border-primary font-extrabold text-primary`;
+    }
+
+    return `${base} font-bold text-secondary hover:text-primary`;
 }
 </script>
 
 <template>
-    <header class="bg-forest text-white shadow-md relative z-50">
-        <!-- Main Top Bar -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <Link :href="home.url()" class="text-2xl font-bold text-lemon tracking-tight">
-                        Carrygo
-                    </Link>
-                </div>
-
-                <!-- Desktop Search (Center) -->
-                <div class="hidden md:flex flex-1 justify-center px-8">
-                    <div class="relative w-full max-w-md text-gray-900">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search class="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input type="text" placeholder="Search auctions..."
-                            class="block w-full pl-10 pr-3 py-2 border border-transparent rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lemon focus:border-white sm:text-sm transition-colors">
-                    </div>
-                </div>
-
-                <!-- Desktop Right Nav -->
-                <div class="hidden md:flex items-center space-x-6">
-                    <template v-if="$page.props.auth.user">
-                        <!-- Notification Bell -->
-                        <NotificationBell />
-
-                        <!-- User Menu -->
-                        <div class="flex items-center space-x-3 border-l border-green-800 pl-6">
-                            <Link :href="wallet.url()"
-                                class="text-sm font-semibold bg-green-900 px-3 py-1.5 rounded-full hover:bg-green-800 transition">
-                                {{ $page.props.auth.user.points_balance?.toLocaleString() || '0' }} pts
-                            </Link>
-                            <Link :href="profile.url()" class="flex items-center hover:opacity-80 transition">
-                                <div
-                                    class="h-8 w-8 bg-white text-forest rounded-full flex items-center justify-center font-bold text-sm">
-                                    {{ $page.props.auth.user.name.charAt(0) }}
-                                </div>
-                            </Link>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <Link :href="login.url()" class="text-sm font-medium text-white hover:text-lemon transition">
-                            Log In
-                        </Link>
-                        <Link :href="register.url()"
-                            class="text-sm font-medium bg-lemon text-forest px-4 py-2 rounded-md hover:bg-yellow-400 transition">
-                            Sign Up
-                        </Link>
-                    </template>
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <div class="flex md:hidden items-center space-x-4">
-                    <button class="text-white hover:text-lemon">
-                        <Search class="h-6 w-6" />
-                    </button>
-                    <template v-if="$page.props.auth.user">
-                        <NotificationBell />
-                    </template>
-                    <button @click="mobileMenuOpen = !mobileMenuOpen"
-                        class="text-white hover:text-lemon focus:outline-none">
-                        <Menu v-if="!mobileMenuOpen" class="h-6 w-6" />
-                        <X v-else class="h-6 w-6" />
-                    </button>
-                </div>
+    <nav class="glass-nav sticky top-0 z-50 shadow-sm dark:shadow-none">
+        <!-- TOP BAR -->
+        <div class="bg-navy text-lemon text-xs py-1 px-4 flex items-center justify-between gap-2">
+            <div class="flex-1 overflow-hidden whitespace-nowrap">
+                <span class="inline-block animate-marquee">
+                    <i class="pi pi-bolt mr-1"></i> LIVE AUCTION: Duffel Bag @ ₦150,000 &nbsp;|&nbsp;
+                    <i class="pi pi-trophy mr-1"></i> Gucci Sunglasses – 65/3500 bids &nbsp;|&nbsp;
+                    <i class="pi pi-bolt mr-1"></i> Prada Suede Olive – 9% progress! &nbsp;|&nbsp;
+                    <i class="pi pi-gift mr-1"></i> White Fendi Shirt – ₦50,000 &nbsp;|&nbsp;
+                    <i class="pi pi-star-fill mr-1"></i> Denim Backpack – Only 40 bids so far &nbsp;|&nbsp;
+                    <i class="pi pi-send mr-1"></i> New auction drops every Monday!
+                </span>
             </div>
         </div>
 
-        <!-- Desktop Nav Links -->
-        <nav class="hidden md:block bg-green-900">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <ul class="flex space-x-8 h-12 items-center text-sm font-medium">
-                    <li>
-                        <Link :href="home.url()" class="text-white hover:text-lemon transition"
-                            :class="{ 'text-lemon': isActive(home.url()) }">Home</Link>
-                    </li>
-                    <li v-for="link in navLinks" :key="link.name">
-                        <Link :href="link.href" class="text-white hover:text-lemon transition"
-                            :class="{ 'text-lemon': isActive(link.href) }">
-                            {{ link.name }}
+        <!-- NAVBAR -->
+        <nav class="bg-white border-b-2 border-lemon shadow-md">
+            <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-x-3 md:gap-x-10 gap-y-2 py-2 sm:py-1.5 px-4">
+                <Link :href="home.url()" class="flex items-center no-underline shrink-0 order-1">
+                    <img class="h-7 sm:h-10 w-auto block" :src="`${$page.props.asset_url}logo.png`" alt="CarryGo" />
+                </Link>
+                <!-- Search: full-width second row on mobile, inline flex-1 on md+ -->
+                <div class="flex w-full md:flex-1 md:w-auto order-3 md:order-2 min-w-0">
+                    <input
+                        v-model="search"
+                        type="text"
+                        placeholder="Search luxury items, brands, auctions..."
+                        class="flex-1 border-2 border-forest border-r-0 py-1.5 sm:py-2 px-3.5 text-xs sm:text-sm font-sans rounded-l-xl outline-none min-w-0"
+                        @input="onSearch"
+                    />
+                    <button
+                        class="bg-forest text-lemon border-none py-2 px-4.5 text-sm font-bold cursor-pointer rounded-r-xl whitespace-nowrap hover:bg-forest-dark"
+                    >
+                        <i class="pi pi-search"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 md:gap-5 relative ml-auto md:ml-0 order-2 md:order-3">
+                    <button id="notification-btn" class="bg-transparent border-none cursor-pointer relative p-1.5" @click="toggleNotifications">
+                        <i class="pi pi-bell text-base sm:text-xl text-muted-green hover:text-navy transition-colors"></i>
+                        <div
+                            v-if="unreadCount > 0"
+                            class="absolute top-0 right-0 bg-ink text-lemon rounded-full w-4 h-4 text-[10px] font-extrabold flex items-center justify-center"
+                        >
+                            {{ unreadCount > 9 ? '9+' : unreadCount }}
+                        </div>
+                    </button>
+
+                    <!-- Notification Panel -->
+                    <div
+                        v-if="notificationsOpen"
+                        id="notification-panel"
+                        class="absolute top-full mt-2 right-0 md:-right-2 w-80 sm:w-96 bg-white border-2 border-lemon shadow-xl rounded-2xl z-50 overflow-hidden flex flex-col max-h-[80vh]"
+                    >
+                        <div class="flex items-center justify-between px-4 py-3 border-b-2 border-lemon bg-gray-50/50">
+                            <h3 class="font-extrabold text-navy m-0 text-sm font-headline">Notifications</h3>
+                            <button
+                                v-if="unreadCount > 0"
+                                class="text-xs text-primary font-bold bg-transparent border-none cursor-pointer hover:text-forest transition-colors p-0"
+                                @click="markAllRead"
+                            >
+                                Mark all read
+                            </button>
+                        </div>
+                        <div class="overflow-y-auto overflow-x-hidden hide-scrollbar flex-1 bg-white">
+                            <div
+                                v-if="notifications.length === 0"
+                                class="p-8 text-center text-secondary text-sm font-bold flex flex-col items-center justify-center h-full gap-2"
+                            >
+                                <i class="pi pi-check-circle text-3xl text-gray-300"></i>
+                                You're all caught up!
+                            </div>
+                            <div
+                                v-for="notification in notifications"
+                                :key="notification.id"
+                                :class="[
+                                    'px-4 py-4 border-b border-gray-100 last:border-b-0 flex gap-3.5 transition-colors',
+                                    isUnread(notification.id) ? 'bg-forest/5' : 'bg-white hover:bg-gray-50',
+                                ]"
+                            >
+                                <div class="mt-0.5 shrink-0">
+                                    <span
+                                        class="material-symbols-outlined text-2xl"
+                                        :class="isUnread(notification.id) ? 'text-forest' : 'text-gray-400'"
+                                    >
+                                        {{ notification.icon || 'notifications' }}
+                                    </span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-2 mb-1.5">
+                                        <h4
+                                            :class="[
+                                                'm-0 text-sm leading-tight font-sans',
+                                                isUnread(notification.id) ? 'font-extrabold text-navy' : 'font-bold text-secondary',
+                                            ]"
+                                        >
+                                            {{ notification.title }}
+                                        </h4>
+                                        <span class="text-[10px] text-gray-400 whitespace-nowrap font-bold shrink-0 mt-0.5">{{
+                                            formatDate(notification.created_at)
+                                        }}</span>
+                                    </div>
+                                    <p class="m-0 text-xs text-secondary leading-relaxed">{{ notification.body }}</p>
+                                    <Link
+                                        v-if="notification.action_route && getNotificationLink(notification.action_route)"
+                                        :href="getNotificationLink(notification.action_route)!"
+                                        class="inline-flex items-center gap-1 mt-2.5 text-xs font-bold text-forest hover:text-forest-dark transition-colors"
+                                        @click="notificationsOpen = false"
+                                    >
+                                        {{ notification.action_label || 'View details' }}
+                                        <i class="pi pi-arrow-right text-[10px]"></i>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <template v-if="!currentUser">
+                        <Link
+                            :href="loginShow.url()"
+                            as="button"
+                            class="bg-lemon text-navy border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber transition-colors"
+                        >
+                            Log In
                         </Link>
-                    </li>
-                </ul>
+                        <Link
+                            :href="register.url()"
+                            as="button"
+                            class="bg-navy text-lemon border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-forest transition-colors"
+                        >
+                            Register
+                        </Link>
+                    </template>
+                    <template v-else>
+                        <Link
+                            :href="profile.url()"
+                            as="button"
+                            class="bg-lemon text-navy border-none py-1.5 sm:py-2 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors"
+                        >
+                            <i class="pi pi-wallet text-sm text-forest"></i>
+                            <span class="hidden sm:inline">{{ currentUser.points_balance ?? 0 }} pts</span>
+                            <span class="sm:hidden">{{ currentUser.points_balance ?? 0 }}</span>
+                        </Link>
+                        <Link
+                            :href="logoutRoute.url()"
+                            method="post"
+                            as="button"
+                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 py-1.5 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block"
+                        >
+                            Log Out
+                        </Link>
+                        <Link
+                            :href="logoutRoute.url()"
+                            method="post"
+                            as="button"
+                            class="bg-transparent border-none text-gray-500 hover:text-navy p-1.5 cursor-pointer sm:hidden"
+                        >
+                            <i class="pi pi-sign-out text-sm sm:text-xl"></i>
+                        </Link>
+                    </template>
+                </div>
             </div>
         </nav>
 
-        <!-- Mobile Menu Panel -->
-        <div v-show="mobileMenuOpen" class="md:hidden bg-forest border-t border-green-800">
-            <!-- Mobile Two-Row Layout -->
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <button @click="showAllLinks = !showAllLinks"
-                    class="w-full text-left text-white px-3 py-2 rounded-md font-medium text-sm flex justify-between items-center bg-green-900">
-                    <span>Menu Navigation</span>
-                    <span class="text-xs opacity-70">{{ showAllLinks ? 'Hide' : 'View All' }}</span>
-                </button>
-
-                <div class="grid grid-cols-2 gap-2 mt-2">
-                    <Link :href="home.url()"
-                        class="text-white hover:bg-green-800 hover:text-lemon px-3 py-2 rounded-md text-sm font-medium">
-                        Home
-                    </Link>
-                    <Link v-for="link in navLinks.slice(0, 3)" :key="link.name" :href="link.href"
-                        class="text-white hover:bg-green-800 hover:text-lemon px-3 py-2 rounded-md text-sm font-medium">
-                        {{ link.name }}
-                    </Link>
-                </div>
-
-                <div v-show="showAllLinks" class="grid grid-cols-2 gap-2 mt-2 border-t border-green-800 pt-2">
-                    <Link v-for="link in navLinks.slice(3)" :key="link.name" :href="link.href"
-                        class="text-white hover:bg-green-800 hover:text-lemon px-3 py-2 rounded-md text-sm font-medium">
-                        {{ link.name }}
-                    </Link>
-                </div>
+        <!-- SUB NAV -->
+        <div class="bg-navy relative">
+            <!-- Desktop View -->
+            <div class="hidden md:flex max-w-7xl mx-auto items-center min-w-full gap-1 justify-between overflow-x-auto hide-scrollbar">
+                <a
+                    v-for="link in navLinks"
+                    :key="link.label"
+                    :href="link.href"
+                    :class="['text-white no-underline py-2 px-4 text-sm whitespace-nowrap block mx-auto hover:bg-lemon/18 hover:text-white cursor-pointer', navItemClass(link.href)]"
+                >
+                    <i v-if="link.icon" :class="[link.icon, 'mr-1']"></i> {{ link.label }}
+                </a>
             </div>
 
-            <div class="pt-4 pb-3 border-t border-green-800" v-if="$page.props.auth.user">
-                <div class="flex items-center px-5">
-                    <div class="shrink-0">
-                        <div
-                            class="h-10 w-10 bg-white text-forest rounded-full flex items-center justify-center font-bold">
-                            {{ $page.props.auth.user.name.charAt(0) }}
-                        </div>
-                    </div>
-                    <div class="ml-3">
-                        <div class="text-base font-medium text-white">{{ $page.props.auth.user.name }}</div>
-                        <div class="text-sm font-medium text-lemon">{{
-                            $page.props.auth.user.points_balance?.toLocaleString() || '0' }} pts</div>
-                    </div>
+            <!-- Mobile View -->
+            <div class="md:hidden w-full flex flex-col">
+                <div class="flex items-center w-full justify-between px-1">
+                    <a
+                        v-for="link in firstLineLinks"
+                        :key="link.label"
+                        :href="link.href"
+                        :class="[
+                            'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
+                            navItemClass(link.href),
+                        ]"
+                    >
+                        {{ link.label }}
+                    </a>
                 </div>
-                <div class="mt-3 px-2 space-y-1">
-                    <Link :href="profile.url()"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-white hover:text-lemon hover:bg-green-800">
-                        Profile</Link>
-                    <Link :href="logout.url()" method="post" as="button"
-                        class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white hover:text-lemon hover:bg-green-800">
-                        Log Out</Link>
-                </div>
-            </div>
-            <div class="pt-4 pb-3 border-t border-green-800" v-else>
-                <div class="px-5 space-y-2">
-                    <Link :href="login.url()"
-                        class="block w-full text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-900 hover:bg-green-800">
-                        Log In</Link>
-                    <Link :href="register.url()"
-                        class="block w-full text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-forest bg-lemon hover:bg-yellow-400">
-                        Sign Up</Link>
+                <div class="flex items-center w-full justify-between px-1 bg-navy/90 border-t border-white/10">
+                    <a
+                        v-for="link in secondLineLinks"
+                        :key="link.label"
+                        :href="link.href"
+                        :class="[
+                            'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
+                            navItemClass(link.href),
+                        ]"
+                    >
+                        {{ link.label }}
+                    </a>
                 </div>
             </div>
         </div>
-    </header>
+        <div class="absolute bottom-0 h-px w-full bg-linear-to-r from-transparent via-primary/20 to-transparent" />
+    </nav>
 </template>
