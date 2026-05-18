@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { computed, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import BidCard from '@/components/cards/BidCard.vue';
-import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
+import HomeBidItemsSection from '@/components/home/HomeBidItemsSection.vue';
 import HomeEventPopup from '@/components/home/HomeEventPopup.vue';
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue';
 import HomePromoSection from '@/components/home/HomePromoSection.vue';
@@ -74,7 +74,11 @@ const props = defineProps<{
     eventPopupBid?: Bid | null;
 }>();
 
-const { restorePendingBid } = usePlaceBidModal();
+const bidItemsSectionRef = ref<InstanceType<typeof HomeBidItemsSection> | null>(null);
+
+function openBidModal(bid: Bid): void {
+    bidItemsSectionRef.value?.openBidModal(bid);
+}
 
 const hasActiveSearch = computed(() => Boolean(props.search?.trim()));
 
@@ -110,32 +114,6 @@ const hasAnyBids = computed(() => {
     return false;
 });
 
-function collectAllBids(): Bid[] {
-    const bids: Bid[] = [
-        ...(props.bids ?? []),
-        ...(props.trendingBids ?? []),
-        ...(props.recentlyAddedBids ?? []),
-        ...(props.openBids ?? []),
-        ...(props.luxuryBids ?? []),
-    ];
-
-    if (props.categoryBids) {
-        for (const categoryBids of Object.values(props.categoryBids)) {
-            bids.push(...categoryBids);
-        }
-    }
-
-    if (props.eventPopupBid) {
-        bids.push(props.eventPopupBid);
-    }
-
-    return bids;
-}
-
-onMounted(() => {
-    restorePendingBid(collectAllBids(), props.userPoints ?? null);
-});
-
 const getCategoryIcon = (category: string): string => {
     const map: Record<string, string> = {
         Appliances: 'kitchen',
@@ -166,7 +144,18 @@ const getCategoryIcon = (category: string): string => {
     <Head title="Home" />
 
     <HomeWinnerPopup v-if="props.winnerPopup" :winner="props.winnerPopup" />
-    <HomeEventPopup v-if="props.eventPopupBid" :bid="props.eventPopupBid" :user-points="props.userPoints ?? null" />
+    <HomeEventPopup
+        v-if="props.eventPopupBid"
+        :bid="props.eventPopupBid"
+        @open-bid-modal="openBidModal"
+    />
+
+    <HomeBidItemsSection
+        ref="bidItemsSectionRef"
+        :bids="props.bids ?? []"
+        :user-points="props.userPoints ?? null"
+        class="hidden"
+    />
 
     <div class="overflow-x-hidden text-left bg-sage-bg text-ink font-sans">
         <HomeHeroSection :get-category-icon="getCategoryIcon" />
