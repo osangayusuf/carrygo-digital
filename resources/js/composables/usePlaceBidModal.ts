@@ -1,7 +1,7 @@
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { store as storeBid } from '@/actions/App/Http/Controllers/BidController';
-import type { Bid } from '@/pages/Home/Index.vue';
+import type { Bid } from '@/types/auction';
 import { login } from '@/routes/index';
 
 const activeBid = ref<Bid | null>(null);

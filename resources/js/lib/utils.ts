@@ -3,7 +3,7 @@ import { useNow } from '@vueuse/core';
 import { clsx } from 'clsx';
 import type { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { Bid } from '@/pages/Home/Index.vue';
+import type { Bid } from '@/types/auction';
 
 const now = useNow();
 
@@ -58,6 +58,19 @@ export function getRemainingTime(expiresAt: string | null | undefined): string {
     const minutes = totalMinutes % 60;
 
     return `${hours} hour(s), ${minutes} minute(s)`;
+}
+
+export function maskedMsisdnParts(msisdn: string): { prefix: string; suffix: string } {
+    const digits = msisdn.replace(/\D/g, '');
+
+    if (digits.length < 7) {
+        return { prefix: '', suffix: '' };
+    }
+
+    return {
+        prefix: `+${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
+        suffix: digits.slice(-4),
+    };
 }
 
 export function formatMsisdn(msisdn: string): string {

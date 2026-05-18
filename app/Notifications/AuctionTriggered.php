@@ -43,6 +43,7 @@ class AuctionTriggered extends Notification implements ShouldQueue
     {
         return [
             'type' => 'auction_triggered',
+            'title' => "Countdown started for \"{$this->auction->name}\"! Timer ends at {$this->auction->expires_at->format('H:i')}.",
             'auction_id' => $this->auction->id,
             'expires_at' => $this->auction->expires_at->toIso8601String(),
             'message' => "Countdown started for \"{$this->auction->name}\"! Timer ends at {$this->auction->expires_at->format('H:i')}.",

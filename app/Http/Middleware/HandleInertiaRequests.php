@@ -52,7 +52,7 @@ class HandleInertiaRequests extends Middleware
                     ->map(fn ($n) => [
                         'id' => $n->id,
                         'title' => $n->data['title'] ?? '',
-                        'body' => $n->data['body'] ?? '',
+                        'body' => $n->data['message'] ?? '',
                         'icon' => $n->data['icon'] ?? 'notifications',
                         'created_at' => $n->created_at->toISOString(),
                         'action_route' => $n->data['action_route'] ?? null,

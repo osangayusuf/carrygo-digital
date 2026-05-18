@@ -1,9 +1,20 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+
+uses(RefreshDatabase::class);
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+
+test('legacy settings security url redirects to security page', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/settings/security')
+        ->assertRedirect(route('security.edit'));
+});
 
 test('security page is displayed', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
@@ -19,7 +30,7 @@ test('security page is displayed', function () {
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
         ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security')
+            ->component('Security/Index')
             ->where('canManageTwoFactor', true)
             ->where('twoFactorEnabled', false),
         );
@@ -55,7 +66,7 @@ test('security page does not require password confirmation when disabled', funct
         ->get(route('security.edit'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security'),
+            ->component('Security/Index'),
         );
 });
 
@@ -70,7 +81,7 @@ test('security page renders without two factor when feature is disabled', functi
         ->get(route('security.edit'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security')
+            ->component('Security/Index')
             ->where('canManageTwoFactor', false)
             ->missing('twoFactorEnabled')
             ->missing('requiresConfirmation'),

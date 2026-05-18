@@ -43,11 +43,12 @@ class PaymentConfirmed extends Notification implements ShouldQueue
     {
         return [
             'type' => 'payment_confirmed',
+            'title' => "₦{$this->transaction->naira_amount} deposited — {$this->transaction->amount} pts credited to your account.",
+            'url' => '/wallet',
             'amount' => $this->transaction->amount,
             'naira_amount' => $this->transaction->naira_amount,
             'reference' => $this->transaction->provider_reference,
             'message' => "₦{$this->transaction->naira_amount} deposited — {$this->transaction->amount} pts credited to your account.",
-            'url' => '/wallet',
         ];
     }
 }

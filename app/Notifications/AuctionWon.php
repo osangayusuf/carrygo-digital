@@ -42,6 +42,7 @@ class AuctionWon extends Notification implements ShouldQueue
     {
         return [
             'type' => 'auction_won',
+            'title' => "Congratulations! You won the auction for \"{$this->auction->name}\".",
             'auction_id' => $this->auction->id,
             'message' => "Congratulations! You won the auction for \"{$this->auction->name}\".",
             'url' => '/auctions/'.$this->auction->id,

@@ -34,6 +34,7 @@ class BidPlaced extends Notification implements ShouldQueue
     {
         return [
             'type' => 'bid_placed',
+            'title' => "Your bid of {$this->bid->amount} pts on \"{$this->auction->name}\" was placed.",
             'auction_id' => $this->auction->id,
             'bid_id' => $this->bid->id,
             'amount' => $this->bid->amount,

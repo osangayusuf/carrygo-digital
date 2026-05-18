@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { getRemainingTime } from '@/lib/utils';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
-import type { Bid } from '@/pages/Home/Index.vue';
+import type { Bid } from '@/types/auction';
 
 const props = defineProps<{
     bid: Bid;

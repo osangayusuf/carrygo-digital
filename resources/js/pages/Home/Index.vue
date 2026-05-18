@@ -12,29 +12,11 @@ import HomeWinnersSection from '@/components/home/HomeWinnersSection.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatPrice, formatMsisdn, getDaysAgo } from '@/lib/utils';
 import { trending, openBids as openBidsRoute, tasks } from '@/routes/index';
+import type { Bid } from '@/types/auction';
 
 defineOptions({ layout: PublicLayout });
 
-export type Bidder = {
-    msisdn: string;
-    total_points: string;
-};
-
-export type Bid = {
-    id: number;
-    name: string;
-    image: string | null;
-    url: string;
-    price: string;
-    opening_points: number;
-    rating: string | null;
-    open_date: number;
-    status: 0 | 1 | 2;
-    created_at: string;
-    current_points: number | null;
-    expires_at: string | null;
-    top_bidders?: Bidder[];
-};
+export type { Bid, Bidder } from '@/types/auction';
 
 export type Winner = {
     id: number;

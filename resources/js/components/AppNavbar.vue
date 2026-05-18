@@ -248,7 +248,7 @@ function navItemClass(href: string): string {
                                             formatDate(notification.created_at)
                                         }}</span>
                                     </div>
-                                    <p class="m-0 text-xs text-secondary leading-relaxed">{{ notification.body }}</p>
+                                    <p :class="['m-0 text-xs leading-relaxed', isUnread(notification.id) ? 'text-navy' : 'text-secondary']">{{ notification.body }}</p>
                                     <Link
                                         v-if="notification.action_route && getNotificationLink(notification.action_route)"
                                         :href="getNotificationLink(notification.action_route)!"

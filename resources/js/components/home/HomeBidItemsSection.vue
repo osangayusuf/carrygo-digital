@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import BidCard from '@/components/cards/BidCard.vue';
-import type { Bid } from '@/pages/Home/Index.vue';
+import type { Bid } from '@/types/auction';
 import { trending } from '@/routes/index';
 
 defineProps<{

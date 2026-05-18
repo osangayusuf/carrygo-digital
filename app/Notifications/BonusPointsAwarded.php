@@ -31,6 +31,7 @@ class BonusPointsAwarded extends Notification implements ShouldQueue
     {
         return [
             'type' => 'bonus_points_awarded',
+            'title' => "{$this->transaction->amount} bonus pts have been added to your account.",
             'amount' => $this->transaction->amount,
             'message' => "{$this->transaction->amount} bonus pts have been added to your account.",
             'url' => '/wallet',

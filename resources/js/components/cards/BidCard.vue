@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
-import type { Bid } from '@/pages/Home/Index.vue';
+import type { Bid } from '@/types/auction';
 
 const props = defineProps<{
     bid: Bid;

@@ -79,4 +79,11 @@ class AuctionFactory extends Factory
             'winner_id' => $winner->id,
         ]);
     }
+
+    public function event(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'event' => true,
+        ]);
+    }
 }
