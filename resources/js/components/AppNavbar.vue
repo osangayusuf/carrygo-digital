@@ -176,7 +176,9 @@ function navItemClass(href: string): string {
                         @input="onSearch"
                     />
                     <button
+                        type="button"
                         class="bg-forest text-lemon border-none py-2 px-4.5 text-sm font-bold cursor-pointer rounded-r-xl whitespace-nowrap hover:bg-forest-dark"
+                        @click="onSearch"
                     >
                         <i class="pi pi-search"></i>
                     </button>
@@ -281,7 +283,7 @@ function navItemClass(href: string): string {
                         <Link
                             :href="profile.url()"
                             as="button"
-                            class="bg-lemon text-navy border-none py-1.5 sm:py-2 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors"
+                            class="bg-lemon text-navy border-none md:h-12 h-10 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors"
                         >
                             <i class="pi pi-wallet text-sm text-forest"></i>
                             <span class="hidden sm:inline">{{ currentUser.points_balance ?? 0 }} pts</span>
@@ -291,7 +293,7 @@ function navItemClass(href: string): string {
                             :href="logoutRoute.url()"
                             method="post"
                             as="button"
-                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 py-1.5 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block"
+                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 md:h-12 h-10 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block"
                         >
                             Log Out
                         </Link>
@@ -299,7 +301,7 @@ function navItemClass(href: string): string {
                             :href="logoutRoute.url()"
                             method="post"
                             as="button"
-                            class="bg-transparent border-none text-gray-500 hover:text-navy p-1.5 cursor-pointer sm:hidden"
+                            class="bg-transparent border-none text-gray-500 hover:text-navy md:h-12 h-10 px-3 md:px-4 rounded-xl cursor-pointer sm:hidden"
                         >
                             <i class="pi pi-sign-out text-sm sm:text-xl"></i>
                         </Link>

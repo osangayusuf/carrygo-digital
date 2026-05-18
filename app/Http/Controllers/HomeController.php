@@ -5,91 +5,64 @@ namespace App\Http\Controllers;
 use App\Enums\AuctionStatus;
 use App\Models\Auction;
 use App\Models\Review;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->filled('search')
+            ? trim($request->string('search')->toString())
+            : null;
+
         return Inertia::render('Home/Index', [
+            'search' => $search,
             'userPoints' => auth()->user()?->points_balance,
 
             'winnerPopup' => $this->resolveWinnerPopup(),
 
             'eventPopupBid' => $this->resolveEventPopupBid(),
 
-            'categories' => Inertia::defer(function () {
-                return Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                    ->select('category')
-                    ->distinct()
-                    ->pluck('category')
-                    ->filter()
-                    ->values();
-            }),
+            'categories' => Inertia::defer(fn () => $this->categoriesQuery()
+                ->pluck('category')
+                ->filter()
+                ->values()),
 
-            'bids' => Inertia::defer(function () {
-                return Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                    ->orderBy('created_at', 'desc')
-                    ->limit(8)
-                    ->get()
-                    ->map(fn (Auction $auction) => $this->mapAuction($auction));
-            }),
+            'bids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
+                ->orderBy('created_at', 'desc')
+                ->limit(8)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
-            'trendingBids' => Inertia::defer(function () {
-                return Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                    ->orderBy('bid_count', 'desc')
-                    ->limit(10)
-                    ->get()
-                    ->map(fn (Auction $auction) => $this->mapAuction($auction));
-            }),
+            'trendingBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
+                ->orderBy('bid_count', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
-            'recentlyAddedBids' => Inertia::defer(function () {
-                return Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                    ->orderBy('created_at', 'desc')
-                    ->limit(10)
-                    ->get()
-                    ->map(fn (Auction $auction) => $this->mapAuction($auction));
-            }),
+            'recentlyAddedBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
-            'openBids' => Inertia::defer(function () {
-                return Auction::where('status', AuctionStatus::TRIGGERED)
-                    ->orderBy('expires_at', 'asc')
-                    ->limit(4)
-                    ->get()
-                    ->map(fn (Auction $auction) => $this->mapAuction($auction));
-            }),
+            'openBids' => Inertia::defer(fn () => Auction::query()
+                ->where('status', AuctionStatus::TRIGGERED)
+                ->search($search)
+                ->orderBy('expires_at', 'asc')
+                ->limit(4)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
-            'luxuryBids' => Inertia::defer(function () {
-                return Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                    ->orderBy('price', 'desc')
-                    ->limit(10)
-                    ->get()
-                    ->map(fn (Auction $auction) => $this->mapAuction($auction));
-            }),
+            'luxuryBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
+                ->orderBy('price', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
-            'categoryBids' => Inertia::defer(function () {
-                $categories = Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                    ->select('category')
-                    ->distinct()
-                    ->pluck('category')
-                    ->filter()
-                    ->values();
-
-                $selected = $categories->shuffle()->take(5);
-
-                $result = [];
-
-                foreach ($selected as $category) {
-                    $result[$category] = Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
-                        ->where('category', $category)
-                        ->orderBy('created_at', 'desc')
-                        ->limit(10)
-                        ->get()
-                        ->map(fn (Auction $auction) => $this->mapAuction($auction));
-                }
-
-                return $result;
-            }),
+            'categoryBids' => Inertia::defer(fn () => $this->resolveCategoryBids($search)),
 
             'winners' => Inertia::defer(function () {
                 return Auction::where('status', AuctionStatus::CLOSED)
@@ -138,6 +111,53 @@ class HomeController extends Controller
                     ]);
             }),
         ]);
+    }
+
+    /**
+     * @return Builder<Auction>
+     */
+    private function activeAuctionsQuery(?string $search): Builder
+    {
+        return Auction::query()
+            ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->search($search);
+    }
+
+    /**
+     * @return Builder<Auction>
+     */
+    private function categoriesQuery(): Builder
+    {
+        return Auction::query()->select('category')->distinct();
+    }
+
+    /**
+     * @return array<string, list<array<string, mixed>>>
+     */
+    private function resolveCategoryBids(?string $search): array
+    {
+        $categories = $this->categoriesQuery($search)
+            ->pluck('category')
+            ->filter()
+            ->values();
+
+        if (blank($search)) {
+            $categories = $categories->shuffle()->take(5);
+        }
+
+        $result = [];
+
+        foreach ($categories as $category) {
+            $result[$category] = $this->activeAuctionsQuery($search)
+                ->where('category', $category)
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))
+                ->all();
+        }
+
+        return $result;
     }
 
     private function mapAuction(Auction $auction): array

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AuctionStatus;
 use Database\Factories\AuctionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,5 +51,24 @@ class Auction extends Model
     public function winner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'winner_id');
+    }
+
+    /**
+     * @param  Builder<Auction>  $query
+     * @return Builder<Auction>
+     */
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        if (blank($term)) {
+            return $query;
+        }
+
+        $like = '%'.addcslashes($term, '%_\\').'%';
+
+        return $query->where(function (Builder $q) use ($like): void {
+            $q->where('name', 'like', $like)
+                ->orWhere('category', 'like', $like)
+                ->orWhere('description', 'like', $like);
+        });
     }
 }

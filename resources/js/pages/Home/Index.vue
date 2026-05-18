@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, onMounted } from 'vue';
 import BidCard from '@/components/cards/BidCard.vue';
-import HomeBidItemsSection from '@/components/home/HomeBidItemsSection.vue';
+import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import HomeEventPopup from '@/components/home/HomeEventPopup.vue';
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue';
 import HomePromoSection from '@/components/home/HomePromoSection.vue';
@@ -58,6 +58,7 @@ export type Review = {
 };
 
 const props = defineProps<{
+    search?: string | null;
     heroBid?: Bid | null;
     bids?: Bid[];
     trendingBids?: Bid[];
@@ -73,13 +74,67 @@ const props = defineProps<{
     eventPopupBid?: Bid | null;
 }>();
 
-const bidItemsSectionRef = ref<InstanceType<typeof HomeBidItemsSection> | null>(null);
+const { restorePendingBid } = usePlaceBidModal();
 
-function openBidModal(bid: Bid) {
-    if (bidItemsSectionRef.value) {
-        bidItemsSectionRef.value.openBidModal(bid);
+const hasActiveSearch = computed(() => Boolean(props.search?.trim()));
+
+const hasAnyBids = computed(() => {
+    if ((props.bids?.length ?? 0) > 0) {
+        return true;
     }
+
+    if ((props.trendingBids?.length ?? 0) > 0) {
+        return true;
+    }
+
+    if ((props.recentlyAddedBids?.length ?? 0) > 0) {
+        return true;
+    }
+
+    if ((props.openBids?.length ?? 0) > 0) {
+        return true;
+    }
+
+    if ((props.luxuryBids?.length ?? 0) > 0) {
+        return true;
+    }
+
+    if (props.categoryBids) {
+        for (const bids of Object.values(props.categoryBids)) {
+            if (bids.length > 0) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+});
+
+function collectAllBids(): Bid[] {
+    const bids: Bid[] = [
+        ...(props.bids ?? []),
+        ...(props.trendingBids ?? []),
+        ...(props.recentlyAddedBids ?? []),
+        ...(props.openBids ?? []),
+        ...(props.luxuryBids ?? []),
+    ];
+
+    if (props.categoryBids) {
+        for (const categoryBids of Object.values(props.categoryBids)) {
+            bids.push(...categoryBids);
+        }
+    }
+
+    if (props.eventPopupBid) {
+        bids.push(props.eventPopupBid);
+    }
+
+    return bids;
 }
+
+onMounted(() => {
+    restorePendingBid(collectAllBids(), props.userPoints ?? null);
+});
 
 const getCategoryIcon = (category: string): string => {
     const map: Record<string, string> = {
@@ -111,20 +166,30 @@ const getCategoryIcon = (category: string): string => {
     <Head title="Home" />
 
     <HomeWinnerPopup v-if="props.winnerPopup" :winner="props.winnerPopup" />
-    <HomeEventPopup v-if="props.eventPopupBid" :bid="props.eventPopupBid" @open-bid-modal="openBidModal" />
-
-    <!-- Hidden — provides the bid modal for all BidCard sections -->
-    <HomeBidItemsSection ref="bidItemsSectionRef" :bids="props.bids ?? []" :user-points="props.userPoints ?? null"
-        class="hidden" />
+    <HomeEventPopup v-if="props.eventPopupBid" :bid="props.eventPopupBid" :user-points="props.userPoints ?? null" />
 
     <div class="overflow-x-hidden text-left bg-sage-bg text-ink font-sans">
         <HomeHeroSection :get-category-icon="getCategoryIcon" />
+
+        <div
+            v-if="hasActiveSearch && !hasAnyBids"
+            class="max-w-[1300px] mx-auto mt-4 mb-2 px-4"
+        >
+            <div class="rounded-xl border-2 border-sage-border-dark bg-white px-6 py-10 text-center shadow-sm">
+                <span class="material-symbols-outlined mb-3 text-5xl text-muted-green">search_off</span>
+                <p class="font-condensed text-xl font-extrabold text-ink">No auctions found</p>
+                <p class="mt-2 text-sm text-muted-green">
+                    Nothing matched "<span class="font-bold text-ink">{{ props.search }}</span>". Try a different keyword or
+                    browse all categories below.
+                </p>
+            </div>
+        </div>
 
         <!-- PRODUCT STRIP -->
         <div class="max-w-[1300px] mx-auto mt-2.5 px-4 grid gap-2.5 grid-cols-2 md:grid-cols-5"
             v-if="props.bids && props.bids.length > 0">
             <BidCard v-for="bid in props.bids.slice(0, 8)" :key="bid.id" :bid="bid"
-                @open-bid-modal="openBidModal" />
+                :user-points="props.userPoints ?? null" />
         </div>
 
         <!-- LIVE TICKER -->
@@ -172,7 +237,7 @@ const getCategoryIcon = (category: string): string => {
             </div>
             <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
                 <BidCard v-for="bid in props.trendingBids.slice(0, 10)" :key="bid.id" :bid="bid"
-                    @open-bid-modal="openBidModal" />
+                    :user-points="props.userPoints ?? null" />
             </div>
         </div>
 
@@ -189,7 +254,7 @@ const getCategoryIcon = (category: string): string => {
             </div>
             <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
                 <BidCard v-for="bid in props.recentlyAddedBids.slice(0, 10)" :key="bid.id" :bid="bid"
-                    @open-bid-modal="openBidModal" />
+                    :user-points="props.userPoints ?? null" />
             </div>
         </div>
 
@@ -247,7 +312,7 @@ const getCategoryIcon = (category: string): string => {
             </div>
             <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
                 <BidCard v-for="bid in props.openBids.slice(0, 4)" :key="bid.id" :bid="bid"
-                    @open-bid-modal="openBidModal" />
+                    :user-points="props.userPoints ?? null" />
             </div>
         </div>
 
@@ -263,9 +328,36 @@ const getCategoryIcon = (category: string): string => {
             </div>
             <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
                 <BidCard v-for="bid in props.luxuryBids.slice(0, 10)" :key="bid.id" :bid="bid"
-                    @open-bid-modal="openBidModal" />
+                    :user-points="props.userPoints ?? null" />
             </div>
         </div>
+
+                <!-- TRUST BAR -->
+        <div class="bg-navy border-y-2 border-lemon py-4.5 px-4 mb-5">
+            <div class="max-w-[1300px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-5 text-center">
+                <div>
+                    <div class="text-[26px] mb-1.5"><span class="pi pi-bolt text-white"></span></div>
+                    <div class="text-sm font-extrabold text-lemon">Fast Delivery</div>
+                    <div class="text-xs text-[#8aaa80]">Winners receive items within 3–5 working days nationwide</div>
+                </div>
+                <div>
+                    <div class="text-[26px] mb-1.5"><span class="pi pi-lock text-white"></span></div>
+                    <div class="text-sm font-extrabold text-lemon">Secure Payments</div>
+                    <div class="text-xs text-[#8aaa80]">All transactions protected with bank-grade encryption</div>
+                </div>
+                <div>
+                    <div class="text-[26px] mb-1.5"><span class="pi pi-verified text-white"></span></div>
+                    <div class="text-sm font-extrabold text-lemon">Verified Winners</div>
+                    <div class="text-xs text-[#8aaa80]">Every winner is verified before item dispatch</div>
+                </div>
+                <div>
+                    <div class="text-[26px] mb-1.5"><span class="pi pi-headphones text-white"></span></div>
+                    <div class="text-sm font-extrabold text-lemon">24/7 Support</div>
+                    <div class="text-xs text-[#8aaa80]">Our team is available round-the-clock for assistance</div>
+                </div>
+            </div>
+        </div>
+
 
         <!-- CATEGORY BIDS -->
         <template v-if="props.categoryBids">
@@ -284,7 +376,7 @@ const getCategoryIcon = (category: string): string => {
                             class="text-forest text-sm font-bold hover:underline">View All →</Link>
                     </div>
                     <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
-                        <BidCard v-for="bid in bids" :key="bid.id" :bid="bid" @open-bid-modal="openBidModal" />
+                        <BidCard v-for="bid in bids" :key="bid.id" :bid="bid" :user-points="props.userPoints ?? null" />
                     </div>
                 </template>
             </div>
@@ -361,32 +453,6 @@ const getCategoryIcon = (category: string): string => {
                             class="mt-2.5 bg-[#e8f5e0] text-forest text-xs font-bold px-2.5 py-1 rounded-md inline-block">Item:
                             {{ review.bid?.name || 'Luxury Item' }}</span>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TRUST BAR -->
-        <div class="bg-navy border-y-2 border-lemon py-4.5 px-4 mb-5">
-            <div class="max-w-[1300px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-5 text-center">
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-bolt text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">Fast Delivery</div>
-                    <div class="text-xs text-[#8aaa80]">Winners receive items within 3–5 working days nationwide</div>
-                </div>
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-lock text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">Secure Payments</div>
-                    <div class="text-xs text-[#8aaa80]">All transactions protected with bank-grade encryption</div>
-                </div>
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-verified text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">Verified Winners</div>
-                    <div class="text-xs text-[#8aaa80]">Every winner is verified before item dispatch</div>
-                </div>
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-headphones text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">24/7 Support</div>
-                    <div class="text-xs text-[#8aaa80]">Our team is available round-the-clock for assistance</div>
                 </div>
             </div>
         </div>
