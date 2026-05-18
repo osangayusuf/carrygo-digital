@@ -267,7 +267,7 @@ function submitBid() {
                             <label class="mb-2 block text-xs font-bold tracking-widest text-outline uppercase">Bid
                                 Points</label>
                             <input v-model="form.points" type="number" required min="1"
-                                class="w-full rounded-2xl border border-surface-container bg-surface-container-low px-4 py-3 text-lg font-bold focus:border-primary focus:ring-2 focus:ring-primary-container disabled:opacity-50"
+                                class="w-full rounded-2xl border border-surface-container bg-surface-container-low text-black px-4 py-3 text-lg font-bold focus:border-primary focus:ring-2 focus:ring-primary-container disabled:opacity-50"
                                 :disabled="form.processing" />
                             <p v-if="form.errors.points" class="mt-2 text-xs font-bold text-error">
                                 {{ form.errors.points }}

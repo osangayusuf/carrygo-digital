@@ -5,25 +5,34 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PlaceBidRequest;
 use App\Models\Auction;
 use App\Services\BiddingService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use InvalidArgumentException;
 
 class BidController extends Controller
 {
     public function __construct(private readonly BiddingService $biddingService) {}
 
-    public function store(PlaceBidRequest $request, Auction $auction): JsonResponse
+    public function store(PlaceBidRequest $request, Auction $auction): RedirectResponse
     {
-        $bid = $this->biddingService->placeBid(
-            user: $request->user(),
-            auction: $auction,
-            amount: $request->validated('amount'),
-        );
+        try {
+            $this->biddingService->placeBid(
+                user: $request->user(),
+                auction: $auction,
+                points: $request->validated('points'),
+            );
+        } catch (InvalidArgumentException $exception) {
+            throw ValidationException::withMessages([
+                'points' => $exception->getMessage(),
+            ]);
+        }
 
-        return response()->json([
-            'bid' => $bid,
-            'auction' => $auction->refresh()->only([
-                'id', 'status', 'current_points', 'bid_count', 'expires_at', 'winner_id',
-            ]),
-        ], 201);
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Bid placed successfully!',
+        ]);
+
+        return back();
     }
 }

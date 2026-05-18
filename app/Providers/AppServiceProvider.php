@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureRateLimiters(): void
     {
-        RateLimiter::for('bid', fn (Request $request) => Limit::perSeconds(5)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('bid', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
     }
 
     /**

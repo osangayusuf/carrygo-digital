@@ -324,3 +324,48 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* CarryGo toast — vue-sonner */
+.carrygo-toaster [data-sonner-toast] {
+    @apply rounded-2xl border-2 border-lemon bg-navy px-5 py-4 font-body text-white shadow-[0_12px_40px_rgba(13,27,42,0.45)];
+}
+
+.carrygo-toaster [data-sonner-toast][data-type='success'] {
+    @apply border-lemon;
+}
+
+.carrygo-toaster [data-sonner-toast][data-type='error'] {
+    @apply border-error bg-[#2a0f0f];
+}
+
+.carrygo-toaster [data-sonner-toast][data-type='warning'] {
+    @apply border-amber bg-[#2a2610];
+}
+
+.carrygo-toaster [data-sonner-toast][data-type='info'] {
+    @apply border-sage-border bg-forest;
+}
+
+.carrygo-toast__title {
+    @apply text-sm font-extrabold tracking-wide text-lemon;
+}
+
+.carrygo-toaster [data-sonner-toast] [data-description] {
+    @apply text-xs font-semibold text-white/85;
+}
+
+.carrygo-toast__icon {
+    @apply text-lemon;
+}
+
+.carrygo-toaster [data-sonner-toast][data-type='error'] .carrygo-toast__icon {
+    @apply text-error;
+}
+
+.carrygo-toaster [data-sonner-toast][data-type='warning'] .carrygo-toast__icon {
+    @apply text-amber;
+}
+
+.carrygo-toast__close {
+    @apply border border-white/20 bg-white/10 text-white transition-colors hover:bg-white/20;
+}

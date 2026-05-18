@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/vue3';
-import { toast } from 'vue-sonner';
+import { appToast } from '@/lib/appToast';
 import type { FlashToast } from '@/types/ui';
 
 export function initializeFlashToast(): void {
@@ -11,6 +11,6 @@ export function initializeFlashToast(): void {
             return;
         }
 
-        toast[data.type](data.message);
+        appToast.show(data);
     });
 }

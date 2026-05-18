@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
 import type { Bid } from '@/pages/Home/Index.vue';
 
-const props = defineProps<{ bid: Bid }>();
+const props = defineProps<{
+    bid: Bid;
+    userPoints?: number | null;
+}>();
 
-if (props.bid.status === 1) {
-    console.log(props.bid.expires_at);
-    console.log(getRemainingTime(props.bid.expires_at));
-}
-
-const emit = defineEmits(['open-bid-modal']);
-
+const { open } = usePlaceBidModal();
 const expandedImage = ref<string | null>(null);
 
-function openBidModal(bid: Bid) {
-    emit('open-bid-modal', bid);
+function openBidModal(): void {
+    open(props.bid, props.userPoints ?? null);
 }
-
 
 function buttonLabel(bid: Bid): string {
     if (bid.status === 2) {
@@ -42,6 +39,10 @@ function buttonLabel(bid: Bid): string {
                 <span v-if="bid.status === 0"
                     class="rounded-lg bg-navy px-2 py-1 text-[9px] font-black tracking-widest text-lemon uppercase shadow-lg sm:px-3 sm:text-[10px]">
                     Live
+                </span>
+                <span v-else-if="bid.status === 1"
+                    class="rounded-lg bg-navy px-2 py-1 text-[9px] font-black tracking-widest text-lemon uppercase shadow-lg sm:px-3 sm:text-[10px]">
+                    Open
                 </span>
                 <span v-else-if="bid.status === 2"
                     class="rounded-lg bg-error px-2 py-1 text-[9px] font-black tracking-widest text-white uppercase shadow-lg sm:px-3 sm:text-[10px]">
@@ -72,7 +73,7 @@ function buttonLabel(bid: Bid): string {
             </div>
             <button type="button" :disabled="bid.status === 2"
                 class="w-full bg-navy text-lemon p-2 rounded-md text-xs font-extrabold mt-auto hover:bg-forest transition-colors"
-                @click="openBidModal(bid)">
+                @click="openBidModal">
                 {{ buttonLabel(bid) }}
             </button>
         </div>

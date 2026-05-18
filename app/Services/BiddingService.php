@@ -34,9 +34,9 @@ class BiddingService
      *  9. If current_points just crossed opening_points → trigger countdown.
      * 10. Record bid_debit PointTransaction.
      */
-    public function placeBid(User $user, Auction $auction, int $amount): Bid
+    public function placeBid(User $user, Auction $auction, int $points): Bid
     {
-        return DB::transaction(function () use ($user, $auction, $amount) {
+        return DB::transaction(function () use ($user, $auction, $points) {
             $auction = Auction::lockForUpdate()->findOrFail($auction->id);
 
             if (! in_array($auction->status, [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])) {
@@ -44,23 +44,23 @@ class BiddingService
             }
 
             $minBid = (int) config('points.min_bid_increment');
-            if ($amount < $minBid) {
+            if ($points < $minBid) {
                 throw new InvalidArgumentException("Bid amount must be at least {$minBid} points.");
             }
 
             $user = User::lockForUpdate()->findOrFail($user->id);
 
-            if ($user->points_balance < $amount) {
+            if ($user->points_balance < $points) {
                 throw new InvalidArgumentException('Insufficient points balance.');
             }
 
-            $user->points_balance -= $amount;
+            $user->points_balance -= $points;
             $user->save();
 
             $bid = Bid::create([
                 'auction_id' => $auction->id,
                 'user_id' => $user->id,
-                'amount' => $amount,
+                'amount' => $points,
                 'is_winning' => false,
             ]);
 
@@ -68,7 +68,7 @@ class BiddingService
 
             $wasActive = $auction->status === AuctionStatus::ACTIVE;
 
-            $auction->increment('current_points', $amount);
+            $auction->increment('current_points', $points);
             $auction->increment('bid_count');
             $auction->refresh();
 
@@ -88,7 +88,7 @@ class BiddingService
             $pointTransaction = PointTransaction::create([
                 'user_id' => $user->id,
                 'type' => TransactionType::BID_DEBIT,
-                'amount' => $amount,
+                'amount' => $points,
                 'exchange_rate' => 1.0,
                 'status' => TransactionStatus::COMPLETED,
                 'metadata' => [

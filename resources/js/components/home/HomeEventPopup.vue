@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { getRemainingTime } from '@/lib/utils';
+import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import type { Bid } from '@/pages/Home/Index.vue';
 
 const props = defineProps<{
     bid: Bid;
+    userPoints?: number | null;
 }>();
 
-const emit = defineEmits<{
-    (e: 'open-bid-modal', bid: Bid): void;
-}>();
-
+const { open } = usePlaceBidModal();
 const isVisible = ref(false);
 
 onMounted(() => {
@@ -22,8 +21,8 @@ function dismiss(): void {
 }
 
 function bidNow(): void {
-    emit('open-bid-modal', props.bid);
     dismiss();
+    open(props.bid, props.userPoints ?? null);
 }
 </script>
 
