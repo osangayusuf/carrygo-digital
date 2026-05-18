@@ -18,7 +18,7 @@ class PlaceBidRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'points' => ['required', 'integer', 'min:'.config('points.min_bid_increment')],
+            'points' => ['required', 'integer', 'min:' . config('points.min_bid_increment')],
         ];
     }
 
