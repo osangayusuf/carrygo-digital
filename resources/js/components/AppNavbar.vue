@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import { Link, router, useHttp, usePage } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { formatDate } from '@/lib/utils';
 import {
     eventItems,
@@ -18,48 +17,104 @@ import {
     trending,
     winners,
 } from '@/routes/index';
+import notificationsRoutes from '@/routes/notifications';
 
 interface Notification {
-    id: number;
+    id: string;
     title: string;
     body: string;
     icon: string;
     created_at: string;
-    action_route?: string;
-    action_label?: string;
+    read_at: string | null;
+    url: string | null;
 }
 
 const page = usePage();
+const http = useHttp();
 const notificationsOpen = ref(false);
 const currentPath = computed(() => page.url.split('?')[0]);
 
-const notifications = computed<Notification[]>(() => (page.props.notifications as Notification[]) ?? []);
+const notifications = ref<Notification[]>([...((page.props.notifications as Notification[]) ?? [])]);
+const isRefreshingNotifications = ref(false);
 
-const LS_KEY = 'carrygo_read_notification_ids';
+watch(
+    () => page.props.notifications,
+    (value) => {
+        notifications.value = [...((value as Notification[]) ?? [])];
+    },
+);
 
-function loadReadIds(): number[] {
+async function refreshNotifications(): Promise<void> {
+    if (!currentUser.value || isRefreshingNotifications.value) {
+        return;
+    }
+
+    isRefreshingNotifications.value = true;
+
     try {
-        return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as number[];
+        const data = (await http.submit(notificationsRoutes.feed.get())) as Notification[];
+        notifications.value = data;
     } catch {
-        return [];
+        // Keep existing list if refresh fails.
+    } finally {
+        isRefreshingNotifications.value = false;
     }
 }
 
-const readIds = ref<number[]>(loadReadIds());
+const unreadCount = computed(() => notifications.value.filter((n) => isUnread(n)).length);
 
-const unreadCount = computed(() => notifications.value.filter((n) => !readIds.value.includes(n.id)).length);
-
-function isUnread(id: number): boolean {
-    return !readIds.value.includes(id);
+function isUnread(notification: Notification): boolean {
+    return notification.read_at === null;
 }
 
-function markAllRead(): void {
-    readIds.value = notifications.value.map((n) => n.id);
-    localStorage.setItem(LS_KEY, JSON.stringify(readIds.value));
+async function markRead(id: string): Promise<void> {
+    const notification = notifications.value.find((n) => n.id === id);
+
+    if (!notification || !isUnread(notification)) {
+        return;
+    }
+
+    try {
+        await http.submit(notificationsRoutes.read.patch(id));
+        notification.read_at = new Date().toISOString();
+    } catch {
+        // Keep unread state if the request fails.
+    }
 }
 
-function toggleNotifications(): void {
-    notificationsOpen.value = !notificationsOpen.value;
+async function markAllRead(): Promise<void> {
+    if (unreadCount.value === 0) {
+        return;
+    }
+
+    try {
+        await http.submit(notificationsRoutes.readAll.patch());
+        const now = new Date().toISOString();
+        notifications.value.forEach((notification) => {
+            if (isUnread(notification)) {
+                notification.read_at = now;
+            }
+        });
+    } catch {
+        // Keep unread state if the request fails.
+    }
+}
+
+function onNotificationNavigate(notification: Notification): void {
+    if (isUnread(notification)) {
+        markRead(notification.id);
+    }
+
+    notificationsOpen.value = false;
+}
+
+async function toggleNotifications(): Promise<void> {
+    const willOpen = !notificationsOpen.value;
+    notificationsOpen.value = willOpen;
+
+    if (willOpen) {
+        await refreshNotifications();
+    }
 }
 
 function closeNotifications(event: MouseEvent): void {
@@ -71,7 +126,16 @@ function closeNotifications(event: MouseEvent): void {
     }
 }
 
-onMounted(() => document.addEventListener('click', closeNotifications));
+onMounted(() => {
+    document.addEventListener('click', closeNotifications);
+
+    router.on('success', () => {
+        if (currentUser.value) {
+            refreshNotifications();
+        }
+    });
+});
+
 onBeforeUnmount(() => document.removeEventListener('click', closeNotifications));
 
 const search = ref(new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('search') ?? '');
@@ -110,22 +174,7 @@ const navLinks = [
 const firstLineLinks = computed(() => navLinks.slice(0, 4));
 const secondLineLinks = computed(() => navLinks.slice(4));
 
-const currentUser = computed(() => (page.props.auth?.user as any) ?? null);
-
-const routeMap: Record<string, any> = {
-    openBids,
-    eventItems,
-    leaderboard,
-    tasks,
-};
-
-function getNotificationLink(routeKey?: string): string | null {
-    if (!routeKey || !routeMap[routeKey]) {
-        return null;
-    }
-
-    return routeMap[routeKey].url();
-}
+const currentUser = computed(() => page.props.auth?.user ?? null);
 
 function navItemClass(href: string): string {
     const path = href.split('?')[0];
@@ -223,13 +272,13 @@ function navItemClass(href: string): string {
                                 :key="notification.id"
                                 :class="[
                                     'px-4 py-4 border-b border-gray-100 last:border-b-0 flex gap-3.5 transition-colors',
-                                    isUnread(notification.id) ? 'bg-forest/5' : 'bg-white hover:bg-gray-50',
+                                    isUnread(notification) ? 'bg-forest/5' : 'bg-white hover:bg-gray-50',
                                 ]"
                             >
                                 <div class="mt-0.5 shrink-0">
                                     <span
                                         class="material-symbols-outlined text-2xl"
-                                        :class="isUnread(notification.id) ? 'text-forest' : 'text-gray-400'"
+                                        :class="isUnread(notification) ? 'text-forest' : 'text-gray-400'"
                                     >
                                         {{ notification.icon || 'notifications' }}
                                     </span>
@@ -239,7 +288,7 @@ function navItemClass(href: string): string {
                                         <h4
                                             :class="[
                                                 'm-0 text-sm leading-tight font-sans',
-                                                isUnread(notification.id) ? 'font-extrabold text-navy' : 'font-bold text-secondary',
+                                                isUnread(notification) ? 'font-extrabold text-navy' : 'font-bold text-secondary',
                                             ]"
                                         >
                                             {{ notification.title }}
@@ -248,16 +297,26 @@ function navItemClass(href: string): string {
                                             formatDate(notification.created_at)
                                         }}</span>
                                     </div>
-                                    <p :class="['m-0 text-xs leading-relaxed', isUnread(notification.id) ? 'text-navy' : 'text-secondary']">{{ notification.body }}</p>
-                                    <Link
-                                        v-if="notification.action_route && getNotificationLink(notification.action_route)"
-                                        :href="getNotificationLink(notification.action_route)!"
-                                        class="inline-flex items-center gap-1 mt-2.5 text-xs font-bold text-forest hover:text-forest-dark transition-colors"
-                                        @click="notificationsOpen = false"
-                                    >
-                                        {{ notification.action_label || 'View details' }}
-                                        <i class="pi pi-arrow-right text-[10px]"></i>
-                                    </Link>
+                                    <p :class="['m-0 text-xs leading-relaxed', isUnread(notification) ? 'text-navy' : 'text-secondary']">{{ notification.body }}</p>
+                                    <div class="mt-2.5 flex flex-wrap items-center gap-3">
+                                        <Link
+                                            v-if="notification.url"
+                                            :href="notification.url"
+                                            class="inline-flex items-center gap-1 text-xs font-bold text-forest hover:text-forest-dark transition-colors"
+                                            @click="onNotificationNavigate(notification)"
+                                        >
+                                            View details
+                                            <i class="pi pi-arrow-right text-[10px]"></i>
+                                        </Link>
+                                        <button
+                                            v-if="isUnread(notification)"
+                                            type="button"
+                                            class="text-xs font-bold text-secondary hover:text-navy bg-transparent border-none cursor-pointer p-0 transition-colors"
+                                            @click="markRead(notification.id)"
+                                        >
+                                            Mark read
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

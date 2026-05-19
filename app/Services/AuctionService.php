@@ -10,6 +10,8 @@ use InvalidArgumentException;
 
 class AuctionService
 {
+    public function __construct(private readonly AuctionTimelineService $timelineService) {}
+
     /**
      * Create a new draft auction, storing the uploaded image.
      *
@@ -124,6 +126,8 @@ class AuctionService
         $auction->status = AuctionStatus::CLOSED;
         $auction->winner_id = $winningBid?->user_id;
         $auction->save();
+
+        $this->timelineService->recordAuctionClosed($auction);
 
         return $auction;
     }

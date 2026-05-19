@@ -335,15 +335,15 @@
 }
 
 .carrygo-toaster [data-sonner-toast][data-type='error'] {
-    @apply border-error bg-[#2a0f0f];
+    @apply bg-error text-white;
 }
 
 .carrygo-toaster [data-sonner-toast][data-type='warning'] {
-    @apply border-amber bg-[#2a2610];
+    @apply bg-amber text-white;
 }
 
 .carrygo-toaster [data-sonner-toast][data-type='info'] {
-    @apply border-sage-border bg-forest;
+    @apply bg-forest text-white;
 }
 
 .carrygo-toast__title {

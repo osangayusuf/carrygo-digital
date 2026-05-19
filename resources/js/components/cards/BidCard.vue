@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
+import auctions from '@/routes/auctions/index';
 import type { Bid } from '@/types/auction';
 
 const props = defineProps<{
@@ -71,11 +73,22 @@ function buttonLabel(bid: Bid): string {
                 <span class="material-symbols-outlined mr-1 align-middle text-[12px]">schedule</span>
                 <span class="align-middle">{{ getRemainingTime(bid.expires_at) }} left</span>
             </div>
-            <button type="button" :disabled="bid.status === 2"
-                class="w-full bg-navy text-lemon p-2 rounded-md text-xs font-extrabold mt-auto hover:bg-forest transition-colors"
-                @click="openBidModal">
-                {{ buttonLabel(bid) }}
-            </button>
+            <div class="mt-auto flex flex-col gap-2">
+                <button
+                    type="button"
+                    :disabled="bid.status === 2"
+                    class="w-full rounded-md bg-navy p-2 text-xs font-extrabold text-lemon transition-colors hover:bg-forest disabled:opacity-60"
+                    @click="openBidModal"
+                >
+                    {{ buttonLabel(bid) }}
+                </button>
+                <Link
+                    :href="auctions.show.url(bid.id)"
+                    class="block w-full rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold text-ink no-underline transition-colors hover:border-lemon hover:text-forest"
+                >
+                    View more details
+                </Link>
+            </div>
         </div>
     </div>
 

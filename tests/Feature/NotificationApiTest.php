@@ -87,6 +87,46 @@ test('PATCH /notifications/read-all requires authentication', function () {
     $this->patchJson('/notifications/read-all')->assertUnauthorized();
 });
 
+test('GET /notifications/feed returns navbar notification shape', function () {
+    $auction = Auction::factory()->active()->create();
+
+    $this->user->notify(new BidPlaced(
+        bid: Bid::factory()->create(['user_id' => $this->user->id]),
+        auction: $auction,
+    ));
+
+    $this->actingAs($this->user)
+        ->getJson('/notifications/feed')
+        ->assertSuccessful()
+        ->assertJsonCount(1)
+        ->assertJsonFragment([
+            'url' => '/auctions/'.$auction->id,
+            'read_at' => null,
+        ]);
+});
+
+test('GET /notifications/feed requires authentication', function () {
+    $this->getJson('/notifications/feed')->assertUnauthorized();
+});
+
+test('shared inertia notifications include url and read_at', function () {
+    $auction = Auction::factory()->active()->create();
+
+    $this->user->notify(new BidPlaced(
+        bid: Bid::factory()->create(['user_id' => $this->user->id]),
+        auction: $auction,
+    ));
+
+    $this->actingAs($this->user)
+        ->get(route('home'))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->has('notifications', 1)
+            ->where('notifications.0.url', '/auctions/'.$auction->id)
+            ->where('notifications.0.read_at', null)
+        );
+});
+
 test('user cannot access another user\'s notifications', function () {
     $otherUser = User::factory()->create();
     $otherUser->notify(new BidPlaced(

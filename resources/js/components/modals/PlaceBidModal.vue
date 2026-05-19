@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 
 const page = usePage();
@@ -12,33 +13,48 @@ const userPoints = computed(
 </script>
 
 <template>
-    <!-- Bid Modal -->
     <Teleport to="body">
-        <div v-if="isOpen && activeBid"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+        <div
+            v-if="isOpen && activeBid"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+        >
             <div class="absolute inset-0" @click="close"></div>
-            <div class="relative w-full max-w-md overflow-hidden rounded-3xl bg-surface-container-lowest p-6 shadow-2xl">
-                <button type="button"
+            <div
+                class="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-surface-container-lowest p-6 shadow-2xl"
+            >
+                <button
+                    type="button"
                     class="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-high"
-                    @click="close">
+                    @click="close"
+                >
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
 
                 <h2 class="mb-2 font-headline text-2xl font-extrabold text-on-surface">Place Your Bid</h2>
-                <p class="mb-6 text-sm text-outline">
+                <p class="mb-4 text-sm text-outline">
                     Bid on <span class="font-bold text-on-surface">{{ activeBid.name }}</span>
                 </p>
 
-                <form @submit.prevent="submit">
+                <AuctionHistoryFeed :auction-id="activeBid.id" />
+
+                <form class="mt-auto" @submit.prevent="submit">
                     <div class="mb-4">
-                        <label class="mb-2 block text-xs font-bold tracking-widest text-outline uppercase">Bid
-                            Points</label>
-                        <input v-model="form.points" type="number" required min="1"
-                            class="w-full rounded-2xl border bg-surface-container-low text-black px-4 py-3 text-lg font-bold focus:ring-2 disabled:opacity-50"
-                            :class="form.errors.points
-                                ? 'border-error focus:border-error focus:ring-error/30'
-                                : 'border-surface-container focus:border-primary focus:ring-primary-container'"
-                            :disabled="form.processing" />
+                        <label class="mb-2 block text-xs font-bold tracking-widest text-outline uppercase"
+                            >Bid Points</label
+                        >
+                        <input
+                            v-model="form.points"
+                            type="number"
+                            required
+                            min="1"
+                            class="w-full rounded-2xl border bg-surface-container-low px-4 py-3 text-lg font-bold text-black focus:ring-2 disabled:opacity-50"
+                            :class="
+                                form.errors.points
+                                    ? 'border-error focus:border-error focus:ring-error/30'
+                                    : 'border-surface-container focus:border-primary focus:ring-primary-container'
+                            "
+                            :disabled="form.processing"
+                        />
                         <p v-if="form.errors.points" class="mt-2 text-xs font-bold text-error">
                             {{ form.errors.points }}
                         </p>
@@ -55,15 +71,18 @@ const userPoints = computed(
                         </div>
                     </div>
 
-                    <button type="submit" :disabled="form.processing"
-                        class="flex w-full items-center justify-center rounded-2xl bg-primary py-4 font-bold text-on-primary transition-all hover:bg-on-primary-fixed active:scale-95 disabled:opacity-50">
-                        <span v-if="form.processing"
-                            class="material-symbols-outlined mr-2 animate-spin">progress_activity</span>
+                    <button
+                        type="submit"
+                        :disabled="form.processing"
+                        class="flex w-full items-center justify-center rounded-2xl bg-primary py-4 font-bold text-on-primary transition-all hover:bg-on-primary-fixed active:scale-95 disabled:opacity-50"
+                    >
+                        <span v-if="form.processing" class="material-symbols-outlined mr-2 animate-spin"
+                            >progress_activity</span
+                        >
                         Confirm Bid
                     </button>
                 </form>
             </div>
         </div>
     </Teleport>
-
 </template>

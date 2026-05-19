@@ -9,7 +9,7 @@ return [
     | The number of spendable points awarded for every ₦1 deposited via Paystack.
     | Example: 100 means ₦1 → 100 points.
     */
-    'points_per_naira' => env('POINTS_PER_NAIRA', 100),
+    'points_per_naira' => env('POINTS_PER_NAIRA', 10),
 
     /*
     |--------------------------------------------------------------------------
@@ -27,5 +27,21 @@ return [
     | The minimum number of points required for a single bid placement.
     */
     'min_bid_increment' => env('MIN_BID_INCREMENT', 10),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Deposit Limits (Naira)
+    |--------------------------------------------------------------------------
+    */
+    'min_deposit_naira' => env('MIN_DEPOSIT_NAIRA', 100),
+
+    'max_deposit_naira' => env('MAX_DEPOSIT_NAIRA', 500_000),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Deposit Presets (Naira)
+    |--------------------------------------------------------------------------
+    */
+    'deposit_presets' => [100, 200, 500, 1000, 5_000, 10_000],
 
 ];

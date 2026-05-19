@@ -133,7 +133,8 @@ class AuctionListingService
         match ($sort) {
             'price', 'value_desc' => $query->orderBy('price', 'desc'),
             'popular' => $query->orderBy('bid_count', 'desc'),
-            default => $query->orderBy('created_at', 'desc'),
+            'new' => $query->orderBy('created_at', 'desc'),
+            default => $query->orderBy('updated_at', 'desc'),
         };
     }
 

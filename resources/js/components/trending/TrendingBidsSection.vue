@@ -23,6 +23,7 @@ const sortOptions: { value: string; label: string }[] = [
     { value: 'recent', label: 'Most Recent Activity' },
     { value: 'popular', label: 'Most Popular' },
     { value: 'price', label: 'Value: High to Low' },
+    { value: 'new', label: 'Recently Added' },
 ];
 
 const sortLabel = computed(

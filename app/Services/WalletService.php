@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionType;
+use App\Models\PaystackTransaction;
 use App\Models\PointTransaction;
 use App\Models\User;
 use App\Notifications\BonusPointsAwarded;
@@ -16,6 +18,15 @@ class WalletService
      */
     public function processDeposit(User $user, float $nairaAmount, string $reference, array $metadata = [], ?int $paystackTransactionId = null): PointTransaction
     {
+        $existing = PointTransaction::query()
+            ->where('provider_reference', $reference)
+            ->where('type', TransactionType::DEPOSIT)
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
         return DB::transaction(function () use ($user, $nairaAmount, $reference, $metadata, $paystackTransactionId) {
             $exchangeRate = (float) config('points.points_per_naira');
             $pointsAmount = $nairaAmount * $exchangeRate;
@@ -41,6 +52,44 @@ class WalletService
 
             return $transaction;
         });
+    }
+
+    /**
+     * Finalize a Paystack deposit after inline payment or callback verification.
+     */
+    public function finalizePaystackDeposit(User $user, string $reference, array $paystackData): ?PointTransaction
+    {
+        $status = $paystackData['status'] ?? null;
+
+        if ($status !== 'success') {
+            return null;
+        }
+
+        $amountInKobo = (int) ($paystackData['amount'] ?? 0);
+        $nairaAmount = $amountInKobo / 100;
+
+        $paystackTransaction = PaystackTransaction::query()
+            ->where('reference', $reference)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $transaction = $this->processDeposit(
+            $user,
+            $nairaAmount,
+            $reference,
+            $paystackData,
+            $paystackTransaction?->id,
+        );
+
+        if ($paystackTransaction !== null && $paystackTransaction->status !== 'success') {
+            $paystackTransaction->update([
+                'status' => 'success',
+                'paid_at' => now(),
+                'channel' => $paystackData['channel'] ?? $paystackTransaction->channel,
+            ]);
+        }
+
+        return $transaction;
     }
 
     /**

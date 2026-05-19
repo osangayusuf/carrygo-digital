@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NotificationFeedService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    /**
+     * Navbar notification feed (latest notifications, including read).
+     */
+    public function feed(Request $request, NotificationFeedService $feed): JsonResponse
+    {
+        return response()->json($feed->forUser($request->user()));
+    }
+
     /**
      * List all unread notifications for the authenticated user, latest first.
      */

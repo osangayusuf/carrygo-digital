@@ -1,4 +1,6 @@
 import type { Auth } from '@/types/auth';
+import type { FlashToast } from '@/types/ui';
+import type { PaystackInit } from '@/types/wallet';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -15,6 +17,10 @@ declare module 'vite/client' {
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
+        flashDataType: {
+            toast?: FlashToast;
+            paystack_init?: PaystackInit;
+        };
         sharedPageProps: {
             name: string;
             auth: Auth;

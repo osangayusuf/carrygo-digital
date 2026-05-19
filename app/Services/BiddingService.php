@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ActivityType;
 use App\Enums\AuctionStatus;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
@@ -19,24 +20,17 @@ use InvalidArgumentException;
 
 class BiddingService
 {
+    public function __construct(
+        private readonly ActivityService $activityService,
+        private readonly AuctionTimelineService $timelineService,
+    ) {}
+
     /**
      * Place a bid on an auction inside a fully serialised DB transaction.
-     *
-     * Steps (from §5 of the bidding platform plan):
-     *  1. Lock the auction row for update.
-     *  2. Validate auction status is active or triggered.
-     *  3. Validate amount >= min_bid_increment.
-     *  4. Re-fetch and lock the user row; validate sufficient points_balance.
-     *  5. Debit points_balance.
-     *  6. Create Bid (is_winning = false initially).
-     *  7. Recalculate is_winning across all bids for this auction.
-     *  8. Increment current_points and bid_count.
-     *  9. If current_points just crossed opening_points → trigger countdown.
-     * 10. Record bid_debit PointTransaction.
      */
     public function placeBid(User $user, Auction $auction, int $points): Bid
     {
-        return DB::transaction(function () use ($user, $auction, $points) {
+        $bid = DB::transaction(function () use ($user, $auction, $points) {
             $auction = Auction::lockForUpdate()->findOrFail($auction->id);
 
             if (! in_array($auction->status, [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])) {
@@ -54,6 +48,8 @@ class BiddingService
                 throw new InvalidArgumentException('Insufficient points balance.');
             }
 
+            $previousWinnerId = $this->timelineService->winningUserIdForAuction($auction->id);
+
             $user->points_balance -= $points;
             $user->save();
 
@@ -65,6 +61,8 @@ class BiddingService
             ]);
 
             $this->recalculateIsWinning($auction->id);
+
+            $newWinnerId = $this->timelineService->winningUserIdForAuction($auction->id);
 
             $wasActive = $auction->status === AuctionStatus::ACTIVE;
 
@@ -85,7 +83,7 @@ class BiddingService
                 $justTriggered = true;
             }
 
-            $pointTransaction = PointTransaction::create([
+            PointTransaction::create([
                 'user_id' => $user->id,
                 'type' => TransactionType::BID_DEBIT,
                 'amount' => $points,
@@ -97,10 +95,8 @@ class BiddingService
                 ],
             ]);
 
-            // Notify the bidding user — afterCommit ensures this only queues after the transaction commits.
             $user->notify(new BidPlaced($bid, $auction));
 
-            // If the auction just triggered, notify all distinct bidders (including the current user).
             if ($justTriggered) {
                 $bidderIds = Bid::where('auction_id', $auction->id)
                     ->distinct()
@@ -113,13 +109,19 @@ class BiddingService
                 }
             }
 
-            // Resolve the current winning user for the broadcast payload.
             $winningBid = Bid::where('auction_id', $auction->id)
                 ->where('is_winning', true)
                 ->first();
 
-            // Dispatch broadcast events after the transaction commits so the DB state is visible to clients.
-            DB::afterCommit(function () use ($auction, $justTriggered, $winningBid) {
+            DB::afterCommit(function () use ($auction, $bid, $user, $justTriggered, $winningBid, $previousWinnerId, $newWinnerId): void {
+                $this->timelineService->recordBidPlaced($auction, $bid, $user);
+                $this->timelineService->detectAndRecordLeaderChange($auction, $previousWinnerId, $newWinnerId);
+
+                if ($justTriggered) {
+                    $auction->refresh();
+                    $this->timelineService->recordAuctionTriggered($auction);
+                }
+
                 BidPlacedEvent::dispatch(
                     $auction->id,
                     $auction->current_points,
@@ -138,18 +140,17 @@ class BiddingService
 
             return $bid;
         });
+
+        $this->activityService->log(
+            ActivityType::BID_PLACED,
+            $user,
+            $auction,
+            ['amount' => $bid->amount, 'bid_id' => $bid->id],
+        );
+
+        return $bid;
     }
 
-    /**
-     * Recalculate is_winning for all bids on a given auction.
-     *
-     * Algorithm:
-     *  - GROUP BY user_id, SUM(amount) to get each user's cumulative total.
-     *  - Find the MAX cumulative total.
-     *  - If exactly one user holds that MAX, set is_winning = true on their
-     *    most recent bid and false on all others.
-     *  - If two or more users are tied at the MAX, all is_winning remain false.
-     */
     private function recalculateIsWinning(int $auctionId): void
     {
         $totals = DB::table('bids')
@@ -159,7 +160,6 @@ class BiddingService
             ->orderByDesc('total')
             ->get();
 
-        // Reset all bids for this auction
         Bid::where('auction_id', $auctionId)->update(['is_winning' => false]);
 
         if ($totals->isEmpty()) {

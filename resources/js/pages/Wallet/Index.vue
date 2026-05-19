@@ -1,14 +1,51 @@
 <script setup lang="ts">
-import { Head, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { wallet as walletRoute } from '@/routes/index';
+import { onMounted, watch } from 'vue';
 import SettingsPanel from '@/components/settings/SettingsPanel.vue';
 import SettingsShell from '@/components/settings/SettingsShell.vue';
+import WalletBalanceCards from '@/components/wallet/WalletBalanceCards.vue';
+import WalletClaimBonus from '@/components/wallet/WalletClaimBonus.vue';
+import WalletDepositForm from '@/components/wallet/WalletDepositForm.vue';
+import WalletTransactionsSection from '@/components/wallet/WalletTransactionsSection.vue';
+import { appToast } from '@/lib/appToast';
 import PublicLayout from '@/layouts/PublicLayout.vue';
+import type { WalletBalances, WalletConfig, WalletTransactionsPaginator } from '@/types/wallet';
 
 defineOptions({ layout: PublicLayout });
 
-const page = usePage();
-const user = computed(() => page.props.auth.user);
+const props = defineProps<{
+    balances: WalletBalances;
+    walletConfig: WalletConfig;
+    transactions: WalletTransactionsPaginator;
+    paymentStatus?: string | null;
+    paymentReference?: string | null;
+}>();
+
+function showPaymentToast(): void {
+    if (props.paymentStatus === 'success') {
+        appToast.show({
+            type: 'success',
+            message: 'Payment successful. Your points have been credited.',
+        });
+    } else if (props.paymentStatus === 'failed') {
+        appToast.show({
+            type: 'error',
+            message: 'Payment could not be verified. Please try again or contact support.',
+        });
+    }
+
+    if (props.paymentStatus) {
+        router.get(walletRoute.url(), {}, { replace: true, preserveScroll: true });
+    }
+}
+
+onMounted(showPaymentToast);
+
+watch(
+    () => props.paymentStatus,
+    () => showPaymentToast(),
+);
 </script>
 
 <template>
@@ -17,32 +54,13 @@ const user = computed(() => page.props.auth.user);
     <SettingsShell>
         <SettingsPanel
             title="Wallet"
-            description="View your points balance and manage deposits."
+            description="View your points balance, buy points, and review transaction history."
         >
-            <div class="max-w-2xl space-y-6">
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="rounded-xl border border-outline-variant bg-surface-container-low p-5">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
-                            Points balance
-                        </p>
-                        <p class="mt-2 font-condensed text-3xl font-black text-on-surface">
-                            {{ user?.points_balance ?? 0 }}
-                        </p>
-                    </div>
-                    <div class="rounded-xl border border-outline-variant bg-surface-container-low p-5">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
-                            Bonus points
-                        </p>
-                        <p class="mt-2 font-condensed text-3xl font-black text-on-surface">
-                            {{ user?.bonus_points ?? 0 }}
-                        </p>
-                    </div>
-                </div>
-
-                <p class="text-sm text-on-surface-variant">
-                    Deposits and bonus claims are coming soon. Your balance updates automatically
-                    when you bid or win auctions.
-                </p>
+            <div class="space-y-6">
+                <WalletBalanceCards :balances="balances" :wallet-config="walletConfig" />
+                <WalletDepositForm :wallet-config="walletConfig" />
+                <WalletClaimBonus :bonus-points="balances.bonus_points" />
+                <WalletTransactionsSection :transactions="transactions" />
             </div>
         </SettingsPanel>
     </SettingsShell>

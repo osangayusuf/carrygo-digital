@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuctionController as AdminAuctionController;
 use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\AuctionTimelineController;
 use App\Http\Controllers\BidController;
 use App\Http\Controllers\EventItemsController;
 use App\Http\Controllers\HomeController;
@@ -24,6 +25,7 @@ Route::get('winners', [WinnersController::class, 'index'])->name('winners');
 Route::get('leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 Route::get('how-to-play', [HowToPlayController::class, 'index'])->name('how-to-play');
 Route::get('auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
+Route::get('auctions/{auction}/timeline', [AuctionTimelineController::class, 'index'])->name('auctions.timeline');
 Route::get('search', [SearchController::class, 'index'])->name('search');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -33,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard'); // TODO: might remove later
 
     Route::get('wallet', [WalletController::class, 'index'])->name('wallet');
+    Route::get('wallet/payment/callback', [WalletController::class, 'paymentCallback'])->name('wallet.payment.callback');
     Route::post('wallet/deposit', [WalletController::class, 'deposit'])->name('wallet.deposit');
     Route::post('wallet/claim-bonus', [WalletController::class, 'claimBonus'])->name('wallet.claim-bonus');
     Route::get('tasks', [TaskController::class, 'index'])->name('tasks');
@@ -40,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('security', [SecurityController::class, 'edit'])->name('security.edit');
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
 });

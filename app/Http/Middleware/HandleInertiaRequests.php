@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\NotificationFeedService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -45,19 +46,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'asset_url' => asset(''),
             'notifications' => $user
-                ? $user->notifications()
-                    ->latest()
-                    ->limit(20)
-                    ->get()
-                    ->map(fn ($n) => [
-                        'id' => $n->id,
-                        'title' => $n->data['title'] ?? '',
-                        'body' => $n->data['message'] ?? '',
-                        'icon' => $n->data['icon'] ?? 'notifications',
-                        'created_at' => $n->created_at->toISOString(),
-                        'action_route' => $n->data['action_route'] ?? null,
-                        'action_label' => $n->data['action_label'] ?? null,
-                    ])
+                ? app(NotificationFeedService::class)->forUser($user)
                 : [],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

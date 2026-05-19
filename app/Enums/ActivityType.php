@@ -15,4 +15,5 @@ enum ActivityType: string
     case AUCTION_WON = 'auction_won';
     case POINTS_DEPOSITED = 'points_deposited';
     case POINTS_SPENT = 'points_spent';
+    case BONUS_POINTS_CLAIMED = 'bonus_points_claimed';
 }

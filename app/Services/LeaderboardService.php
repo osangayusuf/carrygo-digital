@@ -12,9 +12,23 @@ class LeaderboardService
 {
     private const int TOP_BIDDERS_PER_AUCTION = 3;
 
+    public const int AUCTION_SHOW_TOP_BIDDERS = 10;
+
     public function __construct(
         private readonly AuctionListingService $auctionListing,
     ) {}
+
+    /**
+     * @return list<array{msisdn: string, total_points: int}>
+     */
+    public function topBiddersForAuction(Auction $auction, int $limit = self::AUCTION_SHOW_TOP_BIDDERS): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        return $this->queryTopBiddersForAuction($auction->id, $limit);
+    }
 
     /**
      * @return LengthAwarePaginator<int, array<string, mixed>>
@@ -74,10 +88,36 @@ class LeaderboardService
                     ->sortByDesc('total_points')
                     ->take(self::TOP_BIDDERS_PER_AUCTION)
                     ->values()
-                    ->map(fn ($row): array => [
-                        'msisdn' => (string) ($row->msisdn ?? ''),
-                        'total_points' => (int) $row->total_points,
-                    ]);
+                    ->map(fn ($row): array => $this->mapBidderRow($row));
             });
+    }
+
+    /**
+     * @return list<array{msisdn: string, total_points: int}>
+     */
+    private function queryTopBiddersForAuction(int $auctionId, int $limit): array
+    {
+        return Bid::query()
+            ->join('users', 'users.id', '=', 'bids.user_id')
+            ->where('bids.auction_id', $auctionId)
+            ->groupBy('bids.user_id', 'users.phone')
+            ->select(['users.phone as msisdn'])
+            ->selectRaw('SUM(bids.amount) as total_points')
+            ->orderByDesc('total_points')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row): array => $this->mapBidderRow($row))
+            ->all();
+    }
+
+    /**
+     * @return array{msisdn: string, total_points: int}
+     */
+    private function mapBidderRow(object $row): array
+    {
+        return [
+            'msisdn' => (string) ($row->msisdn ?? ''),
+            'total_points' => (int) $row->total_points,
+        ];
     }
 }
