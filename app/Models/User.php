@@ -31,8 +31,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'points_balance' => 'decimal:2',
-            'bonus_points' => 'decimal:2',
+            'points_balance' => 'integer',
+            'bonus_points' => 'integer',
         ];
     }
 

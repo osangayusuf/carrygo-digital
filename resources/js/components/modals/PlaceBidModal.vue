@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 
