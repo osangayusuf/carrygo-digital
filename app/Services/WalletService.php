@@ -7,6 +7,7 @@ use App\Models\PaystackTransaction;
 use App\Models\PointTransaction;
 use App\Models\User;
 use App\Notifications\BonusPointsAwarded;
+use App\Notifications\BonusPointsClaimed;
 use App\Notifications\PaymentConfirmed;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -31,15 +32,14 @@ class WalletService
             $exchangeRate = (float) config('points.points_per_naira');
             $pointsAmount = $nairaAmount * $exchangeRate;
 
-            // Lock user for update to prevent race conditions during point balance updates
             $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
-            $user->points_balance += $pointsAmount;
+            $user->points_balance += (int) $pointsAmount;
             $user->save();
 
             $transaction = PointTransaction::create([
                 'user_id' => $user->id,
                 'paystack_transaction_id' => $paystackTransactionId,
-                'type' => 'deposit',
+                'type' => TransactionType::DEPOSIT,
                 'amount' => $pointsAmount,
                 'naira_amount' => $nairaAmount,
                 'exchange_rate' => $exchangeRate,
@@ -95,34 +95,58 @@ class WalletService
     /**
      * Award bonus points to a user.
      */
-    public function awardBonusPoints(User $user, float $bonusAmount, array $metadata = []): PointTransaction
-    {
-        return DB::transaction(function () use ($user, $bonusAmount, $metadata) {
+    public function awardBonusPoints(
+        User $user,
+        int $bonusAmount,
+        array $metadata = [],
+        bool $sendBonusAwardedNotification = true,
+    ): PointTransaction {
+        if ($bonusAmount <= 0) {
+            throw new InvalidArgumentException('Bonus amount must be positive.');
+        }
+
+        $transaction = DB::transaction(function () use ($user, $bonusAmount, $metadata) {
             $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
             $user->bonus_points += $bonusAmount;
             $user->save();
 
-            $transaction = PointTransaction::create([
+            return PointTransaction::create([
                 'user_id' => $user->id,
-                'type' => 'bonus_award',
+                'type' => TransactionType::BONUS_AWARD,
                 'amount' => $bonusAmount,
                 'exchange_rate' => 1.0,
                 'status' => 'completed',
                 'metadata' => $metadata,
             ]);
-
-            $user->notify(new BonusPointsAwarded($transaction));
-
-            return $transaction;
         });
+
+        if ($sendBonusAwardedNotification) {
+            $user->notify(new BonusPointsAwarded($transaction));
+        }
+
+        return $transaction;
+    }
+
+    /**
+     * Claim all bonus points, converting them to spendable points balance.
+     */
+    public function claimAllBonusPoints(User $user): PointTransaction
+    {
+        $bonusAmount = (int) $user->bonus_points;
+
+        if ($bonusAmount <= 0) {
+            throw new InvalidArgumentException('You have no bonus points to claim.');
+        }
+
+        return $this->claimBonusPoints($user, $bonusAmount);
     }
 
     /**
      * Claim bonus points, converting them to spendable points balance.
      */
-    public function claimBonusPoints(User $user, float $bonusAmount): PointTransaction
+    public function claimBonusPoints(User $user, int $bonusAmount): PointTransaction
     {
-        return DB::transaction(function () use ($user, $bonusAmount) {
+        $transaction = DB::transaction(function () use ($user, $bonusAmount) {
             $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
 
             if ($user->bonus_points < $bonusAmount) {
@@ -130,7 +154,7 @@ class WalletService
             }
 
             $conversionRate = (float) config('points.bonus_conversion_rate');
-            $spendablePoints = $bonusAmount * $conversionRate;
+            $spendablePoints = (int) floor($bonusAmount * $conversionRate);
 
             $user->bonus_points -= $bonusAmount;
             $user->points_balance += $spendablePoints;
@@ -138,9 +162,9 @@ class WalletService
 
             return PointTransaction::create([
                 'user_id' => $user->id,
-                'type' => 'bonus_claim',
+                'type' => TransactionType::BONUS_CLAIM,
                 'amount' => $spendablePoints,
-                'exchange_rate' => 1.0,
+                'exchange_rate' => $conversionRate,
                 'status' => 'completed',
                 'metadata' => [
                     'bonus_claimed' => $bonusAmount,
@@ -148,5 +172,9 @@ class WalletService
                 ],
             ]);
         });
+
+        $user->notify(new BonusPointsClaimed($transaction));
+
+        return $transaction;
     }
 }

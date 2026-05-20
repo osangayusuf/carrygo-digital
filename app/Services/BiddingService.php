@@ -22,6 +22,7 @@ class BiddingService
 {
     public function __construct(
         private readonly ActivityService $activityService,
+        private readonly AchievementService $achievementService,
         private readonly AuctionTimelineService $timelineService,
     ) {}
 
@@ -147,6 +148,8 @@ class BiddingService
             $auction,
             ['amount' => $bid->amount, 'bid_id' => $bid->id],
         );
+
+        $this->achievementService->evaluateAfterBid($user->fresh(), $bid, $auction);
 
         return $bid;
     }

@@ -23,7 +23,7 @@ defineProps<{
                 type="submit"
                 :disabled="processing || bonusPoints <= 0"
                 data-test="claim-bonus-button"
-                class="rounded-lg bg-primary-container px-6 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container disabled:opacity-50"
+                class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
             >
                 Claim all bonus points
             </button>

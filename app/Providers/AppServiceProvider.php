@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Listeners\AssignDefaultRole;
+use App\Listeners\BroadcastDatabaseNotification;
 use App\Listeners\LogFailedLogin;
 use App\Listeners\LogSuccessfulLogin;
 use Carbon\CarbonImmutable;
@@ -11,6 +12,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -40,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Registered::class, AssignDefaultRole::class);
         Event::listen(Login::class, LogSuccessfulLogin::class);
         Event::listen(Failed::class, LogFailedLogin::class);
+        Event::listen(NotificationSent::class, BroadcastDatabaseNotification::class);
     }
 
     protected function configureRateLimiters(): void

@@ -16,4 +16,7 @@ enum ActivityType: string
     case POINTS_DEPOSITED = 'points_deposited';
     case POINTS_SPENT = 'points_spent';
     case BONUS_POINTS_CLAIMED = 'bonus_points_claimed';
+    case DAILY_CHECK_IN = 'daily_check_in';
+    case SPIN_WHEEL = 'spin_wheel';
+    case REWARDS_CLAIMED = 'rewards_claimed';
 }

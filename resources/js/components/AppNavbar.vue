@@ -2,6 +2,7 @@
 import { Link, router, useHttp, usePage } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useRealtimeNotifications } from '@/composables/useRealtimeNotifications';
 import { formatDate } from '@/lib/utils';
 import {
     eventItems,
@@ -175,6 +176,10 @@ const firstLineLinks = computed(() => navLinks.slice(0, 4));
 const secondLineLinks = computed(() => navLinks.slice(4));
 
 const currentUser = computed(() => page.props.auth?.user ?? null);
+
+const currentUserId = computed(() => currentUser.value?.id ?? null);
+
+useRealtimeNotifications(currentUserId, notifications, refreshNotifications);
 
 function navItemClass(href: string): string {
     const path = href.split('?')[0];

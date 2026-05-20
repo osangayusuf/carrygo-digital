@@ -33,6 +33,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_confirmed_at' => 'datetime',
             'points_balance' => 'integer',
             'bonus_points' => 'integer',
+            'checkin_streak' => 'integer',
+            'last_checkin_date' => 'date',
+            'spins_balance' => 'integer',
         ];
     }
 
@@ -54,5 +57,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function userActivities(): HasMany
     {
         return $this->hasMany(UserActivity::class);
+    }
+
+    public function userAchievements(): HasMany
+    {
+        return $this->hasMany(UserAchievement::class);
+    }
+
+    public function leaderboardSnapshots(): HasMany
+    {
+        return $this->hasMany(LeaderboardSnapshot::class);
     }
 }

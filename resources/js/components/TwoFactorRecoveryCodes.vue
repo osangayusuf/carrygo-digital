@@ -3,7 +3,6 @@ import { Form } from '@inertiajs/vue3';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-vue-next';
 import { nextTick, onMounted, ref, useTemplateRef } from 'vue';
 import AlertError from '@/components/AlertError.vue';
-import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -53,14 +52,18 @@ onMounted(async () => {
             <div
                 class="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between"
             >
-                <Button @click="toggleRecoveryCodesVisibility" class="w-fit">
+                <button
+                    type="button"
+                    class="flex w-fit items-center gap-2 rounded-lg bg-primary px-6 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg"
+                    @click="toggleRecoveryCodesVisibility"
+                >
                     <component
                         :is="isRecoveryCodesVisible ? EyeOff : Eye"
                         class="size-4"
                     />
                     {{ isRecoveryCodesVisible ? 'Hide' : 'View' }} recovery
                     codes
-                </Button>
+                </button>
 
                 <Form
                     v-if="isRecoveryCodesVisible && recoveryCodesList.length"
@@ -70,13 +73,13 @@ onMounted(async () => {
                     @success="fetchRecoveryCodes"
                     #default="{ processing }"
                 >
-                    <Button
-                        variant="secondary"
+                    <button
                         type="submit"
                         :disabled="processing"
+                        class="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
                     >
-                        <RefreshCw /> Regenerate codes
-                    </Button>
+                        <RefreshCw class="size-4" /> Regenerate codes
+                    </button>
                 </Form>
             </div>
             <div

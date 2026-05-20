@@ -126,7 +126,7 @@ async function initiateDeposit(): Promise<void> {
             type="button"
             :disabled="!isValidAmount || isProcessing"
             data-test="pay-with-paystack-button"
-            class="mt-6 flex items-center gap-2 rounded-lg bg-primary-container px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container disabled:opacity-50"
+            class="mt-6 flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
             @click="initiateDeposit"
         >
             <span class="material-symbols-outlined text-sm">payments</span>

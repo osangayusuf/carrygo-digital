@@ -1,10 +1,12 @@
 <?php
 
+use App\Events\NotificationCreated;
 use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\User;
 use App\Notifications\BidPlaced;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Event;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -100,7 +102,7 @@ test('GET /notifications/feed returns navbar notification shape', function () {
         ->assertSuccessful()
         ->assertJsonCount(1)
         ->assertJsonFragment([
-            'url' => '/auctions/'.$auction->id,
+            'url' => url('/auctions/'.$auction->id),
             'read_at' => null,
         ]);
 });
@@ -122,7 +124,7 @@ test('shared inertia notifications include url and read_at', function () {
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->has('notifications', 1)
-            ->where('notifications.0.url', '/auctions/'.$auction->id)
+            ->where('notifications.0.url', url('/auctions/'.$auction->id))
             ->where('notifications.0.read_at', null)
         );
 });
@@ -139,4 +141,22 @@ test('user cannot access another user\'s notifications', function () {
     $this->actingAs($this->user)
         ->patchJson("/notifications/{$notification->id}/read")
         ->assertNotFound();
+});
+
+test('database notifications broadcast NotificationCreated on the user private channel', function () {
+    config(['queue.default' => 'sync']);
+    Event::fake([NotificationCreated::class]);
+
+    $auction = Auction::factory()->active()->create();
+
+    $this->user->notify(new BidPlaced(
+        bid: Bid::factory()->create(['user_id' => $this->user->id]),
+        auction: $auction,
+    ));
+
+    Event::assertDispatched(NotificationCreated::class, function (NotificationCreated $event) use ($auction) {
+        return $event->userId === $this->user->id
+            && $event->broadcastOn()[0]->name === 'private-App.Models.User.'.$this->user->id
+            && $event->notification['url'] === url('/auctions/'.$auction->id);
+    });
 });

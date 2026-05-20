@@ -87,7 +87,7 @@ onUnmounted(() => clearTwoFactorAuthData());
                             type="submit"
                             :disabled="processing"
                             data-test="update-password-button"
-                            class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container disabled:opacity-60"
+                            class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
                         >
                             Save password
                         </button>
@@ -117,7 +117,7 @@ onUnmounted(() => clearTwoFactorAuthData());
                         <button
                             v-if="hasSetupData"
                             type="button"
-                            class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container"
+                            class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg"
                             @click="showSetupModal = true"
                         >
                             Continue setup
@@ -131,7 +131,7 @@ onUnmounted(() => clearTwoFactorAuthData());
                             <button
                                 type="submit"
                                 :disabled="processing"
-                                class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container disabled:opacity-60"
+                                class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
                             >
                                 Enable 2FA
                             </button>

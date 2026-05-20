@@ -31,7 +31,20 @@ class NotificationFeedService
             'icon' => $notification->data['icon'] ?? 'notifications',
             'created_at' => $notification->created_at->toISOString(),
             'read_at' => $notification->read_at?->toISOString(),
-            'url' => $notification->data['url'] ?? null,
+            'url' => $this->resolveUrl($notification->data['url'] ?? null),
         ];
+    }
+
+    private function resolveUrl(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+
+        return url($url);
     }
 }

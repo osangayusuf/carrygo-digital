@@ -104,12 +104,11 @@ class WalletController extends Controller
     public function claimBonus(ClaimBonusRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $bonusAmount = (float) $user->bonus_points;
-
-        $transaction = $this->walletService->claimBonusPoints($user, $bonusAmount);
+        $transaction = $this->walletService->claimAllBonusPoints($user);
 
         $this->activityService->log(ActivityType::BONUS_POINTS_CLAIMED, $user, $transaction, [
-            'bonus_claimed' => $bonusAmount,
+            'bonus_claimed' => (int) ($transaction->metadata['bonus_claimed'] ?? 0),
+            'spendable' => (int) $transaction->amount,
         ]);
 
         Inertia::flash('toast', [
