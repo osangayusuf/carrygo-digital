@@ -28,7 +28,7 @@ test('authenticated user sees points on auction show page', function () {
         ->get(route('auctions.show', $auction))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('userPoints', '500.00')
+            ->where('userPoints', 500)
         );
 });
 

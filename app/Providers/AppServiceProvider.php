@@ -6,10 +6,13 @@ use App\Listeners\AssignDefaultRole;
 use App\Listeners\BroadcastDatabaseNotification;
 use App\Listeners\LogFailedLogin;
 use App\Listeners\LogSuccessfulLogin;
+use App\Listeners\MarkPostVerificationOnboarding;
+use App\Listeners\NotifyAdminsOfAgentRegistration;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Events\NotificationSent;
@@ -40,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiters();
 
         Event::listen(Registered::class, AssignDefaultRole::class);
+        Event::listen(Registered::class, NotifyAdminsOfAgentRegistration::class);
+        Event::listen(Verified::class, MarkPostVerificationOnboarding::class);
         Event::listen(Login::class, LogSuccessfulLogin::class);
         Event::listen(Failed::class, LogFailedLogin::class);
         Event::listen(NotificationSent::class, BroadcastDatabaseNotification::class);

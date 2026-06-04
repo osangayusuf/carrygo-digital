@@ -1,0 +1,61 @@
+<?php
+
+use App\Http\Controllers\Auth\AgentAuthController;
+use App\Http\Controllers\Support\ChatController;
+use App\Http\Controllers\Support\CustomerChatController;
+use App\Http\Controllers\Support\TicketController;
+use App\Http\Controllers\Support\TicketMessageController;
+use Illuminate\Support\Facades\Route;
+
+// Public Customer Chat Endpoints (no auth required for guest support)
+Route::middleware(['web'])->prefix('support/chat-api')->group(function () {
+    Route::get('status', [CustomerChatController::class, 'status'])->name('support.chat.api.status');
+    Route::post('initiate', [CustomerChatController::class, 'initiate'])->name('support.chat.api.initiate');
+    Route::get('{uuid}/messages', [CustomerChatController::class, 'getMessages'])->name('support.chat.api.messages');
+    Route::post('{uuid}/message', [CustomerChatController::class, 'sendMessage'])->name('support.chat.api.send');
+    Route::post('offline-ticket', [CustomerChatController::class, 'submitOfflineTicket'])->name('support.chat.api.offline-ticket');
+});
+
+// Guest / Unauthenticated Agent Routes
+Route::middleware(['web'])->group(function () {
+    Route::get('support/login', [AgentAuthController::class, 'showLogin'])
+        ->name('support.login');
+
+    Route::get('support/register', [AgentAuthController::class, 'showRegister'])
+        ->name('support.register');
+
+    Route::post('support/register', [AgentAuthController::class, 'register'])
+        ->name('support.register.store');
+});
+
+// Authenticated but potentially pending Agent Routes
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('support/pending', [AgentAuthController::class, 'pending'])
+        ->name('support.pending');
+});
+
+// Authenticated, Verified and Approved Agent Portal Routes
+Route::middleware(['web', 'auth', 'verified', 'role:agent|admin', 'agent.approved'])
+    ->prefix('support')
+    ->group(function () {
+        Route::get('/', function () {
+            return Inertia\Inertia::render('Support/Dashboard');
+        })->name('support.dashboard');
+
+        // Ticket Management
+        Route::get('tickets', [TicketController::class, 'index'])->name('support.tickets.index');
+        Route::post('tickets', [TicketController::class, 'store'])->name('support.tickets.store');
+        Route::get('tickets/{ticket}', [TicketController::class, 'show'])->name('support.tickets.show');
+        Route::patch('tickets/{ticket}/claim', [TicketController::class, 'claim'])->name('support.tickets.claim');
+        Route::patch('tickets/{ticket}/close', [TicketController::class, 'close'])->name('support.tickets.close');
+        Route::post('tickets/{ticket}/messages', [TicketMessageController::class, 'store'])->name('support.tickets.messages.store');
+
+        // Live Chat Management
+        Route::get('chat', [ChatController::class, 'index'])->name('support.chat.index');
+        Route::post('chat/status', [ChatController::class, 'updateStatus'])->name('support.chat.status');
+        Route::get('chat/{session}', [ChatController::class, 'show'])->name('support.chat.show');
+        Route::post('chat/{session}/claim', [ChatController::class, 'claim'])->name('support.chat.claim');
+        Route::post('chat/{session}/message', [ChatController::class, 'sendMessage'])->name('support.chat.message');
+        Route::post('chat/{session}/close', [ChatController::class, 'close'])->name('support.chat.close');
+        Route::post('chat/{session}/convert', [ChatController::class, 'convertToTicket'])->name('support.chat.convert');
+    });

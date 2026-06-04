@@ -58,4 +58,32 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
+
+    /**
+     * Create an agent with pending approval (email verified, not yet approved).
+     */
+    public function pendingAgent(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => now(),
+            'department' => fake()->randomElement(['Customer Success', 'Technical Support', 'Billing']),
+            'employee_id' => fake()->unique()->numerify('EMP-####'),
+            'agent_approved_at' => null,
+            'agent_rejected_at' => null,
+        ]);
+    }
+
+    /**
+     * Create a fully approved agent.
+     */
+    public function approvedAgent(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => now(),
+            'department' => fake()->randomElement(['Customer Success', 'Technical Support', 'Billing']),
+            'employee_id' => fake()->unique()->numerify('EMP-####'),
+            'agent_approved_at' => now(),
+            'agent_rejected_at' => null,
+        ]);
+    }
 }

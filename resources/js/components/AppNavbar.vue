@@ -18,6 +18,7 @@ import {
     trending,
     winners,
 } from '@/routes/index';
+import { dashboard as adminDashboard } from '@/routes/admin/index';
 import notificationsRoutes from '@/routes/notifications';
 
 interface Notification {
@@ -132,6 +133,7 @@ onMounted(() => {
 
     router.on('success', () => {
         if (currentUser.value) {
+            console.log(currentUser.value)
             refreshNotifications();
         }
     });
@@ -178,6 +180,8 @@ const secondLineLinks = computed(() => navLinks.slice(4));
 const currentUser = computed(() => page.props.auth?.user ?? null);
 
 const currentUserId = computed(() => currentUser.value?.id ?? null);
+
+const isAdmin = computed(() => currentUser.value?.is_admin === true);
 
 useRealtimeNotifications(currentUserId, notifications, refreshNotifications);
 
@@ -344,6 +348,15 @@ function navItemClass(href: string): string {
                         </Link>
                     </template>
                     <template v-else>
+                        <Link
+                            v-if="isAdmin"
+                            :href="adminDashboard.url()"
+                            as="button"
+                            class="bg-amber text-navy border-none md:h-12 h-10 px-3 md:px-4 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-lemon flex items-center gap-1.5 transition-colors"
+                        >
+                            <i class="pi pi-shield text-sm"></i>
+                            <span class="hidden sm:inline">Admin</span>
+                        </Link>
                         <Link
                             :href="profile.url()"
                             as="button"

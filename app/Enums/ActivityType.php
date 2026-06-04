@@ -19,4 +19,8 @@ enum ActivityType: string
     case DAILY_CHECK_IN = 'daily_check_in';
     case SPIN_WHEEL = 'spin_wheel';
     case REWARDS_CLAIMED = 'rewards_claimed';
+    case TICKET_CREATED = 'ticket_created';
+    case TICKET_CLAIMED = 'ticket_claimed';
+    case TICKET_CLOSED = 'ticket_closed';
+    case TICKET_MESSAGE_ADDED = 'ticket_message_added';
 }

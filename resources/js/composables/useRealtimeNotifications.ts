@@ -22,6 +22,9 @@ export function useRealtimeNotifications(
     let channelName: string | null = null;
 
     function unsubscribe(): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
         if (channelName !== null) {
             echo().leave(channelName);
             channelName = null;
@@ -29,6 +32,9 @@ export function useRealtimeNotifications(
     }
 
     function subscribe(id: number): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
         unsubscribe();
         channelName = `App.Models.User.${id}`;
 

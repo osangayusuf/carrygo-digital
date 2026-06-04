@@ -1,4 +1,4 @@
-# Production setup guide (Ubuntu + Apache)
+ # Production setup guide (Ubuntu + Apache)
 
 Carrygo Digital production processes: **scheduler** (cron), **queue workers** (Supervisor), and **Reverb** (Supervisor + Apache WebSocket proxy).
 
@@ -168,6 +168,9 @@ REVERB_SCHEME=https
 REVERB_SERVER_HOST=127.0.0.1
 REVERB_SERVER_PORT=8080
 
+# NOTE: Do NOT define REVERB_TLS_CERT or REVERB_TLS_KEY in production.
+# In production, SSL/TLS termination is handled by the reverse proxy (Apache or Nginx).
+
 VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
 VITE_REVERB_HOST="${REVERB_HOST}"
 VITE_REVERB_PORT="${REVERB_PORT}"
@@ -189,16 +192,20 @@ npm run build
 
 ---
 
-## 6. Apache — WebSocket proxy to Reverb
+## 6. Reverse Proxy (Apache or Nginx) — WebSocket proxy to Reverb
 
-### Enable modules (once)
+Choose the reverse proxy option matching your production stack. The proxy handles SSL termination and forwards the websocket connection locally over HTTP.
+
+### Option A: Apache Configuration
+
+#### Enable modules (once)
 
 ```bash
 sudo a2enmod proxy proxy_http proxy_wstunnel rewrite headers ssl
 sudo systemctl restart apache2
 ```
 
-### Virtual host
+#### Virtual host configuration
 
 Inside your SSL vhost for `ngcarrygo.com` (e.g. `/etc/apache2/sites-available/ngcarrygo.com-le-ssl.conf`), in the `<VirtualHost *:443>` block:
 
@@ -219,14 +226,46 @@ ProxyPass        /app ws://127.0.0.1:8080/app
 ProxyPassReverse /app ws://127.0.0.1:8080/app
 ```
 
-Test and reload:
+#### Test and reload
 
 ```bash
 sudo apache2ctl configtest
 sudo systemctl reload apache2
 ```
 
-**Subdirectory deployment:** If the public URL is not the domain root (e.g. app under `/digital`), keep `DocumentRoot` pointed at `public` and ensure this vhost is the one serving the domain. Echo/Reverb still use `/app` at the host root unless you intentionally change paths in Reverb and Echo config.
+### Option B: Nginx Configuration
+
+If you are using Nginx instead of Apache in production, add the following configuration to your secure server block (listening on port 443 with SSL):
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name ngcarrygo.com;
+
+    root /var/www/ngcarrygo.com/digital/public;
+    index index.php;
+
+    # Reverb WebSockets proxy
+    location /app {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Scheme $scheme;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # ... remaining standard Laravel Nginx config (PHP-FPM socket, SSL cert paths, etc.)
+}
+```
+
+**Subdirectory deployment:** If the public URL is not the domain root (e.g. app under `/digital`), keep `DocumentRoot` / `root` pointed at `public` and ensure this vhost is the one serving the domain. Echo/Reverb still use `/app` at the host root unless you intentionally change paths in Reverb and Echo config.
 
 ---
 

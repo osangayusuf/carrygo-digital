@@ -19,11 +19,18 @@ class Review extends Model
         'comment',
         'social_platform',
         'social_handle',
+        'is_visible',
     ];
 
     protected $casts = [
         'rating' => 'decimal:1',
+        'is_visible' => 'boolean',
     ];
+
+    public function scopeVisible($query)
+    {
+        return $query->where('is_visible', true);
+    }
 
     public function auction(): BelongsTo
     {

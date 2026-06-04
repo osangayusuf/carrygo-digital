@@ -55,6 +55,9 @@ export function useAuctionTimeline(auctionId: Ref<number | null>) {
     let subscribedAuctionId: number | null = null;
 
     function unsubscribe(): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
         if (subscribedAuctionId !== null) {
             echo().leave(`auction.${subscribedAuctionId}`);
             subscribedAuctionId = null;
@@ -62,6 +65,9 @@ export function useAuctionTimeline(auctionId: Ref<number | null>) {
     }
 
     function subscribe(id: number): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
         unsubscribe();
         subscribedAuctionId = id;
 

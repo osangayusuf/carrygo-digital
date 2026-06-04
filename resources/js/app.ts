@@ -1,14 +1,27 @@
 import { createInertiaApp } from '@inertiajs/vue3';
-import { configureEcho } from '@laravel/echo-vue';
+import { configureEcho, echo } from '@laravel/echo-vue';
+import Pusher from 'pusher-js';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 
-configureEcho({
-    broadcaster: 'reverb',
-});
+if (typeof window !== 'undefined') {
+    configureEcho({
+        broadcaster: 'reverb',
+        key: import.meta.env.VITE_REVERB_APP_KEY,
+        wsHost: import.meta.env.VITE_REVERB_HOST,
+        wsPort: import.meta.env.VITE_REVERB_PORT ? parseInt(import.meta.env.VITE_REVERB_PORT) : 80,
+        wssPort: import.meta.env.VITE_REVERB_PORT ? parseInt(import.meta.env.VITE_REVERB_PORT) : 443,
+        forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
+        enabledTransports: ['ws', 'wss'],
+    });
+
+    (window as any).Pusher = Pusher;
+    (window as any).Echo = echo();
+}
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -25,6 +38,10 @@ createInertiaApp({
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
+            case name.startsWith('Admin/'):
+                return null;
+            case name.startsWith('Support/'):
+                return null;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

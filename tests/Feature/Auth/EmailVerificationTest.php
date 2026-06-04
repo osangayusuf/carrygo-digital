@@ -2,9 +2,12 @@
 
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Laravel\Fortify\Features;
+
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->skipUnlessFortifyHas(Features::emailVerification());
@@ -21,8 +24,6 @@ test('email verification screen can be rendered', function () {
 test('email can be verified', function () {
     $user = User::factory()->unverified()->create();
 
-    Event::fake();
-
     $verificationUrl = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
@@ -31,9 +32,8 @@ test('email can be verified', function () {
 
     $response = $this->actingAs($user)->get($verificationUrl);
 
-    Event::assertDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    $response->assertRedirect(route('home', absolute: false).'?verified=1');
+    $response->assertRedirect(route('onboarding', absolute: false));
 });
 
 test('email is not verified with invalid hash', function () {
@@ -93,7 +93,7 @@ test('already verified user visiting verification link is redirected without fir
     );
 
     $this->actingAs($user)->get($verificationUrl)
-        ->assertRedirect(route('home', absolute: false).'?verified=1');
+        ->assertRedirect(route('home', absolute: false));
 
     Event::assertNotDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();

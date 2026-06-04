@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateAuctionRequest;
 use App\Models\Auction;
 use App\Services\AuctionService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,10 +16,32 @@ class AuctionController extends Controller
 {
     public function __construct(private readonly AuctionService $auctionService) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->filled('search')
+            ? trim($request->string('search')->toString())
+            : null;
+
+        $statusFilter = $request->filled('status')
+            ? $request->string('status')->toString()
+            : null;
+
+        $query = Auction::query()->latest();
+
+        if ($search) {
+            $query->search($search);
+        }
+
+        if ($statusFilter) {
+            $query->where('status', $statusFilter);
+        }
+
         return Inertia::render('Admin/Auctions/Index', [
-            'auctions' => Auction::latest()->paginate(20),
+            'auctions' => $query->paginate(20)->withQueryString(),
+            'filters' => [
+                'search' => $search,
+                'status' => $statusFilter,
+            ],
         ]);
     }
 

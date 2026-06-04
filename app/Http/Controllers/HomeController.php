@@ -89,7 +89,8 @@ class HomeController extends Controller
             }),
 
             'reviews' => Inertia::defer(function () {
-                return Review::with(['user', 'auction'])
+                return Review::visible()
+                    ->with(['user', 'auction'])
                     ->latest()
                     ->limit(12)
                     ->get()

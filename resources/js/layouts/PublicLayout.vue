@@ -3,6 +3,7 @@ import AppFooter from '@/components/AppFooter.vue';
 import AppNavbar from '@/components/AppNavbar.vue';
 import PlaceBidModal from '@/components/modals/PlaceBidModal.vue';
 import { Toaster } from '@/components/ui/sonner';
+import ChatWidget from '@/components/support/ChatWidget.vue';
 </script>
 
 <template>
@@ -14,5 +15,6 @@ import { Toaster } from '@/components/ui/sonner';
             <slot />
         </main>
         <AppFooter />
+        <ChatWidget />
     </div>
 </template>

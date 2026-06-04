@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use App\Services\NotificationFeedService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -43,6 +44,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $user,
+                'pending_agents_count' => ($user && $user->hasRole('admin'))
+                    ? User::role('agent')->whereNull('agent_approved_at')->whereNull('agent_rejected_at')->count()
+                    : 0,
             ],
             'asset_url' => asset(''),
             'notifications' => $user
