@@ -2,6 +2,7 @@
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import SupportLayout from '@/layouts/SupportLayout.vue';
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
+import { status as chatStatus, claim as chatClaim, close as chatClose, message as chatMessage, convert as chatConvert } from '@/routes/support/chat';
 import { 
     MessageSquare, 
     User as UserIcon, 
@@ -178,14 +179,14 @@ watch(() => props.closedSessions, (newVal) => { closedList.value = [...newVal]; 
 watch(() => props.agentStatus, (newVal) => { if (newVal) currentStatus.value = newVal.status; });
 
 const changePresenceStatus = () => {
-    router.post('/support/chat/status', {
+    router.post(chatStatus.url(), {
         status: currentStatus.value
     });
 };
 
 const claimChat = () => {
     if (!props.selectedSession) return;
-    router.post(`/support/chat/${props.selectedSession.uuid}/claim`, {}, {
+    router.post(chatClaim.url(props.selectedSession.uuid), {}, {
         onSuccess: () => {
             currentTab.value = 'active';
         }
@@ -195,7 +196,7 @@ const claimChat = () => {
 const closeChat = () => {
     if (!props.selectedSession) return;
     if (confirm('Are you sure you want to close this chat session?')) {
-        router.post(`/support/chat/${props.selectedSession.uuid}/close`);
+        router.post(chatClose.url(props.selectedSession.uuid));
     }
 };
 
@@ -211,7 +212,7 @@ const submitMessage = () => {
         headers['X-Socket-ID'] = socketId;
     }
 
-    router.post(`/support/chat/${props.selectedSession.uuid}/message`, {
+    router.post(chatMessage.url(props.selectedSession.uuid), {
         body: bodyText,
     }, {
         preserveScroll: true,
@@ -222,7 +223,7 @@ const submitMessage = () => {
 
 const submitConvert = () => {
     if (!props.selectedSession) return;
-    convertForm.post(`/support/chat/${props.selectedSession.uuid}/convert`, {
+    convertForm.post(chatConvert.url(props.selectedSession.uuid), {
         onSuccess: () => {
             showConvertModal.value = false;
             convertForm.reset();

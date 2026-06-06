@@ -6,7 +6,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Features;
-use Laravel\Fortify\Fortify;
 
 class LoginResponse implements LoginResponseContract
 {
@@ -29,18 +28,18 @@ class LoginResponse implements LoginResponseContract
 
         if ($user && $user->hasRole('admin')) {
             return $request->wantsJson()
-                ? new JsonResponse(['two_factor' => false, 'intended' => '/admin'], 200)
-                : redirect()->intended('/admin');
+                ? new JsonResponse(['two_factor' => false, 'intended' => url('/admin/auctions')], 200)
+                : redirect()->intended(url('/admin/auctions'));
         }
 
         if ($user && $user->isAgent()) {
             return $request->wantsJson()
-                ? new JsonResponse(['two_factor' => false, 'intended' => '/support'], 200)
-                : redirect()->intended('/support');
+                ? new JsonResponse(['two_factor' => false, 'intended' => url('/support')], 200)
+                : redirect()->intended(url('/support'));
         }
 
         return $request->wantsJson()
-            ? new JsonResponse(['two_factor' => false], 200)
-            : redirect()->intended(Fortify::redirects('login'));
+            ? new JsonResponse(['two_factor' => false, 'intended' => url('/')], 200)
+            : redirect()->intended(url('/'));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AgentStatus;
 use App\Enums\ChatSenderType;
 use App\Enums\ChatSessionStatus;
 use App\Events\Support\AgentClaimedSession;
@@ -12,7 +13,9 @@ use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\NewChatSessionNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class ChatService
@@ -40,6 +43,21 @@ class ChatService
 
             // Broadcast that a new chat session has been created to support agents
             broadcast(new NewChatSessionCreated($session))->toOthers();
+
+            // Send notification to all online agents/admins
+            $onlineAgents = User::role(['agent', 'admin'])
+                ->where(function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereHas('roles', fn ($r) => $r->where('name', 'agent'))
+                            ->whereNotNull('agent_approved_at');
+                    })->orWhereHas('roles', fn ($r) => $r->where('name', 'admin'));
+                })
+                ->whereHas('agentStatus', function ($query) {
+                    $query->where('status', AgentStatus::ONLINE);
+                })
+                ->get();
+
+            Notification::send($onlineAgents, new NewChatSessionNotification($session));
 
             return $session;
         });

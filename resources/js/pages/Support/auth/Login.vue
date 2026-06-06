@@ -2,6 +2,8 @@
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { register } from '@/routes/support';
+import { home } from '@/routes';
+import { store as loginStore } from '@/routes/login';
 
 defineProps<{
     status?: string;
@@ -24,7 +26,7 @@ defineOptions({ layout: null });
         <div class="relative z-10 w-full max-w-md">
             <!-- Logo / Brand -->
             <div class="mb-8 flex flex-col items-center justify-center">
-                <Link href="/">
+                <Link :href="home.url()">
                     <img src="/logo.png" alt="CarryGo" class="h-12 w-auto mb-2" />
                 </Link>
                 <span class="rounded bg-secondary-container/60 px-2.5 py-1 text-xs font-semibold tracking-wider text-on-secondary-container border border-secondary/20 uppercase">
@@ -45,7 +47,7 @@ defineOptions({ layout: null });
                     Access ticket management and customer live chat
                 </p>
 
-                <Form action="/login" method="post" :reset-on-success="['password']" v-slot="{ errors, processing }">
+                <Form :action="loginStore.url()" method="post" :reset-on-success="['password']" v-slot="{ errors, processing }">
                     <div class="space-y-5">
                         <!-- Email -->
                         <div class="space-y-1.5">

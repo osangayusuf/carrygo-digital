@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\MarkIdleAgentsAway;
 use App\Console\Commands\ReconcileAuctionsCommand;
 use App\Services\RewardsService;
 use Illuminate\Foundation\Inspiring;
@@ -22,3 +23,7 @@ Schedule::call(fn (RewardsService $rewards) => $rewards->grantDailySpins())
 Schedule::call(fn (RewardsService $rewards) => $rewards->processWeeklyLeaderboard())
     ->weeklyOn(0, '23:55')
     ->name('rewards:process-weekly-leaderboard');
+
+Schedule::command(MarkIdleAgentsAway::class)
+    ->everyFiveMinutes()
+    ->runInBackground();

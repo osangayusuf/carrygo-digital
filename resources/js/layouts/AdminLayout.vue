@@ -14,7 +14,16 @@ import {
     ListFilter
 } from 'lucide-vue-next';
 import { ref } from 'vue';
-import { logout as logoutRoute } from '@/routes';
+import { logout as logoutRoute, home } from '@/routes';
+import { index as auctionsIndex } from '@/routes/admin/auctions';
+import { index as usersIndex } from '@/routes/admin/users';
+import { index as agentsIndex } from '@/routes/admin/agents';
+import { index as bidsIndex } from '@/routes/admin/bids';
+import { index as pointTransactionsIndex } from '@/routes/admin/point-transactions';
+import { index as paystackTransactionsIndex } from '@/routes/admin/paystack-transactions';
+import { index as reviewsIndex } from '@/routes/admin/reviews';
+import { index as rewardsConfigIndex } from '@/routes/admin/rewards-config';
+import { useCurrentUrl } from '@/composables/useCurrentUrl';
 
 type Breadcrumb = {
     title: string;
@@ -30,15 +39,17 @@ const user = ref(page.props.auth?.user);
 
 const isMobileMenuOpen = ref(false);
 
+const { isCurrentOrParentUrl } = useCurrentUrl();
+
 const navItems = [
-    { name: 'Auctions', href: '/admin/auctions', icon: Gavel },
-    { name: 'Users', href: '/admin/users', icon: Users },
-    { name: 'Agents', href: '/admin/agents', icon: UserCheck },
-    { name: 'Bids Audit', href: '/admin/bids', icon: ListFilter },
-    { name: 'Points Ledger', href: '/admin/point-transactions', icon: Coins },
-    { name: 'Paystack Logs', href: '/admin/paystack-transactions', icon: CreditCard },
-    { name: 'Reviews', href: '/admin/reviews', icon: Star },
-    { name: 'Rewards Config', href: '/admin/rewards-config', icon: Settings },
+    { name: 'Auctions', href: auctionsIndex.url(), icon: Gavel },
+    { name: 'Users', href: usersIndex.url(), icon: Users },
+    { name: 'Agents', href: agentsIndex.url(), icon: UserCheck },
+    { name: 'Bids Audit', href: bidsIndex.url(), icon: ListFilter },
+    { name: 'Points Ledger', href: pointTransactionsIndex.url(), icon: Coins },
+    { name: 'Paystack Logs', href: paystackTransactionsIndex.url(), icon: CreditCard },
+    { name: 'Reviews', href: reviewsIndex.url(), icon: Star },
+    { name: 'Rewards Config', href: rewardsConfigIndex.url(), icon: Settings },
 ];
 
 const logout = () => {
@@ -81,7 +92,7 @@ const logout = () => {
                         :href="item.href"
                         :class="[
                             'flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-lg transition-all',
-                            $page.url.startsWith(item.href) 
+                            isCurrentOrParentUrl(item.href) 
                                 ? 'bg-secondary-container text-on-secondary-container shadow-sm border border-secondary/20' 
                                 : 'text-on-surface-variant hover:bg-surface-variant/40'
                         ]"
@@ -123,7 +134,7 @@ const logout = () => {
                 <!-- Desktop Top Bar -->
                 <header class="hidden lg:flex h-16 justify-between items-center px-8 bg-surface border-b border-outline-variant sticky top-0 z-40">
                     <nav class="flex items-center gap-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
-                        <Link href="/dashboard" class="hover:text-primary transition-colors">Home</Link>
+                        <Link :href="home.url()" class="hover:text-primary transition-colors">Home</Link>
                         <span class="text-on-surface-variant/30 text-[12px] font-normal">/</span>
                         <span class="hover:text-primary transition-colors">Admin</span>
                         <template v-for="crumb in breadcrumbs" :key="crumb.title">
@@ -137,7 +148,7 @@ const logout = () => {
                 <div class="flex-1 p-6 lg:p-8 space-y-6">
                     <!-- Mobile Breadcrumbs only -->
                     <div class="lg:hidden flex items-center gap-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-                        <Link href="/dashboard" class="hover:text-primary transition-colors">Home</Link>
+                        <Link :href="home.url()" class="hover:text-primary transition-colors">Home</Link>
                         <span class="text-on-surface-variant/30 text-[12px] font-normal">/</span>
                         <span class="text-primary font-bold">Admin</span>
                         <template v-for="crumb in breadcrumbs" :key="crumb.title">

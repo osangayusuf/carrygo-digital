@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import SupportLayout from '@/layouts/SupportLayout.vue';
 import { 
     Ticket, 
@@ -8,6 +8,23 @@ import {
     ShieldCheck, 
     Activity
 } from 'lucide-vue-next';
+import { computed } from 'vue';
+
+const page = usePage();
+const user = computed(() => page.props.auth?.user as any);
+const currentStatus = computed(() => user.value?.agent_status?.status || 'offline');
+
+const statusStyles: Record<string, string> = {
+    online: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20',
+    away: 'bg-amber-500/10 text-amber-500 border border-amber-500/20',
+    offline: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
+};
+
+const statusLabel: Record<string, string> = {
+    online: 'Online',
+    away: 'Away',
+    offline: 'Offline',
+};
 
 // Placeholder stats for later phases
 const stats = {
@@ -129,8 +146,8 @@ const stats = {
                         </div>
                         <div class="flex justify-between items-center py-1">
                             <span class="text-on-surface-variant">Status</span>
-                            <span class="inline-flex items-center gap-1 bg-secondary-container text-on-secondary-container border border-secondary/20 px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-wider">
-                                Online
+                            <span :class="['inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-wider', statusStyles[currentStatus]]">
+                                {{ statusLabel[currentStatus] }}
                             </span>
                         </div>
                     </div>

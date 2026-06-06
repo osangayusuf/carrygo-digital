@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AgentAuthController;
 use App\Http\Controllers\Support\ChatController;
 use App\Http\Controllers\Support\CustomerChatController;
+use App\Http\Controllers\Support\NotificationController;
 use App\Http\Controllers\Support\TicketController;
 use App\Http\Controllers\Support\TicketMessageController;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +36,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 });
 
 // Authenticated, Verified and Approved Agent Portal Routes
-Route::middleware(['web', 'auth', 'verified', 'role:agent|admin', 'agent.approved'])
+Route::middleware(['web', 'auth', 'verified', 'role:agent|admin', 'agent.approved', 'agent.activity'])
     ->prefix('support')
     ->group(function () {
         Route::get('/', function () {
@@ -58,4 +59,9 @@ Route::middleware(['web', 'auth', 'verified', 'role:agent|admin', 'agent.approve
         Route::post('chat/{session}/message', [ChatController::class, 'sendMessage'])->name('support.chat.message');
         Route::post('chat/{session}/close', [ChatController::class, 'close'])->name('support.chat.close');
         Route::post('chat/{session}/convert', [ChatController::class, 'convertToTicket'])->name('support.chat.convert');
+
+        // Notifications Management
+        Route::get('notifications', [NotificationController::class, 'index'])->name('support.notifications.index');
+        Route::patch('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('support.notifications.read');
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('support.notifications.read-all');
     });

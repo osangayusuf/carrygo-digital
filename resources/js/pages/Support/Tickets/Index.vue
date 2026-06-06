@@ -2,6 +2,7 @@
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import SupportLayout from '@/layouts/SupportLayout.vue';
 import { ref } from 'vue';
+import { index as ticketsIndex, store as ticketsStore, show as ticketsShow } from '@/routes/support/tickets';
 import { 
     Ticket as TicketIcon, 
     Plus, 
@@ -64,7 +65,7 @@ const createForm = useForm({
 });
 
 const submitCreate = () => {
-    createForm.post('/support/tickets', {
+    createForm.post(ticketsStore.url(), {
         onSuccess: () => {
             showCreateModal.value = false;
             createForm.reset();
@@ -74,7 +75,7 @@ const submitCreate = () => {
 
 const switchTab = (tab: string) => {
     activeTab.value = tab;
-    router.get('/support/tickets', { tab }, { preserveState: true });
+    router.get(ticketsIndex.url(), { tab }, { preserveState: true });
 };
 
 const getPriorityClass = (priority: string) => {
@@ -208,7 +209,7 @@ const getStatusClass = (status: string) => {
                                 </div>
                                 <div class="flex items-center self-end md:self-auto">
                                     <Link 
-                                        :href="`/support/tickets/${ticket.id}`"
+                                        :href="ticketsShow.url(ticket.id)"
                                         class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low hover:bg-secondary-container text-on-surface hover:text-primary border border-outline-variant rounded-lg font-bold transition-all"
                                     >
                                         <span>Open</span>

@@ -51,8 +51,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('trending', [TrendingController::class, 'index'])->name('trending');
     Route::get('event-items', [EventItemsController::class, 'index'])->name('event-items');
 
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard'); // TODO: might remove later
-
     Route::get('onboarding', [OnboardingController::class, 'index'])->name('onboarding');
     Route::post('onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 

@@ -2,6 +2,8 @@
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { login } from '@/routes/support';
+import { home } from '@/routes';
+import { store as registerStore } from '@/routes/support/register';
 
 const showPassword = ref(false);
 defineOptions({ layout: null });
@@ -20,7 +22,7 @@ defineOptions({ layout: null });
         <div class="relative z-10 w-full max-w-lg my-8">
             <!-- Logo / Brand -->
             <div class="mb-8 flex flex-col items-center justify-center">
-                <Link href="/">
+                <Link :href="home.url()">
                     <img src="/logo.png" alt="CarryGo" class="h-12 w-auto mb-2" />
                 </Link>
                 <span class="rounded bg-secondary-container/60 px-2.5 py-1 text-xs font-semibold tracking-wider text-on-secondary-container border border-secondary/20 uppercase">
@@ -36,7 +38,7 @@ defineOptions({ layout: null });
                     Register your credentials for admin review and approval
                 </p>
 
-                <Form action="/support/register" method="post" :reset-on-success="['password', 'password_confirmation']" v-slot="{ errors, processing }">
+                <Form :action="registerStore.url()" method="post" :reset-on-success="['password', 'password_confirmation']" v-slot="{ errors, processing }">
                     <div class="space-y-5">
                         <!-- Name -->
                         <div class="space-y-1.5">

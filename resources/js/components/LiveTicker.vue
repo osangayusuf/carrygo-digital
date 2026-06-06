@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Link, useHttp } from '@inertiajs/vue3';
 import auctions from '@/routes/auctions/index';
+import { search } from '@/routes';
 
 const triggeredAuctions = ref([]);
 let intervalId = null;
@@ -9,7 +10,7 @@ let intervalId = null;
 const http = useHttp({});
 
 const fetchTriggered = () => {
-    http.get('/search?status=triggered', {
+    http.get(search.url({ query: { status: 'triggered' } }), {
         onSuccess: (response) => {
             if (response && response.data) {
                 triggeredAuctions.value = response.data;

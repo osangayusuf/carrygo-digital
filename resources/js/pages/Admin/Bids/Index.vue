@@ -5,6 +5,7 @@ import {
     Search,
     TrendingUp
 } from 'lucide-vue-next';
+import { index as bidsIndex } from '@/routes/admin/bids';
 
 type Bid = {
     id: number;
@@ -34,7 +35,7 @@ const searchForm = useForm({
 });
 
 const handleSearch = () => {
-    searchForm.get('/admin/bids', {
+    searchForm.get(bidsIndex.url(), {
         preserveState: true,
     });
 };

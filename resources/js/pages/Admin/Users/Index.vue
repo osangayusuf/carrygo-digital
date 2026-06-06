@@ -4,11 +4,16 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import { ref } from 'vue';
 import { 
     Users, 
+    Search,
+    Shield,
+    CheckCircle,
+    XCircle,
+    UserMinus,
     Lock, 
     Unlock, 
-    UserCheck,
-    Search
+    UserCheck
 } from 'lucide-vue-next';
+import { index as usersIndex, toggleActive as usersToggleActive, role as usersRole } from '@/routes/admin/users';
 
 type User = {
     id: number;
@@ -18,6 +23,7 @@ type User = {
     points_balance: number;
     bonus_points: number;
     is_active: boolean;
+    created_at: string;
     roles: { id: number; name: string }[];
 };
 
@@ -35,8 +41,8 @@ const props = defineProps<{
     availableRoles: string[];
 }>();
 
-const showRoleModal = ref(false);
 const selectedUser = ref<User | null>(null);
+const showRoleModal = ref(false);
 
 const searchForm = useForm({
     search: props.filters.search || '',
@@ -48,7 +54,7 @@ const roleForm = useForm({
 });
 
 const handleSearch = () => {
-    searchForm.get('/admin/users', {
+    searchForm.get(usersIndex.url(), {
         preserveState: true,
     });
 };
@@ -62,7 +68,7 @@ const clearSearch = () => {
 const toggleUserActive = (user: User) => {
     const action = user.is_active ? 'disable' : 'enable';
     if (confirm(`Are you sure you want to ${action} this user's account?`)) {
-        router.post(`/admin/users/${user.id}/toggle-active`);
+        router.post(usersToggleActive.url(user.id));
     }
 };
 
@@ -75,7 +81,7 @@ const openRoleModal = (user: User) => {
 const submitRoleUpdate = () => {
     if (!selectedUser.value) return;
     
-    roleForm.post(`/admin/users/${selectedUser.value.id}/role`, {
+    roleForm.post(usersRole.url(selectedUser.value.id), {
         onSuccess: () => {
             showRoleModal.value = false;
         }

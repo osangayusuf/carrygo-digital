@@ -2,6 +2,8 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import SupportLayout from '@/layouts/SupportLayout.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
+import { index as ticketsIndex, claim as ticketsClaim, close as ticketsClose } from '@/routes/support/tickets';
+import { store as messagesStore } from '@/routes/support/tickets/messages';
 import { 
     Ticket as TicketIcon, 
     ArrowLeft,
@@ -55,7 +57,7 @@ const replyForm = useForm({
 });
 
 const submitReply = () => {
-    replyForm.post(`/support/tickets/${props.ticket.id}/messages`, {
+    replyForm.post(messagesStore.url(props.ticket.id), {
         onSuccess: () => {
             replyForm.reset('body');
         }
@@ -64,13 +66,13 @@ const submitReply = () => {
 
 const claimTicket = () => {
     if (confirm('Are you sure you want to claim this ticket?')) {
-        useForm({}).patch(`/support/tickets/${props.ticket.id}/claim`);
+        useForm({}).patch(ticketsClaim.url(props.ticket.id));
     }
 };
 
 const closeTicket = () => {
     if (confirm('Are you sure you want to close this ticket?')) {
-        useForm({}).patch(`/support/tickets/${props.ticket.id}/close`);
+        useForm({}).patch(ticketsClose.url(props.ticket.id));
     }
 };
 
@@ -127,14 +129,14 @@ const getStatusClass = (status: string) => {
     <Head :title="`Ticket Details - ${ticket.subject}`" />
 
     <SupportLayout :breadcrumbs="[
-        { title: 'Tickets', href: '/support/tickets' },
+        { title: 'Tickets', href: ticketsIndex.url() },
         { title: `Ticket #${ticket.id}` }
     ]">
         <div class="flex flex-col gap-6 font-sans text-xs">
             <!-- Back & Action Header -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <Link 
-                    href="/support/tickets"
+                    :href="ticketsIndex.url()"
                     class="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-primary font-bold uppercase transition-colors"
                 >
                     <ArrowLeft class="w-4 h-4" />

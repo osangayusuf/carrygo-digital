@@ -12,6 +12,7 @@ import {
     Trash2,
     Plus
 } from 'lucide-vue-next';
+import { update as rewardsConfigUpdate } from '@/routes/admin/rewards-config';
 
 type SpinSegment = {
     points: number;
@@ -94,7 +95,7 @@ const submitConfig = () => {
     });
     form.checkin_milestones = milestonesObj;
 
-    form.post('/admin/rewards-config');
+    form.post(rewardsConfigUpdate.url());
 };
 </script>
 

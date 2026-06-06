@@ -3,16 +3,13 @@
 namespace App\Http\Controllers\Support;
 
 use App\Enums\ChatSenderType;
-use App\Enums\TicketCategory;
-use App\Enums\TicketPriority;
-use App\Enums\TicketStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AgentStatus;
 use App\Models\ChatSession;
 use App\Models\Ticket;
-use App\Models\TicketMessage;
 use App\Models\User;
 use App\Services\ChatService;
+use App\Services\TicketService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +21,8 @@ class CustomerChatController extends Controller
      * Create a new CustomerChatController instance.
      */
     public function __construct(
-        private readonly ChatService $chatService
+        private readonly ChatService $chatService,
+        private readonly TicketService $ticketService
     ) {}
 
     /**
@@ -173,32 +171,16 @@ class CustomerChatController extends Controller
                     'password' => bcrypt(Str::random(16)),
                 ]
             );
-            $customerId = $customer->id;
             $body = $validated['body'];
         } else {
             $validated = $request->validate([
                 'body' => 'required|string',
             ]);
-            $customerId = $user->id;
+            $customer = $user;
             $body = $validated['body'];
         }
 
-        $ticket = Ticket::create([
-            'uuid' => (string) Str::uuid(),
-            'customer_id' => $customerId,
-            'agent_id' => null,
-            'status' => TicketStatus::OPEN,
-            'priority' => TicketPriority::NORMAL,
-            'category' => TicketCategory::GENERAL,
-            'subject' => 'Offline Support Request: '.Str::limit($body, 40),
-        ]);
-
-        TicketMessage::create([
-            'ticket_id' => $ticket->id,
-            'sender_id' => $customerId,
-            'body' => $body,
-            'is_internal' => false,
-        ]);
+        $this->ticketService->createFromOffline($customer, $body);
 
         return response()->json([
             'success' => true,

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { send as verificationSend } from '@/routes/verification';
+import { logout as logoutRoute } from '@/routes';
 defineOptions({ layout: null });
 </script>
 
@@ -38,7 +40,7 @@ defineOptions({ layout: null });
                 </p>
 
                 <!-- Resend Form -->
-                <Form action="/email/verification-notification" method="post" v-slot="{ processing, wasSuccessful }">
+                <Form :action="verificationSend.url()" method="post" v-slot="{ processing, wasSuccessful }">
                     <div class="space-y-4">
                         <div v-if="wasSuccessful" class="rounded-lg bg-secondary-container/40 border border-secondary/20 px-4 py-3 text-sm font-medium text-on-secondary-container">
                             A new verification link has been sent to the email address you provided during registration.
@@ -50,7 +52,7 @@ defineOptions({ layout: null });
                             <span>{{ processing ? 'Resending...' : 'Resend Verification Email' }}</span>
                         </button>
 
-                        <Link href="/logout" method="post" as="button"
+                        <Link :href="logoutRoute.url()" method="post" as="button"
                             class="w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest py-2.5 text-center text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all cursor-pointer">
                             Log Out
                         </Link>

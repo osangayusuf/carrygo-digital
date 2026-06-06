@@ -2,6 +2,7 @@
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { ref } from 'vue';
+import { index as auctionsIndex, store as auctionsStore, update as auctionsUpdate, publish as auctionsPublish, close as auctionsClose, destroy as auctionsDestroy } from '@/routes/admin/auctions';
 import { 
     Plus, 
     Trash2, 
@@ -48,7 +49,7 @@ const searchForm = useForm({
 });
 
 const handleSearch = () => {
-    searchForm.get('/admin/auctions', {
+    searchForm.get(auctionsIndex.url(), {
         preserveState: true,
     });
 };
@@ -83,7 +84,7 @@ const openCreateModal = () => {
 };
 
 const submitCreate = () => {
-    form.post('/admin/auctions', {
+    form.post(auctionsStore.url(), {
         onSuccess: () => {
             showCreateModal.value = false;
             form.reset();
@@ -105,7 +106,7 @@ const openEditModal = (auction: Auction) => {
 const submitEdit = () => {
     if (!selectedAuction.value) return;
     
-    router.post(`/admin/auctions/${selectedAuction.value.id}`, {
+    router.post(auctionsUpdate.url(selectedAuction.value.id), {
         _method: 'PUT',
         category: form.category,
         name: form.name,
@@ -121,18 +122,18 @@ const submitEdit = () => {
 };
 
 const publishAuction = (id: number) => {
-    router.post(`/admin/auctions/${id}/publish`);
+    router.post(auctionsPublish.url(id));
 };
 
 const closeAuction = (id: number) => {
     if (confirm('Are you sure you want to close this auction manually? This will finalize the winner.')) {
-        router.post(`/admin/auctions/${id}/close`);
+        router.post(auctionsClose.url(id));
     }
 };
 
 const deleteAuction = (id: number) => {
     if (confirm('Are you sure you want to delete this draft auction?')) {
-        router.delete(`/admin/auctions/${id}`);
+        router.delete(auctionsDestroy.url(id));
     }
 };
 

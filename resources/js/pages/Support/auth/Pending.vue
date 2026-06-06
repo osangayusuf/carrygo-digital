@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { logout as logoutRoute } from '@/routes';
 defineOptions({ layout: null });
 </script>
 
@@ -47,7 +48,7 @@ defineOptions({ layout: null });
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <Link href="/logout" method="post" as="button"
+                    <Link :href="logoutRoute.url()" method="post" as="button"
                         class="w-full rounded-lg border border-outline-variant/60 bg-surface-container-lowest py-2.5 text-center text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all cursor-pointer">
                         Sign Out
                     </Link>

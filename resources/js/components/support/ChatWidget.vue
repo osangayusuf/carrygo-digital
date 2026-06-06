@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { status as chatStatus, initiate as chatInitiate, messages as chatMessages, send as chatSend, offlineTicket as chatOfflineTicket } from '@/routes/support/chat/api';
 import {
     MessageSquare,
     X,
@@ -58,7 +59,7 @@ const scrollToBottom = () => {
 
 const checkStatus = async () => {
     try {
-        const res = await fetch('/support/chat-api/status');
+        const res = await fetch(chatStatus.url());
         const data = await res.json();
         isOnline.value = data.online;
     } catch (e) {
@@ -94,7 +95,7 @@ const connectEcho = (uuid: string) => {
 
 const loadHistory = async (uuid: string) => {
     try {
-        const res = await fetch(`/support/chat-api/${uuid}/messages`);
+        const res = await fetch(chatMessages.url(uuid));
         if (res.ok) {
             const data = await res.json();
             messages.value = data.messages || [];
@@ -120,7 +121,7 @@ const loadHistory = async (uuid: string) => {
 const startChat = async () => {
     isSubmitting.value = true;
     try {
-        const res = await fetch('/support/chat-api/initiate', {
+        const res = await fetch(chatInitiate.url(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -175,7 +176,7 @@ const sendChatMessage = async () => {
             headers['X-Socket-ID'] = socketId;
         }
 
-        const res = await fetch(`/support/chat-api/${sessionUuid.value}/message`, {
+        const res = await fetch(chatSend.url(sessionUuid.value), {
             method: 'POST',
             headers,
             body: JSON.stringify({ body }),
@@ -206,7 +207,7 @@ const submitOfflineForm = async () => {
     isSubmitting.value = true;
 
     try {
-        const res = await fetch('/support/chat-api/offline-ticket', {
+        const res = await fetch(chatOfflineTicket.url(), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

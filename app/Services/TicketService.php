@@ -2,13 +2,18 @@
 
 namespace App\Services;
 
+use App\Enums\AgentStatus;
+use App\Enums\TicketCategory;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Models\ChatSession;
 use App\Models\Ticket;
 use App\Models\TicketMessage;
 use App\Models\User;
+use App\Notifications\NewTicketCreatedNotification;
+use App\Notifications\TicketMessageReceivedNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class TicketService
@@ -32,6 +37,9 @@ class TicketService
             if (! empty($data['body'])) {
                 $this->addReply($ticket, $agent, $data['body'], false);
             }
+
+            // Notify online agents
+            $this->notifyOnlineAgentsOfNewTicket($ticket);
 
             return $ticket;
         });
@@ -80,6 +88,15 @@ class TicketService
                 $ticket->update(['status' => TicketStatus::IN_PROGRESS]);
             }
 
+            // Send TicketMessageReceivedNotification if customer (or non-assigned agent/admin) replies
+            // and it is not an internal note, and there is an assigned agent, and the sender is not that agent.
+            if (! $isInternal && $ticket->agent_id !== null && (int) $sender->id !== (int) $ticket->agent_id) {
+                $assignedAgent = User::find($ticket->agent_id);
+                if ($assignedAgent) {
+                    $assignedAgent->notify(new TicketMessageReceivedNotification($message));
+                }
+            }
+
             return $message;
         });
     }
@@ -112,7 +129,55 @@ class TicketService
                 }
             }
 
+            // Notify online agents
+            $this->notifyOnlineAgentsOfNewTicket($ticket);
+
             return $ticket;
         });
+    }
+
+    /**
+     * Create a ticket from an offline support request.
+     */
+    public function createFromOffline(User $customer, string $body): Ticket
+    {
+        return DB::transaction(function () use ($customer, $body): Ticket {
+            $ticket = Ticket::create([
+                'uuid' => (string) Str::uuid(),
+                'customer_id' => $customer->id,
+                'agent_id' => null,
+                'status' => TicketStatus::OPEN,
+                'priority' => TicketPriority::NORMAL,
+                'category' => TicketCategory::GENERAL,
+                'subject' => 'Offline Support Request: '.Str::limit($body, 40),
+            ]);
+
+            $this->addReply($ticket, $customer, $body, false);
+
+            // Notify online agents
+            $this->notifyOnlineAgentsOfNewTicket($ticket);
+
+            return $ticket;
+        });
+    }
+
+    /**
+     * Notify all online agents and admins of a new ticket.
+     */
+    private function notifyOnlineAgentsOfNewTicket(Ticket $ticket): void
+    {
+        $onlineAgents = User::role(['agent', 'admin'])
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->whereHas('roles', fn ($r) => $r->where('name', 'agent'))
+                        ->whereNotNull('agent_approved_at');
+                })->orWhereHas('roles', fn ($r) => $r->where('name', 'admin'));
+            })
+            ->whereHas('agentStatus', function ($query) {
+                $query->where('status', AgentStatus::ONLINE);
+            })
+            ->get();
+
+        Notification::send($onlineAgents, new NewTicketCreatedNotification($ticket));
     }
 }

@@ -42,6 +42,15 @@ class AgentStatusFactory extends Factory
         ]);
     }
 
+    public function offline(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => AgentStatus::OFFLINE,
+            'last_activity_at' => null,
+            'manual_override' => false,
+        ]);
+    }
+
     public function manualOverride(AgentStatus $status): static
     {
         return $this->state(fn (array $attributes) => [

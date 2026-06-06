@@ -16,8 +16,17 @@ class AgentAuthController extends Controller
     /**
      * Show the agent login view.
      */
-    public function showLogin(): InertiaResponse
+    public function showLogin(): InertiaResponse|RedirectResponse
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->isAgent() || $user->hasRole('admin')) {
+                return redirect()->route('support.dashboard');
+            }
+
+            return redirect()->route('home');
+        }
+
         return Inertia::render('Support/auth/Login', [
             'status' => session('status'),
         ]);
@@ -26,8 +35,17 @@ class AgentAuthController extends Controller
     /**
      * Show the agent registration view.
      */
-    public function showRegister(): InertiaResponse
+    public function showRegister(): InertiaResponse|RedirectResponse
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->isAgent() || $user->hasRole('admin')) {
+                return redirect()->route('support.dashboard');
+            }
+
+            return redirect()->route('home');
+        }
+
         return Inertia::render('Support/auth/Register');
     }
 

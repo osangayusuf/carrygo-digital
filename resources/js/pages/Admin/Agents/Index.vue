@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { ref } from 'vue';
-import { 
-    UserCheck, 
-    Check, 
-    X,
+import { approve, reject as rejectRoute } from '@/actions/App/Http/Controllers/Admin/AgentController';
+import {
+    UserCheck,
+    Check,
     UserMinus,
     Clock,
-    ShieldAlert
 } from 'lucide-vue-next';
+import { ref } from 'vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 
 type Agent = {
     id: number;
@@ -33,7 +32,7 @@ const activeTab = ref<'pending' | 'approved'>('pending');
 
 const approveAgent = (agent: Agent) => {
     if (confirm(`Are you sure you want to APPROVE ${agent.name} as a support agent?`)) {
-        router.post(`/admin/agents/${agent.id}/approve`, {}, {
+        router.post(approve.url(agent.id), {}, {
             preserveScroll: true,
         });
     }
@@ -41,7 +40,7 @@ const approveAgent = (agent: Agent) => {
 
 const rejectAgent = (agent: Agent) => {
     if (confirm(`Are you sure you want to DECLINE/REJECT ${agent.name}'s registration? This will delete their account.`)) {
-        router.post(`/admin/agents/${agent.id}/reject`, {}, {
+        router.post(rejectRoute.url(agent.id), {}, {
             preserveScroll: true,
         });
     }
@@ -66,23 +65,23 @@ const rejectAgent = (agent: Agent) => {
 
             <!-- Tabs Panel -->
             <div class="flex border-b border-outline-variant">
-                <button 
+                <button
                     @click="activeTab = 'pending'"
                     :class="[
                         'px-5 py-3 font-bold uppercase tracking-wider transition-all border-b-2',
-                        activeTab === 'pending' 
-                            ? 'border-primary text-primary' 
+                        activeTab === 'pending'
+                            ? 'border-primary text-primary'
                             : 'border-transparent text-on-surface-variant hover:text-on-surface'
                     ]"
                 >
                     Pending Approvals ({{ pending.length }})
                 </button>
-                <button 
+                <button
                     @click="activeTab = 'approved'"
                     :class="[
                         'px-5 py-3 font-bold uppercase tracking-wider transition-all border-b-2',
-                        activeTab === 'approved' 
-                            ? 'border-primary text-primary' 
+                        activeTab === 'approved'
+                            ? 'border-primary text-primary'
                             : 'border-transparent text-on-surface-variant hover:text-on-surface'
                     ]"
                 >
@@ -127,15 +126,15 @@ const rejectAgent = (agent: Agent) => {
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
-                                        <button 
+                                        <button
                                             @click="approveAgent(agent)"
                                             class="px-3 py-1.5 border border-secondary/25 bg-secondary-container/40 hover:bg-secondary-container/85 text-on-secondary-container hover:text-primary rounded-lg transition-colors font-bold text-[10px] flex items-center gap-1.5 cursor-pointer"
                                         >
                                             <Check class="w-3.5 h-3.5" />
                                             <span>Approve</span>
                                         </button>
-                                        
-                                        <button 
+
+                                        <button
                                             @click="rejectAgent(agent)"
                                             class="px-3 py-1.5 border border-error/20 bg-error-container/15 hover:bg-error-container/30 text-error rounded-lg transition-colors font-bold text-[10px] flex items-center gap-1.5 cursor-pointer"
                                         >

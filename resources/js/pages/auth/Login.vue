@@ -2,8 +2,9 @@
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { store } from '@/routes/login';
-import { register } from '@/routes';
+import { register, home } from '@/routes';
 import { request } from '@/routes/password';
+import { redirect } from '@/routes/auth/social';
 
 defineProps<{
     status?: string;
@@ -29,7 +30,7 @@ defineOptions({ layout: null });
         <div class="relative z-10 w-full max-w-md">
             <!-- Logo -->
             <div class="mb-8 flex justify-center">
-                <Link href="/">
+                <Link :href="home.url()">
                     <img src="/logo.png" alt="CarryGo" class="h-12 w-auto" />
                 </Link>
             </div>
@@ -123,7 +124,7 @@ defineOptions({ layout: null });
                     <div class="grid grid-cols-2 gap-3.5">
                         <!-- Google Login -->
                         <a
-                            href="/auth/google/redirect"
+                            :href="redirect.url('google')"
                             class="flex items-center justify-center gap-2.5 rounded-lg border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-bold text-ink shadow-sm transition-all hover:bg-surface-container-high hover:border-outline-variant/80 active:scale-[0.98]"
                         >
                             <svg class="h-4 w-4" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
@@ -137,7 +138,7 @@ defineOptions({ layout: null });
 
                         <!-- Facebook Login -->
                         <a
-                            href="/auth/facebook/redirect"
+                            :href="redirect.url('facebook')"
                             class="flex items-center justify-center gap-2.5 rounded-lg border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-bold text-ink shadow-sm transition-all hover:bg-surface-container-high hover:border-outline-variant/80 active:scale-[0.98]"
                         >
                             <svg class="h-4 w-4 fill-[#1877F2]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

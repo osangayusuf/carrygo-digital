@@ -90,3 +90,59 @@ test('rejected agent is logged out and redirected to login with error', function
     $response->assertRedirect(route('support.login'));
     $this->assertGuest();
 });
+
+test('unauthenticated guests are redirected to support login when accessing support routes', function () {
+    $response = $this->get(route('support.dashboard'));
+    $response->assertRedirect(route('support.login'));
+
+    $response = $this->get(route('support.tickets.index'));
+    $response->assertRedirect(route('support.login'));
+});
+
+test('unauthorized authenticated regular users accessing support routes are redirected to home', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('support.dashboard'));
+    $response->assertRedirect(route('home'));
+});
+
+test('unauthorized authenticated regular users accessing admin routes are redirected to home', function () {
+    $user = User::factory()->create();
+
+    // Try accessing admin resource
+    $response = $this->actingAs($user)->get(route('admin.users.index'));
+    $response->assertRedirect(route('home'));
+});
+
+test('unauthorized authenticated agents accessing admin routes are redirected to support dashboard', function () {
+    $agent = User::factory()->approvedAgent()->create([
+        'email_verified_at' => now(),
+    ]);
+    $agent->assignRole('agent');
+
+    $response = $this->actingAs($agent)->get(route('admin.users.index'));
+    $response->assertRedirect(route('support.dashboard'));
+});
+
+test('already authenticated agents visiting support auth pages are redirected to support dashboard', function () {
+    $agent = User::factory()->approvedAgent()->create([
+        'email_verified_at' => now(),
+    ]);
+    $agent->assignRole('agent');
+
+    $response = $this->actingAs($agent)->get(route('support.login'));
+    $response->assertRedirect(route('support.dashboard'));
+
+    $response = $this->actingAs($agent)->get(route('support.register'));
+    $response->assertRedirect(route('support.dashboard'));
+});
+
+test('already authenticated regular users visiting support auth pages are redirected to home', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('support.login'));
+    $response->assertRedirect(route('home'));
+
+    $response = $this->actingAs($user)->get(route('support.register'));
+    $response->assertRedirect(route('home'));
+});

@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user,
+                'user' => $user ? $user->loadMissing('agentStatus') : null,
                 'pending_agents_count' => ($user && $user->hasRole('admin'))
                     ? User::role('agent')->whereNull('agent_approved_at')->whereNull('agent_rejected_at')->count()
                     : 0,

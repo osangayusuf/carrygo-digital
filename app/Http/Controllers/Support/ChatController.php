@@ -7,6 +7,7 @@ use App\Enums\ChatSenderType;
 use App\Enums\ChatSessionStatus;
 use App\Enums\TicketCategory;
 use App\Enums\TicketPriority;
+use App\Events\Support\AgentStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Models\AgentStatus;
 use App\Models\ChatSession;
@@ -207,7 +208,7 @@ class ChatController extends Controller
             'status' => ['required', new Enum(AgentStatusEnum::class)],
         ]);
 
-        AgentStatus::updateOrCreate(
+        $status = AgentStatus::updateOrCreate(
             ['user_id' => $request->user()->id],
             [
                 'status' => $validated['status'],
@@ -215,6 +216,8 @@ class ChatController extends Controller
                 'last_activity_at' => now(),
             ]
         );
+
+        broadcast(new AgentStatusChanged($request->user(), $status->status));
 
         return back()->with('success', 'Status updated successfully.');
     }

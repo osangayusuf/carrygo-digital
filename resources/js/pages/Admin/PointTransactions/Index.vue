@@ -5,6 +5,7 @@ import {
     Search
 } from 'lucide-vue-next';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+import { index as pointsIndex } from '@/routes/admin/point-transactions';
 
 type PointTransaction = {
     id: number;
@@ -39,7 +40,7 @@ const searchForm = useForm({
 });
 
 const handleSearch = () => {
-    searchForm.get('/admin/point-transactions', {
+    searchForm.get(pointsIndex.url(), {
         preserveState: true,
     });
 };

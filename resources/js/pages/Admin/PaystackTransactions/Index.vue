@@ -6,6 +6,7 @@ import {
     Search,
     RefreshCw
 } from 'lucide-vue-next';
+import { index as paystackIndex, requery as paystackRequery } from '@/routes/admin/paystack-transactions';
 
 type PaystackTransaction = {
     id: number;
@@ -41,7 +42,7 @@ const searchForm = useForm({
 });
 
 const handleSearch = () => {
-    searchForm.get('/admin/paystack-transactions', {
+    searchForm.get(paystackIndex.url(), {
         preserveState: true,
     });
 };
@@ -53,7 +54,7 @@ const clearSearch = () => {
 };
 
 const requeryTransaction = (id: number) => {
-    router.post(`/admin/paystack-transactions/${id}/requery`);
+    router.post(paystackRequery.url(id));
 };
 </script>
 

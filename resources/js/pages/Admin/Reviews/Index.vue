@@ -8,6 +8,7 @@ import {
     EyeOff,
     Filter
 } from 'lucide-vue-next';
+import { index as reviewsIndex, toggleVisibility as toggleVisibilityRoute } from '@/routes/admin/reviews';
 
 type Review = {
     id: number;
@@ -42,7 +43,7 @@ const searchForm = useForm({
 });
 
 const handleSearch = () => {
-    searchForm.get('/admin/reviews', {
+    searchForm.get(reviewsIndex.url(), {
         preserveState: true,
     });
 };
@@ -54,7 +55,7 @@ const clearSearch = () => {
 };
 
 const toggleReviewVisibility = (review: Review) => {
-    router.post(`/admin/reviews/${review.id}/toggle-visibility`, {}, {
+    router.post(toggleVisibilityRoute.url(review.id), {}, {
         preserveScroll: true
     });
 };

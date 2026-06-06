@@ -10,7 +10,7 @@ import HomeTestimonialsSection from '@/components/home/HomeTestimonialsSection.v
 import HomeWinnerPopup from '@/components/home/HomeWinnerPopup.vue';
 import HomeWinnersSection from '@/components/home/HomeWinnersSection.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { formatPrice, formatMsisdn, getDaysAgo } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import { trending, openBids as openBidsRoute, tasks } from '@/routes/index';
 import type { Bid } from '@/types/auction';
 
@@ -356,77 +356,10 @@ const getCategoryIcon = (category: string): string => {
         <!-- WINNERS MARQUEE (existing component) -->
         <HomeWinnersSection v-if="props.winners && props.winners.length > 0" :winners="props.winners" />
 
-        <!-- RECENT WINNERS CARD GRID -->
-        <div class="max-w-[1300px] mx-auto mb-5 px-4" v-if="props.winners && props.winners.length > 0">
-            <div class="flex items-center justify-between mb-3.5">
-                <div class="font-condensed text-2xl font-extrabold text-ink flex items-center">
-                    <span class="inline-block w-1 h-[22px] bg-forest rounded-sm mr-2 align-middle"></span>
-                    <span class="pi pi-trophy text-lg mr-1"></span> Recent Winners
-                </div>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-                <div v-for="winner in props.winners" :key="winner.id"
-                    class="bg-white rounded-lg p-3 shadow-sm border border-sage-border-dark flex flex-col relative overflow-hidden group hover:border-lemon transition-colors">
-                    <div class="h-[120px] mb-3.5 rounded-md bg-sage-bg flex items-center justify-center p-2">
-                        <img v-if="winner.bid?.image" :src="winner.bid.image" :alt="winner.bid.name"
-                            class="max-h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        <span v-else class="pi pi-image text-4xl text-gray-300"></span>
-                    </div>
-                    <div class="font-bold text-sm text-ink mb-1 line-clamp-1"
-                        :title="winner.bid?.name || 'Luxury Item'">{{ winner.bid?.name || 'Luxury Item' }}</div>
-                    <div class="text-xs text-muted-green mb-3 flex items-center justify-between">
-                        <div class="flex items-center gap-1.5">
-                            <span class="pi pi-user text-[10px]"></span> {{ formatMsisdn(winner.msisdn) }}
-                        </div>
-                        <div class="text-[10px]">{{ getDaysAgo(winner.created_at) }}</div>
-                    </div>
-                    <div
-                        class="mt-auto bg-sage-bg border border-sage-border rounded py-1.5 px-2 text-xs font-extrabold text-forest">
-                        Won with {{ winner.total_points }} pts
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- TESTIMONIALS (existing Material Design component) -->
         <HomeTestimonialsSection v-if="props.reviews && props.reviews.length > 0" :reviews="props.reviews" />
 
-        <!-- COMMUNITY REVIEWS GRID -->
-        <div class="max-w-[1300px] mx-auto mb-5 px-4" v-if="props.reviews && props.reviews.length > 0">
-            <div class="flex items-center justify-between mb-3.5">
-                <div class="font-condensed text-2xl font-extrabold text-ink flex items-center">
-                    <span class="inline-block w-1 h-[22px] bg-forest rounded-sm mr-2 align-middle"></span>
-                    <span class="pi pi-comments text-lg text-forest mr-1"></span> What Our Community Says
-                </div>
-            </div>
-            <div class="text-center text-[13px] text-muted-green mb-4.5">Hear from winners who have scored amazing bids
-                on CarryGo</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                <div class="bg-white rounded-lg p-4.5 shadow-sm border border-sage-border-dark flex flex-col h-full"
-                    v-for="review in props.reviews" :key="review.id">
-                    <div class="text-amber text-sm mb-2.5">
-                        <span v-for="i in review.rating" :key="i" class="pi pi-star-fill"></span>
-                        <span v-for="i in 5 - review.rating" :key="'e' + i" class="pi pi-star"></span>
-                    </div>
-                    <div class="text-sm text-gray-800 leading-relaxed mb-3.5 italic">"{{ review.comment }}"</div>
-                    <div class="mt-auto">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-full bg-lemon flex items-center justify-center text-base">
-                                <span class="pi pi-user"></span>
-                            </div>
-                            <div>
-                                <div class="text-sm font-extrabold text-ink">{{ formatMsisdn(review.user_id) ||
-                                    'Anonymous' }}</div>
-                                <div class="text-xs text-muted-green">Verified Bidder</div>
-                            </div>
-                        </div>
-                        <span
-                            class="mt-2.5 bg-[#e8f5e0] text-forest text-xs font-bold px-2.5 py-1 rounded-md inline-block">Item:
-                            {{ review.bid?.name || 'Luxury Item' }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <HomePromoSection />
     </div>
