@@ -14,7 +14,7 @@ test('closes a triggered auction and sets winner_id from is_winning bid', functi
     $auction = Auction::factory()->triggered()->create();
     Bid::factory()->forAuction($auction)->forUser($winner)->winning()->create(['amount' => 100]);
 
-    (new CloseAuctionJob($auction->id))->handle();
+    app()->call([new CloseAuctionJob($auction->id), 'handle']);
 
     $auction->refresh();
 
@@ -25,7 +25,7 @@ test('closes a triggered auction and sets winner_id from is_winning bid', functi
 test('sets winner_id to null when no is_winning bid exists', function () {
     $auction = Auction::factory()->triggered()->create();
 
-    (new CloseAuctionJob($auction->id))->handle();
+    app()->call([new CloseAuctionJob($auction->id), 'handle']);
 
     $auction->refresh();
 
@@ -36,7 +36,7 @@ test('sets winner_id to null when no is_winning bid exists', function () {
 test('does nothing if auction is already closed', function () {
     $auction = Auction::factory()->closed()->create(['winner_id' => null]);
 
-    (new CloseAuctionJob($auction->id))->handle();
+    app()->call([new CloseAuctionJob($auction->id), 'handle']);
 
     expect($auction->refresh()->status)->toBe(AuctionStatus::CLOSED);
 });
@@ -44,11 +44,11 @@ test('does nothing if auction is already closed', function () {
 test('does nothing if auction is in active status', function () {
     $auction = Auction::factory()->active()->create();
 
-    (new CloseAuctionJob($auction->id))->handle();
+    app()->call([new CloseAuctionJob($auction->id), 'handle']);
 
     expect($auction->refresh()->status)->toBe(AuctionStatus::ACTIVE);
 });
 
 test('does nothing if auction does not exist', function () {
-    expect(fn () => (new CloseAuctionJob(99999))->handle())->not->toThrow(Exception::class);
+    expect(fn () => app()->call([new CloseAuctionJob(99999), 'handle']))->not->toThrow(Exception::class);
 });

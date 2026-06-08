@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Listeners\AssignDefaultRole;
+use App\Listeners\AwardWelcomePointsOnVerification;
 use App\Listeners\BroadcastDatabaseNotification;
 use App\Listeners\LogFailedLogin;
 use App\Listeners\LogSuccessfulLogin;
@@ -45,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Registered::class, AssignDefaultRole::class);
         Event::listen(Registered::class, NotifyAdminsOfAgentRegistration::class);
         Event::listen(Verified::class, MarkPostVerificationOnboarding::class);
+        Event::listen(Verified::class, AwardWelcomePointsOnVerification::class);
         Event::listen(Login::class, LogSuccessfulLogin::class);
         Event::listen(Failed::class, LogFailedLogin::class);
         Event::listen(NotificationSent::class, BroadcastDatabaseNotification::class);

@@ -13,10 +13,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'phone', 'points_balance', 'bonus_points', 'password', 'is_active', 'department', 'employee_id', 'agent_approved_at', 'agent_rejected_at', 'approved_by'])]
+#[Fillable(['name', 'email', 'phone', 'points_balance', 'bonus_points', 'password', 'is_active', 'department', 'employee_id', 'agent_approved_at', 'agent_rejected_at', 'approved_by', 'referral_code', 'referred_by'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -162,5 +163,33 @@ class User extends Authenticatable implements MustVerifyEmail
     public function currentAgentStatus(): AgentStatusEnum
     {
         return $this->agentStatus?->status ?? AgentStatusEnum::OFFLINE;
+    }
+
+    public function referredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(User::class, 'referred_by');
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->referral_code)) {
+                $user->referral_code = static::generateUniqueReferralCode();
+            }
+        });
+    }
+
+    public static function generateUniqueReferralCode(): string
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (static::where('referral_code', $code)->exists());
+
+        return $code;
     }
 }

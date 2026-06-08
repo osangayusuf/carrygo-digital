@@ -16,6 +16,7 @@ export type Bid = {
     created_at: string;
     current_points: number | null;
     expires_at: string | null;
+    bid_count: number;
     top_bidders?: Bidder[];
 };
 

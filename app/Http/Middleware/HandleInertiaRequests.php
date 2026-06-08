@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\AuctionStatus;
+use App\Models\Auction;
 use App\Models\User;
 use App\Services\NotificationFeedService;
 use Illuminate\Http\Request;
@@ -39,6 +41,78 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        // Fetch marquee items
+        $marqueeItems = [];
+
+        try {
+            // 1. Get live (triggered) auctions
+            $triggeredAuctions = Auction::where('status', AuctionStatus::TRIGGERED)
+                ->orderBy('expires_at', 'asc')
+                ->limit(3)
+                ->get();
+            foreach ($triggeredAuctions as $auction) {
+                $marqueeItems[] = [
+                    'text' => "LIVE AUCTION: {$auction->name} @ ₦".number_format($auction->price),
+                    'icon' => 'pi pi-bolt',
+                ];
+            }
+
+            // 2. Get active auctions
+            $activeAuctions = Auction::where('status', AuctionStatus::ACTIVE)
+                ->orderByDesc('bid_count')
+                ->limit(3)
+                ->get();
+            foreach ($activeAuctions as $auction) {
+                $progress = $auction->opening_points > 0
+                    ? (int) min(100, round(($auction->current_points / $auction->opening_points) * 100))
+                    : 0;
+                $marqueeItems[] = [
+                    'text' => "{$auction->name} – {$progress}% progress!",
+                    'icon' => 'pi pi-chart-line',
+                ];
+                if ($auction->bid_count > 0) {
+                    $marqueeItems[] = [
+                        'text' => "{$auction->name} – {$auction->bid_count} bids so far",
+                        'icon' => 'pi pi-star-fill',
+                    ];
+                }
+            }
+
+            // 3. Get recent winners
+            $recentWinners = Auction::where('status', AuctionStatus::CLOSED)
+                ->whereNotNull('winner_id')
+                ->with('winner')
+                ->orderBy('updated_at', 'desc')
+                ->limit(3)
+                ->get();
+            foreach ($recentWinners as $auction) {
+                $phone = $auction->winner?->phone;
+                $maskedPhone = $this->maskPhone($phone);
+                $marqueeItems[] = [
+                    'text' => "Winner: {$maskedPhone} won {$auction->name}!",
+                    'icon' => 'pi pi-trophy',
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Safe fallback if database is not ready, migrated, or connected (e.g. during some unit tests)
+        }
+
+        // 4. Default weekly announcement
+        $marqueeItems[] = [
+            'text' => 'New auction drops every Monday!',
+            'icon' => 'pi pi-send',
+        ];
+
+        // Ensure there are at least a few items
+        if (count($marqueeItems) <= 1) {
+            array_unshift(
+                $marqueeItems,
+                ['text' => 'Bid on premium luxury items with points!', 'icon' => 'pi pi-gift'],
+                ['text' => 'Complete tasks in the Task Center to earn free points!', 'icon' => 'pi pi-check-square'],
+                ['text' => 'Check the leaderboard to see top bidders of the week!', 'icon' => 'pi pi-chart-bar']
+            );
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -53,6 +127,27 @@ class HandleInertiaRequests extends Middleware
                 ? app(NotificationFeedService::class)->forUser($user)
                 : [],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'marquee_items' => $marqueeItems,
         ];
+    }
+
+    /**
+     * Securely mask phone numbers on the backend.
+     */
+    private function maskPhone(?string $phone): string
+    {
+        if (blank($phone)) {
+            return 'Unknown';
+        }
+
+        $digits = preg_replace('/\D/', '', $phone);
+        if (strlen($digits) < 7) {
+            return '***'.substr($digits, -4);
+        }
+
+        $prefix = '+'.substr($digits, 0, 3).' '.substr($digits, 3, 3);
+        $suffix = substr($digits, -4);
+
+        return $prefix.'***'.$suffix;
     }
 }

@@ -48,6 +48,11 @@ class Auction extends Model
         return $this->hasMany(Bid::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function winner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'winner_id');

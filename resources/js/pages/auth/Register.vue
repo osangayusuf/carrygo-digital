@@ -1,12 +1,21 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
 import { store } from '@/routes/register';
 import { login, home } from '@/routes';
 import { redirect } from '@/routes/auth/social';
 
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+const referralCode = ref('');
+
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refParam = params.get('ref');
+    if (refParam) {
+        referralCode.value = refParam;
+    }
+});
 
 defineOptions({ layout: null });
 </script>
@@ -122,6 +131,21 @@ defineOptions({ layout: null });
                             </div>
                             <p v-if="errors.password_confirmation" class="mt-1 text-xs font-medium text-error">
                                 {{ errors.password_confirmation }}
+                            </p>
+                        </div>
+
+                        <!-- Referral Code -->
+                        <div class="space-y-1.5">
+                            <label for="referral_code"
+                                class="ml-0.5 block text-xs font-bold tracking-widest text-ink/70 uppercase">
+                                Referral Code (Optional)
+                            </label>
+                            <input id="referral_code" name="referral_code" type="text"
+                                v-model="referralCode"
+                                class="block w-full rounded-lg border-none bg-surface-container-low px-5 py-3.5 text-sm text-on-surface shadow-sm transition-all placeholder:text-outline/50 focus:ring-2 focus:ring-forest/40 focus:outline-none"
+                                placeholder="e.g. CARRY123" />
+                            <p v-if="errors.referral_code" class="mt-1 text-xs font-medium text-error">
+                                {{ errors.referral_code }}
                             </p>
                         </div>
 

@@ -16,6 +16,11 @@ class LogSuccessfulLogin
         /** @var User $user */
         $user = $event->user;
 
+        if (empty($user->referral_code)) {
+            $user->referral_code = User::generateUniqueReferralCode();
+            $user->save();
+        }
+
         $this->activityService->log(ActivityType::LOGIN_SUCCESS, $user);
     }
 }

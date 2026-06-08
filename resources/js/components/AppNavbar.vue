@@ -200,6 +200,19 @@ function navItemClass(href: string): string {
 
     return `${base} font-bold text-secondary hover:text-primary`;
 }
+
+const marqueeItems = computed(() => {
+    const items = page.props.marquee_items;
+    if (Array.isArray(items) && items.length > 0) {
+        return items as { text: string; icon?: string }[];
+    }
+    return [
+        { text: 'Bid on premium luxury items with points!', icon: 'pi pi-gift' },
+        { text: 'Complete tasks in the Task Center to earn free points!', icon: 'pi pi-check-square' },
+        { text: 'Check the leaderboard to see top bidders of the week!', icon: 'pi pi-chart-bar' },
+        { text: 'New auction drops every Monday!', icon: 'pi pi-send' }
+    ];
+});
 </script>
 
 <template>
@@ -208,12 +221,11 @@ function navItemClass(href: string): string {
         <div class="bg-navy text-lemon text-xs py-1 px-4 flex items-center justify-between gap-2">
             <div class="flex-1 overflow-hidden whitespace-nowrap">
                 <span class="inline-block animate-marquee">
-                    <i class="pi pi-bolt mr-1"></i> LIVE AUCTION: Duffel Bag @ ₦150,000 &nbsp;|&nbsp;
-                    <i class="pi pi-trophy mr-1"></i> Gucci Sunglasses – 65/3500 bids &nbsp;|&nbsp;
-                    <i class="pi pi-bolt mr-1"></i> Prada Suede Olive – 9% progress! &nbsp;|&nbsp;
-                    <i class="pi pi-gift mr-1"></i> White Fendi Shirt – ₦50,000 &nbsp;|&nbsp;
-                    <i class="pi pi-star-fill mr-1"></i> Denim Backpack – Only 40 bids so far &nbsp;|&nbsp;
-                    <i class="pi pi-send mr-1"></i> New auction drops every Monday!
+                    <template v-for="(item, idx) in marqueeItems" :key="idx">
+                        <i :class="[item.icon || 'pi pi-bolt', 'mr-1']"></i>
+                        {{ item.text }}
+                        <span v-if="idx < marqueeItems.length - 1" class="mx-3">&nbsp;|&nbsp;</span>
+                    </template>
                 </span>
             </div>
         </div>

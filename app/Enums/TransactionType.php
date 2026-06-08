@@ -8,4 +8,5 @@ enum TransactionType: string
     case BID_DEBIT = 'bid_debit';
     case BONUS_AWARD = 'bonus_award';
     case BONUS_CLAIM = 'bonus_claim';
+    case WELCOME_BONUS = 'welcome_bonus';
 }

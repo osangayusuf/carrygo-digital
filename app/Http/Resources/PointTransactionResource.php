@@ -38,6 +38,7 @@ class PointTransactionResource extends JsonResource
             TransactionType::BID_DEBIT => 'Bid',
             TransactionType::BONUS_AWARD => 'Bonus Award',
             TransactionType::BONUS_CLAIM => 'Bonus Claim',
+            TransactionType::WELCOME_BONUS => 'Welcome Bonus',
         };
     }
 

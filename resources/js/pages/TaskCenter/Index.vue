@@ -59,9 +59,25 @@ defineProps<{
         }>;
     };
     user_points: number;
+    referral: {
+        code: string;
+        url: string;
+        count: number;
+        points_earned: number;
+    };
 }>();
 
 const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+const copied = ref(false);
+
+function copyReferralLink(url: string) {
+    navigator.clipboard.writeText(url).then(() => {
+        copied.value = true;
+        setTimeout(() => {
+            copied.value = false;
+        }, 2000);
+    });
+}
 let toastTimer: ReturnType<typeof setTimeout>;
 
 function showToast(message: string, type: 'success' | 'error' = 'success') {
@@ -143,22 +159,62 @@ function onSpun(pointsWon: number) {
                 <AchievementBadgesSection :achievements="achievements" />
 
                 <div class="rounded-3xl border-2 border-outline-variant/50 bg-surface p-6 shadow-sm sm:p-8">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="font-headline text-xl font-bold text-on-surface">Invite &amp; Earn</h2>
-                            <p class="mt-1 text-sm text-on-surface-variant">
-                                Share your referral code and earn when friends join and bid
-                            </p>
-                        </div>
-                        <Link
-                            :href="profile.url()"
-                            class="flex items-center gap-1.5 rounded-xl border-2 border-primary/20 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition hover:bg-primary/20"
-                        >
-                            <span class="material-symbols-outlined text-base!">share</span>
-                            Share
-                        </Link>
+                    <div>
+                        <h2 class="font-headline text-xl font-bold text-on-surface">Invite &amp; Earn</h2>
+                        <p class="mt-1 text-sm text-on-surface-variant">
+                            Share your referral code and earn when friends join and bid
+                        </p>
                     </div>
-                    <div class="mt-4 flex flex-wrap gap-3">
+
+                    <div class="mt-6 grid gap-6 md:grid-cols-2">
+                        <!-- Left: Referral Code & Link Sharing -->
+                        <div class="space-y-4">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Your Referral Code</span>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <span class="font-condensed text-2xl font-black tracking-wide text-primary select-all bg-primary/10 px-3 py-1 rounded-xl border border-primary/20">
+                                        {{ referral.code }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Your Invite Link</span>
+                                <div class="mt-1.5 flex gap-2">
+                                    <input
+                                        type="text"
+                                        readonly
+                                        :value="referral.url"
+                                        class="w-full rounded-xl border border-outline-variant bg-background px-4 py-2.5 text-xs text-on-surface-variant select-all focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                    <button
+                                        type="button"
+                                        @click="copyReferralLink(referral.url)"
+                                        class="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary shadow-sm transition-all hover:bg-forest active:scale-95 shrink-0"
+                                    >
+                                        <span class="material-symbols-outlined text-sm!">
+                                            {{ copied ? 'check' : 'content_copy' }}
+                                        </span>
+                                        <span>{{ copied ? 'Copied' : 'Copy' }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Referral Stats -->
+                        <div class="grid grid-cols-2 gap-4 rounded-2xl bg-background border border-outline-variant/40 p-5">
+                            <div class="flex flex-col justify-center border-r border-outline-variant/20 pr-4">
+                                <span class="text-xs font-semibold text-on-surface-variant">Referred Friends</span>
+                                <span class="mt-2 text-3xl font-black text-on-surface tracking-tight">{{ referral.count }}</span>
+                            </div>
+                            <div class="flex flex-col justify-center pl-2">
+                                <span class="text-xs font-semibold text-on-surface-variant">Points Earned</span>
+                                <span class="mt-2 text-3xl font-black text-secondary tracking-tight">{{ referral.points_earned }} <span class="text-xs font-bold text-on-surface-variant">pts</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex flex-wrap gap-3">
                         <div class="flex items-center gap-2 rounded-xl bg-background px-4 py-2 text-sm border border-outline-variant/40">
                             <span class="h-2 w-2 rounded-full bg-primary"></span>
                             <span class="text-on-surface-variant">Friend registers:</span>

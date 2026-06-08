@@ -8,4 +8,6 @@ enum RewardSource: string
     case Spin = 'spin';
     case Achievement = 'achievement';
     case Leaderboard = 'leaderboard';
+    case ReferralSignup = 'referral_signup';
+    case ReferralDeposit = 'referral_deposit';
 }

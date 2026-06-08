@@ -54,7 +54,10 @@ function buttonLabel(bid: Bid): string {
         </div>
         <div class="p-3 flex-1 flex flex-col">
             <div class="text-xs font-extrabold text-ink truncate mb-1">{{ bid.name }}</div>
-            <div class="text-lg font-black text-forest mb-1.5">{{ formatPrice(bid.price) }}</div>
+            <div class="mb-1.5 flex items-center justify-between">
+                <span class="text-lg font-black text-forest">{{ formatPrice(bid.price) }}</span>
+                <span class="text-[10px] font-bold text-muted-green">{{ bid.bid_count ?? 0 }} bids</span>
+            </div>
             <div class="h-1 bg-sage-mid rounded-sm overflow-hidden mb-1.5">
                 <div class="h-full bg-linear-to-r from-forest to-lemon rounded-sm"
                     :style="{ width: calcProgress(bid) + '%' }"></div>

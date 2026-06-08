@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SocialProvider;
 use App\Models\User;
 use Exception;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -88,6 +89,7 @@ class SocialAuthController extends Controller
                 // Proactively verify email if not already verified
                 if ($user->email_verified_at === null) {
                     $user->forceFill(['email_verified_at' => now()])->save();
+                    event(new Verified($user));
                 }
 
                 return $user;
@@ -103,6 +105,7 @@ class SocialAuthController extends Controller
 
             // Set email as verified since OAuth provider verified it
             $user->forceFill(['email_verified_at' => now()])->save();
+            event(new Verified($user));
 
             // Link the social provider
             $user->socialProviders()->create([

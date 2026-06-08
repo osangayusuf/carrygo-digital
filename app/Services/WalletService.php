@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\RewardSource;
 use App\Enums\TransactionType;
 use App\Models\PaystackTransaction;
 use App\Models\PointTransaction;
@@ -9,6 +10,7 @@ use App\Models\User;
 use App\Notifications\BonusPointsAwarded;
 use App\Notifications\BonusPointsClaimed;
 use App\Notifications\PaymentConfirmed;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -33,6 +35,13 @@ class WalletService
             $pointsAmount = $nairaAmount * $exchangeRate;
 
             $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+
+            $isFirstDeposit = ! PointTransaction::query()
+                ->where('user_id', $user->id)
+                ->where('type', TransactionType::DEPOSIT)
+                ->where('status', 'completed')
+                ->exists();
+
             $user->points_balance += (int) $pointsAmount;
             $user->save();
 
@@ -49,6 +58,20 @@ class WalletService
             ]);
 
             $user->notify(new PaymentConfirmed($transaction));
+
+            if ($isFirstDeposit && $user->referred_by !== null && config('points.referral.enabled', true)) {
+                $referrer = User::find($user->referred_by);
+                if ($referrer !== null) {
+                    $referrerDepositPoints = (int) config('points.referral.referrer_first_deposit_points', 0);
+                    if ($referrerDepositPoints > 0) {
+                        $this->awardBonusPoints($referrer, $referrerDepositPoints, [
+                            'source' => RewardSource::ReferralDeposit->value,
+                            'description' => 'Referral deposit bonus for '.$user->name.'\'s first purchase',
+                            'referred_user_id' => $user->id,
+                        ], true);
+                    }
+                }
+            }
 
             return $transaction;
         });
@@ -176,5 +199,49 @@ class WalletService
         $user->notify(new BonusPointsClaimed($transaction));
 
         return $transaction;
+    }
+
+    /**
+     * Award welcome registration points to a user.
+     */
+    public function awardWelcomePoints(User $user): ?PointTransaction
+    {
+        $pointsAmount = (int) config('points.registration_points', 50);
+
+        if ($pointsAmount <= 0) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($user, $pointsAmount) {
+            // Lock user for update to prevent race conditions/double award
+            $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+
+            $alreadyAwarded = PointTransaction::query()
+                ->where('user_id', $user->id)
+                ->where('type', TransactionType::WELCOME_BONUS)
+                ->exists();
+
+            if ($alreadyAwarded) {
+                return null;
+            }
+
+            $user->points_balance += $pointsAmount;
+            $user->save();
+
+            $transaction = PointTransaction::create([
+                'user_id' => $user->id,
+                'type' => TransactionType::WELCOME_BONUS,
+                'amount' => $pointsAmount,
+                'exchange_rate' => 1.0,
+                'status' => 'completed',
+                'metadata' => [
+                    'description' => 'Welcome points awarded on email verification',
+                ],
+            ]);
+
+            $user->notify(new WelcomeNotification($transaction));
+
+            return $transaction;
+        });
     }
 }

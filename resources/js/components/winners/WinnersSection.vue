@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import AppPaginator from '@/components/layout/AppPaginator.vue';
 import { getDaysAgo, maskedMsisdnParts } from '@/lib/utils';
+import { show as auctionShow } from '@/routes/auctions';
 import { winners as winnersRoute } from '@/routes/index';
 import type { LengthAwarePaginator, WinnerListing } from '@/types/auction';
+
+const expandedImage = ref<string | null>(null);
+const expandedVideo = ref<string | null>(null);
 
 const props = defineProps<{
     winners: LengthAwarePaginator<WinnerListing>;
@@ -130,11 +134,52 @@ function winnerMsisdn(msisdn: string): { prefix: string; suffix: string } {
                         </div>
                     </div>
 
+                    <div v-if="winner.review" class="mb-4 pt-3 border-t border-sage-border">
+                        <div class="flex items-center justify-between gap-1 mb-1.5">
+                            <div class="flex items-center gap-0.5">
+                                <span 
+                                    v-for="star in 5" 
+                                    :key="star"
+                                    class="material-symbols-outlined text-[14px]"
+                                    :class="star <= Math.round(winner.review.rating) ? 'text-lemon fill-1' : 'text-sage-mid'"
+                                >
+                                    star
+                                </span>
+                            </div>
+                            <span v-if="winner.review.social_handle" class="text-[9px] font-bold text-forest bg-sage-bg px-1.5 py-0.5 rounded">
+                                {{ winner.review.social_handle }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-[11px] font-semibold text-ink line-clamp-2 italic leading-normal">
+                            "{{ winner.review.comment }}"
+                        </p>
+
+                        <div v-if="winner.review.photos?.length || winner.review.video" class="mt-2 flex items-center gap-1.5">
+                            <div 
+                                v-for="(photo, idx) in winner.review.photos" 
+                                :key="idx"
+                                class="h-8 w-8 rounded bg-sage-bg overflow-hidden border border-sage-border cursor-pointer flex-shrink-0"
+                                @click.stop="expandedImage = photo"
+                            >
+                                <img :src="photo" class="h-full w-full object-cover" />
+                            </div>
+                            <div 
+                                v-if="winner.review.video"
+                                class="h-8 w-12 rounded bg-black overflow-hidden border border-sage-border cursor-pointer flex-shrink-0 flex items-center justify-center relative"
+                                @click.stop="expandedVideo = winner.review.video"
+                            >
+                                <span class="material-symbols-outlined text-white text-[12px] absolute z-10">play_arrow</span>
+                                <video :src="winner.review.video" class="h-full w-full object-cover opacity-60"></video>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mt-auto flex items-center justify-between gap-2">
                         <span class="text-xs font-bold text-muted-green">{{ getDaysAgo(winner.created_at) }}</span>
                         <Link
-                            v-if="winner.bid?.url"
-                            :href="winner.bid.url"
+                            v-if="winner.bid"
+                            :href="auctionShow.url(winner.bid)"
                             class="rounded-md bg-navy px-3 py-1.5 text-xs font-extrabold text-lemon transition-colors hover:bg-forest"
                         >
                             View Auction
@@ -146,4 +191,35 @@ function winnerMsisdn(msisdn: string): { prefix: string; suffix: string } {
 
         <AppPaginator :current-page="winners.current_page" :last-page="winners.last_page" @page-change="goToPage" />
     </section>
+
+    <Teleport to="body">
+        <div
+            v-if="expandedImage"
+            class="fixed inset-0 z-100 flex cursor-pointer items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            @click="expandedImage = null"
+        >
+            <img
+                :src="expandedImage"
+                class="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
+                alt="Expanded review image"
+            />
+        </div>
+
+        <div
+            v-if="expandedVideo"
+            class="fixed inset-0 z-100 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            @click="expandedVideo = null"
+        >
+            <div class="relative max-w-3xl w-full bg-black rounded-2xl overflow-hidden shadow-2xl mx-4" @click.stop>
+                <video :src="expandedVideo" controls autoplay class="w-full aspect-video"></video>
+                <button
+                    type="button"
+                    class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-white hover:bg-black"
+                    @click="expandedVideo = null"
+                >
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        </div>
+    </Teleport>
 </template>

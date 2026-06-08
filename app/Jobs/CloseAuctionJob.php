@@ -7,6 +7,7 @@ use App\Events\AuctionClosedEvent;
 use App\Models\Auction;
 use App\Models\User;
 use App\Notifications\AuctionWon;
+use App\Notifications\ReviewPrompt;
 use App\Services\AchievementService;
 use App\Services\AuctionTimelineService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,7 +22,7 @@ class CloseAuctionJob implements ShouldQueue
 
     public function handle(AuctionTimelineService $timelineService, AchievementService $achievementService): void
     {
-        DB::transaction(function () use ($timelineService): void {
+        DB::transaction(function () use ($timelineService, $achievementService): void {
             $auction = Auction::lockForUpdate()->find($this->auctionId);
 
             if (! $auction || $auction->status !== AuctionStatus::TRIGGERED) {
@@ -39,6 +40,7 @@ class CloseAuctionJob implements ShouldQueue
 
                 if ($winner !== null) {
                     $winner->notify(new AuctionWon($auction));
+                    $winner->notify(new ReviewPrompt($auction));
                     $achievementService->evaluateAfterWin($winner);
                 }
             }

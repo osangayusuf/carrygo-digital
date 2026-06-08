@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RewardsConfigController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\AuctionReviewController;
 use App\Http\Controllers\AuctionTimelineController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\BidController;
@@ -69,6 +70,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+
+    Route::post('auctions/{auction}/reviews', [AuctionReviewController::class, 'store'])->name('auctions.reviews.store');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])

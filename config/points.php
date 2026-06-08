@@ -44,4 +44,25 @@ return [
     */
     'deposit_presets' => [100, 200, 500, 1000, 5_000, 10_000],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Referral Program
+    |--------------------------------------------------------------------------
+    */
+    'referral' => [
+        'enabled' => env('REFERRAL_ENABLED', true),
+        'referrer_signup_points' => env('REFERRAL_REFERRER_SIGNUP_POINTS', 10),
+        'referrer_first_deposit_points' => env('REFERRAL_REFERRER_FIRST_DEPOSIT_POINTS', 20),
+        'referee_signup_points' => env('REFERRAL_REFEREE_SIGNUP_POINTS', 10),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Registration Points
+    |--------------------------------------------------------------------------
+    | The number of points allocated to a user upon email verification.
+    |
+    */
+    'registration_points' => env('REGISTRATION_POINTS', 50),
+
 ];

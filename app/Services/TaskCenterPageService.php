@@ -33,6 +33,18 @@ class TaskCenterPageService
                 'spendable_on_claim' => (int) floor($bonusPoints * $conversionRate),
                 'recent_rewards' => $this->buildRecentRewards($user),
             ],
+            'referral' => [
+                'code' => $user->referral_code,
+                'url' => route('register', ['ref' => $user->referral_code]),
+                'count' => (int) User::where('referred_by', $user->id)->count(),
+                'points_earned' => (int) PointTransaction::where('user_id', $user->id)
+                    ->where('type', TransactionType::BONUS_AWARD)
+                    ->whereIn('metadata->source', [
+                        RewardSource::ReferralSignup->value,
+                        RewardSource::ReferralDeposit->value,
+                    ])
+                    ->sum('amount'),
+            ],
             'user_points' => (int) $user->points_balance,
         ];
     }

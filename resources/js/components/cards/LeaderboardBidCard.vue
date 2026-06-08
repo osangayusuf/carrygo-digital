@@ -44,6 +44,7 @@ const expandedImage = ref<string | null>(null);
                 <div class="shrink-0 text-right">
                     <p class="mb-0.5 text-[8px] font-bold tracking-wider text-muted-green uppercase">Value</p>
                     <p class="text-sm font-black whitespace-nowrap text-forest">₦{{ formatPrice(bid.price) }}</p>
+                    <p class="mt-0.5 text-[9px] font-bold text-muted-green/80">{{ bid.bid_count ?? 0 }} bids</p>
                 </div>
             </div>
 

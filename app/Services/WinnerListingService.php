@@ -20,6 +20,7 @@ class WinnerListingService
             ->with([
                 'winner',
                 'bids' => fn ($query) => $query->where('is_winning', true),
+                'reviews' => fn ($query) => $query->where('is_visible', true),
             ])
             ->withSum('bids as total_pts_bid', 'amount')
             ->orderByDesc('updated_at');
@@ -48,6 +49,7 @@ class WinnerListingService
     private function mapWinner(Auction $auction): array
     {
         $winningBid = $auction->bids->first();
+        $winnerReview = $auction->reviews->first(fn ($r) => $r->user_id === $auction->winner_id);
 
         return [
             'id' => $auction->id,
@@ -64,6 +66,14 @@ class WinnerListingService
                 'url' => '/auctions/'.$auction->id,
                 'price' => number_format((float) $auction->price, 2),
             ],
+            'review' => $winnerReview ? [
+                'rating' => (float) $winnerReview->rating,
+                'comment' => $winnerReview->comment,
+                'social_platform' => $winnerReview->social_platform,
+                'social_handle' => $winnerReview->social_handle,
+                'photos' => $winnerReview->photos ? array_map(fn ($p) => asset('storage/'.$p), $winnerReview->photos) : null,
+                'video' => $winnerReview->video ? asset('storage/'.$winnerReview->video) : null,
+            ] : null,
         ];
     }
 }

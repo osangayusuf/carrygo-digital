@@ -43,3 +43,11 @@ Tech Stack Constraints
     Frontend: Vue 3 (Composition API), Pinia, Tailwind CSS.
 
     Color Theme: Industrial Dark Mode (Refer to palette).
+
+Clean Commenting Rules
+
+    Only write comments that explain "why" a block of code exists, not "what" it does.
+
+    Avoid trivial comments, placeholder comments, divider comments, or numbered steps.
+
+    Keep code self-documenting through descriptive variable, method, and class names.

@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { 
-    Star, 
+import {
+    Star,
     Search,
     Eye,
     EyeOff,
-    Filter
+    Play,
+    X
 } from 'lucide-vue-next';
+import { ref } from 'vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { index as reviewsIndex, toggleVisibility as toggleVisibilityRoute } from '@/routes/admin/reviews';
 
 type Review = {
@@ -22,7 +24,12 @@ type Review = {
     created_at: string;
     user: { name: string; email: string; phone: string } | null;
     auction: { name: string } | null;
+    photos: string[] | null;
+    video: string | null;
 };
+
+const expandedImage = ref<string | null>(null);
+const expandedVideo = ref<string | null>(null);
 
 const props = defineProps<{
     reviews: {
@@ -66,7 +73,6 @@ const toggleReviewVisibility = (review: Review) => {
 
     <AdminLayout :breadcrumbs="[{ title: 'Reviews' }]">
         <div class="flex flex-col gap-6 font-sans text-xs">
-            <!-- Header bar -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-primary uppercase flex items-center gap-2">
@@ -77,11 +83,10 @@ const toggleReviewVisibility = (review: Review) => {
                 </div>
             </div>
 
-            <!-- Search and Filter Panel -->
             <div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl shadow-sm">
                 <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row gap-3">
                     <div class="flex-1 relative">
-                        <input 
+                        <input
                             v-model="searchForm.search"
                             type="text"
                             placeholder="SEARCH BY USER PHONE OR REVIEW COMMENT..."
@@ -91,7 +96,7 @@ const toggleReviewVisibility = (review: Review) => {
                     </div>
 
                     <div class="w-full md:w-48">
-                        <select 
+                        <select
                             v-model="searchForm.visibility"
                             class="w-full bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary text-xs font-bold uppercase"
                         >
@@ -102,13 +107,13 @@ const toggleReviewVisibility = (review: Review) => {
                     </div>
 
                     <div class="flex gap-2">
-                        <button 
+                        <button
                             type="submit"
                             class="px-5 py-3 bg-secondary text-on-secondary-fixed font-black uppercase rounded-lg transition-all"
                         >
                             Filter
                         </button>
-                        <button 
+                        <button
                             type="button"
                             @click="clearSearch"
                             class="px-5 py-3 border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:text-primary font-bold uppercase rounded-lg transition-all"
@@ -119,7 +124,6 @@ const toggleReviewVisibility = (review: Review) => {
                 </form>
             </div>
 
-            <!-- Reviews List Table -->
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[900px]">
@@ -146,15 +150,35 @@ const toggleReviewVisibility = (review: Review) => {
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-0.5 text-amber-500">
-                                        <Star 
-                                            v-for="i in 5" 
+                                        <Star
+                                            v-for="i in 5"
                                             :key="i"
                                             class="w-3.5 h-3.5"
                                             :class="[i <= Math.round(review.rating) ? 'fill-amber-500 text-amber-500' : 'text-surface-variant']"
                                         />
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-on-surface font-medium leading-normal py-4 font-sans">{{ review.comment }}</td>
+                                <td class="px-6 py-4 text-on-surface font-medium leading-normal py-4 font-sans">
+                                    <div class="whitespace-pre-line">{{ review.comment }}</div>
+                                    <div v-if="review.photos?.length || review.video" class="mt-2 flex flex-wrap gap-1.5">
+                                        <div
+                                            v-for="(photo, idx) in review.photos"
+                                            :key="idx"
+                                            class="h-8 w-8 rounded border border-outline-variant bg-surface-container-low overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                                            @click="expandedImage = `/storage/${photo}`"
+                                        >
+                                            <img :src="`/storage/${photo}`" class="h-full w-full object-cover" />
+                                        </div>
+                                        <div
+                                            v-if="review.video"
+                                            class="h-8 w-12 rounded border border-outline-variant bg-black overflow-hidden cursor-pointer flex items-center justify-center relative hover:scale-105 transition-transform"
+                                            @click="expandedVideo = `/storage/${review.video}`"
+                                        >
+                                            <Play class="w-2.5 h-2.5 text-white absolute z-10 fill-white" />
+                                            <video :src="`/storage/${review.video}`" class="h-full w-full object-cover opacity-60"></video>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="px-6 py-4">
                                     <span class="font-bold text-primary" v-if="review.auction">{{ review.auction.name }}</span>
                                     <span class="text-on-surface-variant italic font-semibold" v-else>Direct Feedback</span>
@@ -167,12 +191,12 @@ const toggleReviewVisibility = (review: Review) => {
                                     <span class="text-on-surface-variant italic font-semibold" v-else>No Social Linked</span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <button 
+                                    <button
                                         @click="toggleReviewVisibility(review)"
                                         :class="[
                                             'px-3 py-1.5 border text-[10px] font-bold uppercase rounded-lg transition-colors inline-flex items-center gap-1.5',
-                                            review.is_visible 
-                                                ? 'bg-secondary-container text-on-secondary-container border-secondary/20 hover:bg-secondary-container/85' 
+                                            review.is_visible
+                                                ? 'bg-secondary-container text-on-secondary-container border-secondary/20 hover:bg-secondary-container/85'
                                                 : 'border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container-low'
                                         ]"
                                         :title="review.is_visible ? 'Hide review from home page feed' : 'Show review on home page feed'"
@@ -191,21 +215,20 @@ const toggleReviewVisibility = (review: Review) => {
                     </table>
                 </div>
 
-                <!-- Pagination footer links -->
                 <div v-if="reviews.last_page > 1" class="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant">
                     <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">
                         Page {{ reviews.current_page }} of {{ reviews.last_page }}
                     </p>
                     <div class="flex gap-1">
-                        <Link 
+                        <Link
                             v-for="link in reviews.links"
                             :key="link.label"
                             :href="link.url || '#'"
                             v-html="link.label"
                             :class="[
                                 'px-3 py-1.5 border text-[10px] font-bold rounded-lg transition-all',
-                                link.active 
-                                    ? 'bg-primary text-on-primary border-primary' 
+                                link.active
+                                    ? 'bg-primary text-on-primary border-primary'
                                     : 'text-on-surface-variant border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low',
                                 !link.url && 'opacity-40 cursor-not-allowed'
                             ]"
@@ -215,4 +238,35 @@ const toggleReviewVisibility = (review: Review) => {
             </div>
         </div>
     </AdminLayout>
+
+    <Teleport to="body">
+        <div
+            v-if="expandedImage"
+            class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            @click="expandedImage = null"
+        >
+            <img
+                :src="expandedImage"
+                class="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
+                alt="Expanded review image"
+            />
+        </div>
+
+        <div
+            v-if="expandedVideo"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            @click="expandedVideo = null"
+        >
+            <div class="relative max-w-3xl w-full bg-black rounded-2xl overflow-hidden shadow-2xl mx-4" @click.stop>
+                <video :src="expandedVideo" controls autoplay class="w-full aspect-video"></video>
+                <button
+                    type="button"
+                    class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-white hover:bg-black"
+                    @click="expandedVideo = null"
+                >
+                    <X class="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    </Teleport>
 </template>

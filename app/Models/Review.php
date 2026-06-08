@@ -20,11 +20,14 @@ class Review extends Model
         'social_platform',
         'social_handle',
         'is_visible',
+        'photos',
+        'video',
     ];
 
     protected $casts = [
         'rating' => 'decimal:1',
         'is_visible' => 'boolean',
+        'photos' => 'array',
     ];
 
     public function scopeVisible($query)

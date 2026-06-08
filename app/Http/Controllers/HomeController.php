@@ -127,9 +127,15 @@ class HomeController extends Controller
     /**
      * @return Builder<Auction>
      */
-    private function categoriesQuery(): Builder
+    private function categoriesQuery(?string $search = null): Builder
     {
-        return Auction::query()->select('category')->distinct();
+        $query = Auction::query()->select('category')->distinct();
+
+        if ($search) {
+            $query->search($search);
+        }
+
+        return $query;
     }
 
     /**
@@ -182,6 +188,7 @@ class HomeController extends Controller
             'created_at' => $auction->created_at?->toISOString() ?? '',
             'current_points' => $auction->current_points,
             'expires_at' => $auction->expires_at?->toISOString(),
+            'bid_count' => $auction->bid_count,
         ];
     }
 

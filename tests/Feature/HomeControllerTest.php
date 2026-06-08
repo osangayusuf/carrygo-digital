@@ -30,7 +30,7 @@ test('mapAuction returns bid payload with frontend status codes', function (Auct
     $result = mapAuctionForTest($auction->fresh());
 
     expect($result)
-        ->toHaveKeys(['id', 'name', 'status', 'opening_points', 'current_points', 'expires_at'])
+        ->toHaveKeys(['id', 'name', 'status', 'opening_points', 'current_points', 'expires_at', 'bid_count'])
         ->and($result['status'])->toBe($expectedStatus);
 })->with([
     'active' => [AuctionStatus::ACTIVE, 0],
