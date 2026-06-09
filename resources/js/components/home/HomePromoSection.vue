@@ -23,7 +23,7 @@ import { tasks } from '@/routes/index';
                 <span class="material-symbols-outlined text-5xl text-primary">verified_user</span>
                 <div>
                     <h3 class="font-headline mb-2 text-2xl font-extrabold">Verified Integrity</h3>
-                    <p class="text-sm font-medium text-secondary">
+                    <p class="text-sm font-medium text-primary">
                         Every bid is recorded on a secure database to ensure 100% platform fairness.
                     </p>
                 </div>

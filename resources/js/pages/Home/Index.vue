@@ -142,6 +142,56 @@ const getCategoryIcon = (category: string): string => {
     <div class="overflow-x-hidden text-left bg-sage-bg text-ink font-sans">
         <HomeHeroSection :get-category-icon="getCategoryIcon" />
 
+        <!-- HYPE MARQUEE BANNER -->
+        <div class="bg-linear-to-r from-forest to-navy border-y-2 border-lemon py-2 overflow-hidden my-2">
+            <div class="flex items-center whitespace-nowrap animate-marquee">
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-lemon uppercase">
+                    🔥 50 people will win hot items this week!
+                </span>
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-white uppercase">
+                    ⚡ Hot items are trending on the site - bid now!
+                </span>
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-lemon uppercase">
+                    📱 Follow this month's jackpot winner on social media!
+                </span>
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-white uppercase">
+                    👀 Check out the most visited item today!
+                </span>
+                <!-- Duplicate for seamless loop -->
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-lemon uppercase">
+                    🔥 50 people will win hot items this week!
+                </span>
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-white uppercase">
+                    ⚡ Hot items are trending on the site - bid now!
+                </span>
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-lemon uppercase">
+                    📱 Follow this month's jackpot winner on social media!
+                </span>
+                <span class="inline-flex items-center gap-2 px-8 text-xs font-black tracking-widest text-white uppercase">
+                    👀 Check out the most visited item today!
+                </span>
+            </div>
+        </div>
+
+        <!-- LIVE OPPORTUNITIES (Prominent relocation) -->
+        <div class="max-w-[1300px] mx-auto mt-4 mb-6 px-4" v-if="props.openBids && props.openBids.length > 0">
+            <div class="flex items-center justify-between mb-3.5">
+                <div class="font-condensed text-2xl font-extrabold text-ink flex items-center">
+                    <span class="relative flex h-3 w-3 mr-2.5 align-middle">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                    <span class="pi pi-bolt text-lg text-lemon mr-1"></span> Live Opportunities
+                </div>
+                <Link :href="openBidsRoute.url()" class="text-forest text-sm font-bold hover:underline">View All →
+                </Link>
+            </div>
+            <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
+                <BidCard v-for="bid in props.openBids.slice(0, 4)" :key="bid.id" :bid="bid"
+                    :user-points="props.userPoints ?? null" />
+            </div>
+        </div>
+
         <div
             v-if="hasActiveSearch && !hasAnyBids"
             class="max-w-[1300px] mx-auto mt-4 mb-2 px-4"
@@ -271,21 +321,7 @@ const getCategoryIcon = (category: string): string => {
             </div>
         </div>
 
-        <!-- LIVE OPPORTUNITIES -->
-        <div class="max-w-[1300px] mx-auto mb-5 px-4" v-if="props.openBids && props.openBids.length > 0">
-            <div class="flex items-center justify-between mb-3.5">
-                <div class="font-condensed text-2xl font-extrabold text-ink flex items-center">
-                    <span class="inline-block w-1 h-[22px] bg-forest rounded-sm mr-2 align-middle"></span>
-                    <span class="pi pi-bolt text-lg text-lemon mr-1"></span> Live Opportunities
-                </div>
-                <Link :href="openBidsRoute.url()" class="text-forest text-sm font-bold hover:underline">View All →
-                </Link>
-            </div>
-            <div class="grid gap-2.5 grid-cols-2 md:grid-cols-5">
-                <BidCard v-for="bid in props.openBids.slice(0, 4)" :key="bid.id" :bid="bid"
-                    :user-points="props.userPoints ?? null" />
-            </div>
-        </div>
+
 
         <!-- PREMIUM & LUXURY -->
         <div class="max-w-[1300px] mx-auto mb-5 px-4" v-if="props.luxuryBids && props.luxuryBids.length > 0">
@@ -303,28 +339,157 @@ const getCategoryIcon = (category: string): string => {
             </div>
         </div>
 
-                <!-- TRUST BAR -->
-        <div class="bg-navy border-y-2 border-lemon py-4.5 px-4 mb-5">
-            <div class="max-w-[1300px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-5 text-center">
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-bolt text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">Fast Delivery</div>
-                    <div class="text-xs text-[#8aaa80]">Winners receive items within 3–5 working days nationwide</div>
+                <!-- BIDDING PROCESS SCROLLING TICKER -->
+        <div class="bg-navy border-y-2 border-lemon py-4 overflow-hidden mb-5">
+            <div class="flex items-center whitespace-nowrap animate-marquee">
+                <!-- Step 1 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">payments</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 1</div>
+                        <div class="text-sm font-extrabold text-white">Buy Points</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-lock text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">Secure Payments</div>
-                    <div class="text-xs text-[#8aaa80]">All transactions protected with bank-grade encryption</div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+
+                <!-- Step 2 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">search</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 2</div>
+                        <div class="text-sm font-extrabold text-white">Choose Item to Bid For</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-verified text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">Verified Winners</div>
-                    <div class="text-xs text-[#8aaa80]">Every winner is verified before item dispatch</div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+
+                <!-- Step 3 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">gavel</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 3</div>
+                        <div class="text-sm font-extrabold text-white">Bid Points</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="text-[26px] mb-1.5"><span class="pi pi-headphones text-white"></span></div>
-                    <div class="text-sm font-extrabold text-lemon">24/7 Support</div>
-                    <div class="text-xs text-[#8aaa80]">Our team is available round-the-clock for assistance</div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+
+                <!-- Step 4 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">emoji_events</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 4</div>
+                        <div class="text-sm font-extrabold text-white">Highest Bidder Wins</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+
+                <!-- Step 5 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">local_shipping</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 5</div>
+                        <div class="text-sm font-extrabold text-white">Items Delivered</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+
+                <!-- Step 6 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">price_check</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 6</div>
+                        <div class="text-sm font-extrabold text-white">No Payment for Item Won</div>
+                    </div>
+                </div>
+
+                <!-- Duplicate steps for seamless loop -->
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+                <!-- Step 1 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">payments</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 1</div>
+                        <div class="text-sm font-extrabold text-white">Buy Points</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+                <!-- Step 2 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">search</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 2</div>
+                        <div class="text-sm font-extrabold text-white">Choose Item to Bid For</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+                <!-- Step 3 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">gavel</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 3</div>
+                        <div class="text-sm font-extrabold text-white">Bid Points</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+                <!-- Step 4 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">emoji_events</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 4</div>
+                        <div class="text-sm font-extrabold text-white">Highest Bidder Wins</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+                <!-- Step 5 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">local_shipping</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 5</div>
+                        <div class="text-sm font-extrabold text-white">Items Delivered</div>
+                    </div>
+                </div>
+                <!-- Arrow -->
+                <i class="pi pi-chevron-right text-lemon/50 text-xs"></i>
+                <!-- Step 6 -->
+                <div class="inline-flex items-center gap-3 px-10">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-lemon/20 text-lemon border border-lemon/35">
+                        <span class="material-symbols-outlined text-lg">price_check</span>
+                    </span>
+                    <div class="text-left">
+                        <div class="text-xs font-black text-[#8aaa80] uppercase tracking-wider">Step 6</div>
+                        <div class="text-sm font-extrabold text-white">No Payment for Item Won</div>
+                    </div>
                 </div>
             </div>
         </div>

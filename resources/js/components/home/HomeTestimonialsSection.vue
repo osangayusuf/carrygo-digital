@@ -1,9 +1,35 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import type { Review } from '@/pages/Home/Index.vue';
+import ShareModal from '@/components/modals/ShareModal.vue';
 
 const props = defineProps<{
     reviews: Review[];
 }>();
+
+const isShareOpen = ref(false);
+const selectedShareUrl = ref('');
+const selectedShareName = ref('');
+const selectedShareMessage = ref('');
+
+function openShareModal(review: Review): void {
+    if (!review.bid) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    selectedShareUrl.value = `${origin}/auctions/${review.bid.id}`;
+    selectedShareName.value = review.bid.name;
+
+    const page = usePage();
+    const authUser = page.props.auth?.user as { id?: number | string } | undefined;
+    const isWinner = authUser && Number(authUser.id) === Number(review.bid.winner_id);
+
+    if (isWinner) {
+        selectedShareMessage.value = `I won ${review.bid.name} on Carrygo! Check out my review: "${review.comment}" - Bid here:`;
+    } else {
+        selectedShareMessage.value = `A verified bidder won ${review.bid.name} on Carrygo! What they said: "${review.comment}" - Join me to bid:`;
+    }
+    isShareOpen.value = true;
+}
 
 function maskedPhone(msisdn: string | undefined): { prefix: string; suffix: string } {
     if (!msisdn) {
@@ -33,27 +59,40 @@ function maskedPhone(msisdn: string | undefined): { prefix: string; suffix: stri
                     :key="review.id"
                     class="flex h-full flex-col rounded-2xl bg-surface-container-lowest p-6 shadow-sm transition-shadow hover:shadow-md"
                 >
-                    <!-- Stars -->
-                    <div class="flex text-amber-500 gap-1 items-center mb-4">
-                        <svg
-                            v-for="i in 5"
-                            :key="i"
-                            class="w-4 h-4 shrink-0"
-                            :class="
-                                i <= Math.round(Number(review.rating))
-                                    ? 'fill-current text-amber-500 stroke-amber-500'
-                                    : 'fill-none stroke-amber-500 text-amber-500'
-                            "
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
+                    <div class="flex items-center justify-between mb-4">
+                        <!-- Stars -->
+                        <div class="flex text-amber-500 gap-1 items-center">
+                            <svg
+                                v-for="i in 5"
+                                :key="i"
+                                class="w-4 h-4 shrink-0"
+                                :class="
+                                    i <= Math.round(Number(review.rating))
+                                        ? 'fill-current text-amber-500 stroke-amber-500'
+                                        : 'fill-none stroke-amber-500 text-amber-500'
+                                "
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+                                />
+                            </svg>
+                        </div>
+
+                        <!-- Share Button -->
+                        <button
+                            v-if="review.bid"
+                            type="button"
+                            class="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-high cursor-pointer"
+                            title="Share testimonial"
+                            @click="openShareModal(review)"
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-                            />
-                        </svg>
+                            <span class="pi pi-share-alt text-[14px]"></span>
+                        </button>
                     </div>
 
                     <p class="mb-6 grow text-sm leading-relaxed text-on-surface">"{{ review.comment }}"</p>
@@ -89,4 +128,13 @@ function maskedPhone(msisdn: string | undefined): { prefix: string; suffix: stri
             </div>
         </div>
     </section>
+
+    <!-- Share Modal -->
+    <ShareModal
+        :is-open="isShareOpen"
+        :url="selectedShareUrl"
+        :name="selectedShareName"
+        :message="selectedShareMessage"
+        @close="isShareOpen = false"
+    />
 </template>

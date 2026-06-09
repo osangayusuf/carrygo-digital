@@ -21,6 +21,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OpenBidsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecommendedController;
 use App\Http\Controllers\RewardClaimController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -39,6 +40,8 @@ Route::get('how-to-play', [HowToPlayController::class, 'index'])->name('how-to-p
 Route::get('auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
 Route::get('auctions/{auction}/timeline', [AuctionTimelineController::class, 'index'])->name('auctions.timeline');
 Route::get('search', [SearchController::class, 'index'])->name('search');
+Route::get('trending', [TrendingController::class, 'index'])->name('trending');
+Route::get('recommended', [RecommendedController::class, 'index'])->name('recommended');
 
 Route::get('auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
     ->name('auth.social.redirect')
@@ -49,7 +52,6 @@ Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback']
     ->whereIn('provider', ['google', 'facebook']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('trending', [TrendingController::class, 'index'])->name('trending');
     Route::get('event-items', [EventItemsController::class, 'index'])->name('event-items');
 
     Route::get('onboarding', [OnboardingController::class, 'index'])->name('onboarding');

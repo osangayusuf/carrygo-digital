@@ -108,6 +108,7 @@ class HomeController extends Controller
                             'name' => $review->auction->name,
                             'image' => $review->auction->image,
                             'url' => '/auctions/'.$review->auction->id,
+                            'winner_id' => $review->auction->winner_id,
                         ] : null,
                     ]);
             }),
@@ -189,6 +190,7 @@ class HomeController extends Controller
             'current_points' => $auction->current_points,
             'expires_at' => $auction->expires_at?->toISOString(),
             'bid_count' => $auction->bid_count,
+            'winner_id' => $auction->winner_id,
         ];
     }
 

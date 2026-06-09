@@ -5,6 +5,7 @@ import { store as storeBid } from '@/actions/App/Http/Controllers/BidController'
 import { store as storeReview } from '@/actions/App/Http/Controllers/AuctionReviewController';
 import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
 import AuctionLeaderboardSidebar from '@/components/auction/AuctionLeaderboardSidebar.vue';
+import ShareModal from '@/components/modals/ShareModal.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { calcProgress, formatPrice, getRemainingTime } from '@/lib/utils';
 import { home, login } from '@/routes/index';
@@ -41,6 +42,30 @@ const props = defineProps<{
 const page = usePage();
 
 const expandedImage = ref<string | null>(null);
+const isShareOpen = ref(false);
+const shareMessageOverride = ref<string | undefined>(undefined);
+
+function openAuctionShareModal(): void {
+    shareMessageOverride.value = undefined;
+    isShareOpen.value = true;
+}
+
+function openReviewShareModal(reviewComment: string): void {
+    const isWinner = props.userReviewState.isWinner;
+    if (isWinner) {
+        shareMessageOverride.value = `I won ${props.auction.name} on Carrygo! Check out my review: "${reviewComment}" - Bid here:`;
+    } else {
+        shareMessageOverride.value = `A verified bidder won ${props.auction.name} on Carrygo! What they said: "${reviewComment}" - Join me to bid:`;
+    }
+    isShareOpen.value = true;
+}
+
+const shareUrl = computed(() => {
+    if (typeof window !== 'undefined') {
+        return window.location.href;
+    }
+    return '';
+});
 
 const canBid = computed(() => props.auction.status === 0 || props.auction.status === 1);
 
@@ -206,7 +231,16 @@ function submitBid(): void {
                         <p class="mb-1 text-[10px] font-black tracking-widest text-muted-green uppercase">
                             {{ statusLabel() }} auction
                         </p>
-                        <h1 class="mb-2 text-xl font-extrabold text-ink sm:text-2xl">{{ auction.name }}</h1>
+                        <div class="flex items-start justify-between gap-4 mb-2">
+                            <h1 class="text-xl font-extrabold text-ink sm:text-2xl m-0">{{ auction.name }}</h1>
+                            <button
+                                type="button"
+                                class="shrink-0 flex items-center justify-center gap-1.5 rounded-lg border-2 border-sage-border bg-white px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:border-lemon hover:text-forest cursor-pointer"
+                                @click="openAuctionShareModal"
+                            >
+                                <i class="pi pi-share-alt"></i> Share
+                            </button>
+                        </div>
                         <p class="mb-4 text-2xl font-black text-forest">{{ formatPrice(auction.price) }}</p>
 
                         <div class="mb-2 h-1.5 overflow-hidden rounded-sm bg-sage-mid">
@@ -493,9 +527,19 @@ function submitBid(): void {
                                         </span>
                                     </div>
                                 </div>
-                                <span class="text-xs font-bold text-muted-green">
-                                    {{ new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) }}
-                                </span>
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-xs font-bold text-muted-green">
+                                        {{ new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) }}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="flex h-7 w-7 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-high cursor-pointer"
+                                        title="Share review"
+                                        @click="openReviewShareModal(review.comment)"
+                                    >
+                                        <span class="pi pi-share-alt text-[14px]"></span>
+                                    </button>
+                                </div>
                             </div>
 
                             <p class="mt-3 text-sm font-semibold text-ink leading-relaxed font-sans whitespace-pre-line">{{ review.comment }}</p>
@@ -549,4 +593,13 @@ function submitBid(): void {
             />
         </div>
     </Teleport>
+
+    <!-- Share Modal -->
+    <ShareModal
+        :is-open="isShareOpen"
+        :url="shareUrl"
+        :name="auction.name"
+        :message="shareMessageOverride"
+        @close="isShareOpen = false"
+    />
 </template>

@@ -113,6 +113,7 @@ class AuctionListingService
             'current_points' => $auction->current_points,
             'expires_at' => $auction->expires_at?->toISOString(),
             'bid_count' => $auction->bid_count,
+            'winner_id' => $auction->winner_id,
         ];
     }
 

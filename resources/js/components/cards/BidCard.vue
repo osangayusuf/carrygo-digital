@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
 import auctions from '@/routes/auctions/index';
 import type { Bid } from '@/types/auction';
+import ShareModal from '@/components/modals/ShareModal.vue';
 
 const props = defineProps<{
     bid: Bid;
@@ -13,6 +14,33 @@ const props = defineProps<{
 
 const { open } = usePlaceBidModal();
 const expandedImage = ref<string | null>(null);
+const isShareOpen = ref(false);
+
+const cardUrl = computed(() => {
+    if (typeof window !== 'undefined') {
+        return `${window.location.origin}/auctions/${props.bid.id}`;
+    }
+    return `/auctions/${props.bid.id}`;
+});
+
+const dynamicTag = computed(() => {
+    if ((props.bid.bid_count ?? 0) >= 20) {
+        return { text: '🔥 Hot Item', class: 'bg-red-500 text-white' };
+    }
+    if ((props.bid.bid_count ?? 0) >= 10) {
+        return { text: '👀 Most Visited', class: 'bg-orange-500 text-white' };
+    }
+    const progress = calcProgress(props.bid);
+    if (progress >= 75 && progress < 100) {
+        return { text: '⚡ Nearly Full', class: 'bg-amber-500 text-navy' };
+    }
+    const openDate = props.bid.open_date;
+    const now = Date.now() / 1000;
+    if (openDate && (now - openDate) < 86400 && (props.bid.bid_count ?? 0) > 0) {
+        return { text: '⚡ Fast Progress', class: 'bg-emerald-500 text-white' };
+    }
+    return null;
+});
 
 function openBidModal(): void {
     open(props.bid, props.userPoints ?? null);
@@ -37,6 +65,15 @@ function buttonLabel(bid: Bid): string {
         <div class="h-36 relative overflow-hidden bg-sage-light cursor-pointer" @click="expandedImage = bid.image">
             <img :src="bid.image ?? ''" :alt="bid.name"
                 class="w-full h-full object-cover block transition-transform duration-700 hover:scale-110">
+            <!-- Dynamic Badges -->
+            <div class="absolute top-2 left-2" v-if="dynamicTag">
+                <span
+                    class="rounded-lg px-2 py-0.5 text-[8px] font-black tracking-wider uppercase shadow-lg sm:px-2.5 sm:text-[9px]"
+                    :class="dynamicTag.class"
+                >
+                    {{ dynamicTag.text }}
+                </span>
+            </div>
             <div class="absolute top-2 right-2">
                 <span v-if="bid.status === 0"
                     class="rounded-lg bg-navy px-2 py-1 text-[9px] font-black tracking-widest text-lemon uppercase shadow-lg sm:px-3 sm:text-[10px]">
@@ -85,12 +122,22 @@ function buttonLabel(bid: Bid): string {
                 >
                     {{ buttonLabel(bid) }}
                 </button>
-                <Link
-                    :href="auctions.show.url(bid.id)"
-                    class="block w-full rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold text-ink no-underline transition-colors hover:border-lemon hover:text-forest"
-                >
-                    View more details
-                </Link>
+                <div class="flex gap-2">
+                    <Link
+                        :href="auctions.show.url(bid.id)"
+                        class="flex-1 rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold text-ink no-underline transition-colors hover:border-lemon hover:text-forest"
+                    >
+                        View more details
+                    </Link>
+                    <button
+                        type="button"
+                        class="px-3 rounded-md border-2 border-sage-border bg-white text-ink hover:border-lemon hover:text-forest transition-colors flex items-center justify-center cursor-pointer"
+                        title="Share"
+                        @click="isShareOpen = true"
+                    >
+                        <i class="pi pi-share-alt"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -104,4 +151,13 @@ function buttonLabel(bid: Bid): string {
                 alt="Expanded image" />
         </div>
     </Teleport>
+
+    <!-- Share Modal -->
+    <ShareModal
+        :is-open="isShareOpen"
+        :url="cardUrl"
+        :name="bid.name"
+        @close="isShareOpen = false"
+    />
 </template>
+

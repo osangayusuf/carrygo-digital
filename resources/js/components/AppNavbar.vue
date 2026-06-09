@@ -14,6 +14,7 @@ import {
     logout as logoutRoute,
     openBids,
     profile,
+    recommended,
     tasks,
     trending,
     winners,
@@ -166,6 +167,7 @@ const onSearch = useDebounceFn(() => visit({ page: 1 }), 400);
 const navLinks = [
     { label: 'Home', href: home.url(), icon: 'pi pi-home' },
     { label: 'Trending', href: trending.url(), icon: 'pi pi-chart-line' },
+    { label: 'Recommended', href: recommended.url(), icon: 'pi pi-star' },
     { label: 'Open Bids', href: openBids.url(), icon: 'pi pi-box' },
     { label: 'Event Items', href: eventItems.url(), icon: 'pi pi-calendar' },
     { label: 'Winners', href: winners.url(), icon: 'pi pi-history' },

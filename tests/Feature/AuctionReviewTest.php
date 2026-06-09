@@ -5,6 +5,7 @@ use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\Review;
 use App\Models\User;
+use App\Services\AuctionListingService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -177,4 +178,38 @@ test('social platform must be one of allowed values', function () {
             'social_platform' => 'MySpace',
             'social_handle' => '@john_doe',
         ])->assertSessionHasErrors(['social_platform']);
+});
+
+test('home controller returns reviews with winner_id in bid data', function () {
+    $winner = User::factory()->create();
+    $auction = Auction::factory()->create([
+        'status' => AuctionStatus::CLOSED,
+        'winner_id' => $winner->id,
+    ]);
+    Review::factory()->create([
+        'auction_id' => $auction->id,
+        'user_id' => $winner->id,
+        'is_visible' => true,
+    ]);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->loadDeferredProps(fn ($reload) => $reload
+                ->has('reviews', 1)
+                ->where('reviews.0.bid.winner_id', $winner->id)
+            )
+        );
+});
+
+test('auction listing service mapAuction helper includes winner_id', function () {
+    $winner = User::factory()->create();
+    $auction = Auction::factory()->create([
+        'winner_id' => $winner->id,
+    ]);
+
+    $service = app(AuctionListingService::class);
+    $mapped = $service->mapAuction($auction);
+
+    expect($mapped)->toHaveKey('winner_id', $winner->id);
 });

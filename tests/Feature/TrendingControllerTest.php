@@ -11,10 +11,10 @@ beforeEach(function () {
     $this->actingAs(User::factory()->create());
 });
 
-test('guests are redirected from trending page', function () {
+test('guests can access trending page without redirect', function () {
     auth()->logout();
 
-    $this->get(route('trending'))->assertRedirect(route('login'));
+    $this->get(route('trending'))->assertSuccessful();
 });
 
 test('trending page renders with paginated bids', function () {
