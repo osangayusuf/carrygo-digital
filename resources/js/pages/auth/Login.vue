@@ -31,7 +31,7 @@ defineOptions({ layout: null });
             <!-- Logo -->
             <div class="mb-8 flex justify-center">
                 <Link :href="home.url()">
-                    <img src="/logo.png" alt="CarryGo" class="h-12 w-auto" />
+                    <img :src="`${$page.props.asset_url}logo.png`" alt="CarryGo" class="h-12 w-auto" />
                 </Link>
             </div>
 
