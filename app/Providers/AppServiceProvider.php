@@ -7,6 +7,7 @@ use App\Listeners\AwardWelcomePointsOnVerification;
 use App\Listeners\BroadcastDatabaseNotification;
 use App\Listeners\LogFailedLogin;
 use App\Listeners\LogSuccessfulLogin;
+use App\Listeners\LogUserRegistration;
 use App\Listeners\MarkPostVerificationOnboarding;
 use App\Listeners\NotifyAdminsOfAgentRegistration;
 use Carbon\CarbonImmutable;
@@ -45,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(Registered::class, AssignDefaultRole::class);
         Event::listen(Registered::class, NotifyAdminsOfAgentRegistration::class);
+        Event::listen(Registered::class, LogUserRegistration::class);
         Event::listen(Verified::class, MarkPostVerificationOnboarding::class);
         Event::listen(Verified::class, AwardWelcomePointsOnVerification::class);
         Event::listen(Login::class, LogSuccessfulLogin::class);

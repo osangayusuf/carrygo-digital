@@ -23,4 +23,7 @@ enum ActivityType: string
     case TICKET_CLAIMED = 'ticket_claimed';
     case TICKET_CLOSED = 'ticket_closed';
     case TICKET_MESSAGE_ADDED = 'ticket_message_added';
+    case USER_REGISTERED = 'user_registered';
+    case USER_STATUS_TOGGLED = 'user_status_toggled';
+    case USER_ROLE_CHANGED = 'user_role_changed';
 }

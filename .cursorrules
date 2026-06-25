@@ -1,4 +1,4 @@
-# Project: Carrygo Digital E-Auction Platform (Laravel 13 + Vue 3)
+# Project: Bidora Digital E-Auction Platform (Laravel 13 + Vue 3)
 
 Role-Based Personas
 
@@ -22,7 +22,7 @@ Persona 2: The Real-Time Specialist
 
 Persona 3: The Industrial UI Designer
 
-    Use the Carrygo Palette: Navy (#0D1B2A), Lemon (#C8E000), Amber (#F5E642), Ink (#0A0A0A).
+    Use the Bidora Palette: Navy (#0D1B2A), Lemon (#C8E000), Amber (#F5E642), Ink (#0A0A0A).
 
     Aesthetics: High-contrast, bold borders (border-2/4), heavy typography.
 

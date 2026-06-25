@@ -155,8 +155,8 @@ function submitBid(): void {
 
 <style scoped>
 .bid-interface {
-    background: #0a0a0a;
-    border: 2px solid #dde8cc;
+    background: var(--color-ink);
+    border: 2px solid var(--color-sage-border);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -172,7 +172,7 @@ function submitBid(): void {
 
 .bid-closed-text,
 .bid-inactive-text {
-    color: #5a7a4a;
+    color: var(--color-sage-dark);
     font-size: 0.9rem;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -180,7 +180,7 @@ function submitBid(): void {
 }
 
 .bid-winner-text {
-    color: #c8e000;
+    color: var(--color-lemon);
     font-size: 1rem;
     font-weight: 700;
     margin-top: 0.5rem;
@@ -191,21 +191,21 @@ function submitBid(): void {
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 0;
-    border-bottom: 1px solid #0d1b2a;
+    border-bottom: 1px solid var(--color-navy);
 }
 
 .bid-balance-label {
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #5a7a4a;
+    color: var(--color-sage-dark);
     text-transform: uppercase;
 }
 
 .bid-balance-value {
     font-size: 1rem;
     font-weight: 800;
-    color: #eef5e0;
+    color: var(--color-sage-light);
     letter-spacing: 0.02em;
 }
 
@@ -219,20 +219,20 @@ function submitBid(): void {
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #5a7a4a;
+    color: var(--color-sage-dark);
     text-transform: uppercase;
 }
 
 .bid-input-wrapper {
     display: flex;
     align-items: center;
-    border: 2px solid #dde8cc;
+    border: 2px solid var(--color-sage-border);
     overflow: hidden;
 }
 
 .bid-stepper-btn {
-    background: #0d1b2a;
-    color: #eef5e0;
+    background: var(--color-navy);
+    color: var(--color-sage-light);
     border: none;
     padding: 0.6rem 1rem;
     font-size: 1.2rem;
@@ -243,7 +243,7 @@ function submitBid(): void {
 }
 
 .bid-stepper-btn:hover:not(:disabled) {
-    background: #1a472a;
+    background: var(--color-forest);
 }
 
 .bid-stepper-btn:disabled {
@@ -253,8 +253,8 @@ function submitBid(): void {
 
 .bid-input {
     flex: 1;
-    background: #0a0a0a;
-    color: #c8e000;
+    background: var(--color-ink);
+    color: var(--color-lemon);
     border: none;
     text-align: center;
     font-size: 1.1rem;
@@ -274,15 +274,15 @@ function submitBid(): void {
 
 .bid-error {
     font-size: 0.75rem;
-    color: #f5e642;
+    color: var(--color-amber);
     font-weight: 600;
 }
 
 .bid-button {
     width: 100%;
-    background: #c8e000;
-    color: #0a0a0a;
-    border: 3px solid #c8e000;
+    background: var(--color-lemon);
+    color: var(--color-ink);
+    border: 3px solid var(--color-lemon);
     padding: 0.85rem 1rem;
     font-size: 1rem;
     font-weight: 900;
@@ -309,14 +309,14 @@ function submitBid(): void {
 }
 
 .bid-button--cooldown {
-    background: #f5e642;
-    border-color: #f5e642;
-    color: #0a0a0a;
+    background: var(--color-amber);
+    border-color: var(--color-amber);
+    color: var(--color-ink);
 }
 
 .bid-button--processing {
-    background: #5a7a4a;
-    border-color: #5a7a4a;
-    color: #eef5e0;
+    background: var(--color-sage-dark);
+    border-color: var(--color-sage-dark);
+    color: var(--color-sage-light);
 }
 </style>

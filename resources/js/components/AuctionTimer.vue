@@ -109,8 +109,8 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
 
 <style scoped>
 .auction-timer {
-    border: 3px solid #f5e642;
-    background: #0a0a0a;
+    border: 3px solid var(--color-amber);
+    background: var(--color-ink);
     padding: 1rem 1.5rem;
     display: inline-flex;
     align-items: center;
@@ -120,12 +120,12 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
 }
 
 .auction-timer.is-urgent {
-    border-color: #f5e642;
+    border-color: var(--color-amber);
     animation: pulse-amber 1s infinite;
 }
 
 .auction-timer.is-closed {
-    border-color: #1a472a;
+    border-color: var(--color-forest);
 }
 
 .timer-closed {
@@ -143,7 +143,7 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.15em;
-    color: #5a7a4a;
+    color: var(--color-sage-dark);
     text-transform: uppercase;
 }
 
@@ -162,7 +162,7 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
 .timer-digits {
     font-size: 2rem;
     font-weight: 900;
-    color: #f5e642;
+    color: var(--color-amber);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     letter-spacing: 0.02em;
@@ -171,7 +171,7 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
 .timer-separator {
     font-size: 2rem;
     font-weight: 900;
-    color: #f5e642;
+    color: var(--color-amber);
     margin-bottom: 0.75rem;
     line-height: 1;
 }
@@ -180,13 +180,13 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #5a7a4a;
+    color: var(--color-sage-dark);
     text-transform: uppercase;
 }
 
 .timer-waiting {
-    border: 2px solid #dde8cc;
-    background: #0a0a0a;
+    border: 2px solid var(--color-sage-border);
+    background: var(--color-ink);
     padding: 0.75rem 1.25rem;
     display: flex;
     flex-direction: column;
@@ -196,19 +196,19 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
 
 .timer-progress-bar {
     height: 4px;
-    background: #0d1b2a;
-    border: 1px solid #dde8cc;
+    background: var(--color-navy);
+    border: 1px solid var(--color-sage-border);
     overflow: hidden;
 }
 
 .timer-progress-fill {
     height: 100%;
-    background: #c8e000;
+    background: var(--color-lemon);
     transition: width 0.4s ease;
 }
 
 @keyframes pulse-amber {
-    0%, 100% { border-color: #f5e642; box-shadow: 0 0 0 0 rgba(245, 230, 66, 0.4); }
-    50% { border-color: #f5e642; box-shadow: 0 0 0 6px rgba(245, 230, 66, 0); }
+    0%, 100% { border-color: var(--color-amber); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-amber) 40%, transparent); }
+    50% { border-color: var(--color-amber); box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-amber) 0%, transparent); }
 }
 </style>

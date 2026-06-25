@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import SupportLayout from '@/layouts/SupportLayout.vue';
 import { ref, watch, computed } from 'vue';
+import { read as readNotification, readAll as readAllNotifications } from '@/routes/support/notifications';
 import { 
     Bell, 
     MessageSquare, 
@@ -64,7 +65,7 @@ const getIconBgClass = (iconName: string) => {
 
 const markRead = async (id: string) => {
     try {
-        const response = await fetch(`/support/notifications/${id}/read`, {
+        const response = await fetch(readNotification.url(id), {
             method: 'PATCH',
             headers: {
                 Accept: 'application/json',
@@ -87,7 +88,7 @@ const markRead = async (id: string) => {
 
 const markAllRead = async () => {
     try {
-        const response = await fetch('/support/notifications/read-all', {
+        const response = await fetch(readAllNotifications.url(), {
             method: 'PATCH',
             headers: {
                 Accept: 'application/json',

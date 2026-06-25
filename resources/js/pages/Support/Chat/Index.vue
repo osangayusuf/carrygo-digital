@@ -2,13 +2,14 @@
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import SupportLayout from '@/layouts/SupportLayout.vue';
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
-import { status as chatStatus, claim as chatClaim, close as chatClose, message as chatMessage, convert as chatConvert } from '@/routes/support/chat';
-import { 
-    MessageSquare, 
-    User as UserIcon, 
-    Clock, 
-    Inbox, 
-    Send, 
+import { status as chatStatus, claim as chatClaim, close as chatClose, message as chatMessage, convert as chatConvert, show as chatShow } from '@/routes/support/chat';
+import { show as ticketsShow } from '@/routes/support/tickets';
+import {
+    MessageSquare,
+    User as UserIcon,
+    Clock,
+    Inbox,
+    Send,
     CheckCircle,
     UserCheck,
     FileText,
@@ -101,6 +102,7 @@ onMounted(() => {
     window.Echo?.join('support.agents')
         .listen('.NewChatSessionCreated', (event: any) => {
             const exists = waitingList.value.some(s => s.uuid === event.uuid);
+            
             if (!exists) {
                 waitingList.value.unshift({
                     id: event.id,
@@ -186,6 +188,7 @@ const changePresenceStatus = () => {
 
 const claimChat = () => {
     if (!props.selectedSession) return;
+
     router.post(chatClaim.url(props.selectedSession.uuid), {}, {
         onSuccess: () => {
             currentTab.value = 'active';
@@ -195,6 +198,7 @@ const claimChat = () => {
 
 const closeChat = () => {
     if (!props.selectedSession) return;
+
     if (confirm('Are you sure you want to close this chat session?')) {
         router.post(chatClose.url(props.selectedSession.uuid));
     }
@@ -202,7 +206,7 @@ const closeChat = () => {
 
 const submitMessage = () => {
     if (!props.selectedSession || !messageForm.body.trim()) return;
-    
+
     const bodyText = messageForm.body;
     messageForm.body = ''; // Clear locally for instant response feel
 
@@ -223,6 +227,7 @@ const submitMessage = () => {
 
 const submitConvert = () => {
     if (!props.selectedSession) return;
+
     convertForm.post(chatConvert.url(props.selectedSession.uuid), {
         onSuccess: () => {
             showConvertModal.value = false;
@@ -234,11 +239,11 @@ const submitConvert = () => {
 const getStatusDotClass = (status: string) => {
     switch (status) {
         case 'online':
-            return 'bg-[#10b981]';
+            return 'bg-surface-tint';
         case 'away':
-            return 'bg-[#f5e642]';
+            return 'bg-amber';
         default:
-            return 'bg-[#ba1a1a]';
+            return 'bg-error';
     }
 };
 </script>
@@ -248,7 +253,7 @@ const getStatusDotClass = (status: string) => {
 
     <SupportLayout :breadcrumbs="[{ title: 'Live Chat' }]">
         <div class="h-[calc(100vh-12rem)] flex border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm bg-surface-container-lowest font-sans text-xs">
-            
+
             <!-- Middle Panel: Chat Sessions List (300px wide) -->
             <div class="w-[320px] border-r border-outline-variant flex flex-col bg-surface">
                 <!-- Status Toggle -->
@@ -257,7 +262,7 @@ const getStatusDotClass = (status: string) => {
                         <span :class="['w-2.5 h-2.5 rounded-full', getStatusDotClass(currentStatus)]"></span>
                         <span class="font-bold text-[10px] uppercase tracking-wider text-on-surface-variant">Agent: {{ currentStatus }}</span>
                     </div>
-                    <select 
+                    <select
                         v-model="currentStatus"
                         @change="changePresenceStatus"
                         class="bg-surface-container-lowest border border-outline-variant text-[10px] font-bold uppercase rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-secondary cursor-pointer"
@@ -270,34 +275,34 @@ const getStatusDotClass = (status: string) => {
 
                 <!-- Tabs header -->
                 <div class="flex border-b border-outline-variant/40">
-                    <button 
+                    <button
                         @click="currentTab = 'active'"
                         :class="[
                             'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
-                            currentTab === 'active' 
-                                ? 'border-primary text-primary bg-surface-container-lowest' 
+                            currentTab === 'active'
+                                ? 'border-primary text-primary bg-surface-container-lowest'
                                 : 'border-transparent text-on-surface-variant hover:text-on-surface'
                         ]"
                     >
                         Active ({{ activeList.length }})
                     </button>
-                    <button 
+                    <button
                         @click="currentTab = 'waiting'"
                         :class="[
                             'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
-                            currentTab === 'waiting' 
-                                ? 'border-primary text-primary bg-surface-container-lowest' 
+                            currentTab === 'waiting'
+                                ? 'border-primary text-primary bg-surface-container-lowest'
                                 : 'border-transparent text-on-surface-variant hover:text-on-surface'
                         ]"
                     >
                         Waiting ({{ waitingList.length }})
                     </button>
-                    <button 
+                    <button
                         @click="currentTab = 'closed'"
                         :class="[
                             'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
-                            currentTab === 'closed' 
-                                ? 'border-primary text-primary bg-surface-container-lowest' 
+                            currentTab === 'closed'
+                                ? 'border-primary text-primary bg-surface-container-lowest'
                                 : 'border-transparent text-on-surface-variant hover:text-on-surface'
                         ]"
                     >
@@ -309,10 +314,10 @@ const getStatusDotClass = (status: string) => {
                 <div class="flex-1 overflow-y-auto divide-y divide-outline-variant/30">
                     <!-- Active List -->
                     <template v-if="currentTab === 'active'">
-                        <Link 
-                            v-for="session in activeList" 
+                        <Link
+                            v-for="session in activeList"
                             :key="session.uuid"
-                            :href="`/support/chat/${session.uuid}`"
+                            :href="chatShow.url(session.uuid)"
                             :class="[
                                 'block p-4 transition-all hover:bg-surface-container-low/30',
                                 selectedSession?.uuid === session.uuid ? 'bg-surface-container border-l-4 border-primary' : ''
@@ -342,10 +347,10 @@ const getStatusDotClass = (status: string) => {
 
                     <!-- Waiting List -->
                     <template v-if="currentTab === 'waiting'">
-                        <Link 
-                            v-for="session in waitingList" 
+                        <Link
+                            v-for="session in waitingList"
                             :key="session.uuid"
-                            :href="`/support/chat/${session.uuid}`"
+                            :href="chatShow.url(session.uuid)"
                             :class="[
                                 'block p-4 transition-all hover:bg-surface-container-low/30',
                                 selectedSession?.uuid === session.uuid ? 'bg-surface-container border-l-4 border-primary' : ''
@@ -373,10 +378,10 @@ const getStatusDotClass = (status: string) => {
 
                     <!-- Closed List -->
                     <template v-if="currentTab === 'closed'">
-                        <Link 
-                            v-for="session in closedList" 
+                        <Link
+                            v-for="session in closedList"
                             :key="session.uuid"
-                            :href="`/support/chat/${session.uuid}`"
+                            :href="chatShow.url(session.uuid)"
                             :class="[
                                 'block p-4 transition-all hover:bg-surface-container-low/30',
                                 selectedSession?.uuid === session.uuid ? 'bg-surface-container border-l-4 border-primary' : ''
@@ -420,7 +425,7 @@ const getStatusDotClass = (status: string) => {
                         <!-- Header Action buttons -->
                         <div class="flex items-center gap-2">
                             <!-- If status is Waiting -->
-                            <button 
+                            <button
                                 v-if="sessionStatus === 'waiting'"
                                 @click="claimChat"
                                 class="flex items-center gap-1.5 px-4 py-2 border border-secondary/25 bg-secondary-container text-on-secondary-container hover:bg-secondary hover:text-primary rounded-lg font-bold uppercase transition-all cursor-pointer"
@@ -431,7 +436,7 @@ const getStatusDotClass = (status: string) => {
 
                             <!-- If status is Active -->
                             <template v-else-if="sessionStatus === 'active'">
-                                <button 
+                                <button
                                     v-if="!selectedSession.ticket_id"
                                     @click="showConvertModal = true"
                                     class="flex items-center gap-1.5 px-3 py-2 border border-outline-variant bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-bold uppercase transition-all cursor-pointer"
@@ -439,7 +444,7 @@ const getStatusDotClass = (status: string) => {
                                     <FileText class="w-3.5 h-3.5" />
                                     <span>Convert to Ticket</span>
                                 </button>
-                                <button 
+                                <button
                                     @click="closeChat"
                                     class="flex items-center gap-1.5 px-3 py-2 border border-error/20 bg-error-container/10 text-error hover:bg-error hover:text-white rounded-lg font-bold uppercase transition-all cursor-pointer"
                                 >
@@ -449,9 +454,9 @@ const getStatusDotClass = (status: string) => {
                             </template>
 
                             <!-- If already converted to a ticket -->
-                            <Link 
+                            <Link
                                 v-if="selectedSession.ticket_id"
-                                :href="`/support/tickets/${selectedSession.ticket_id}`"
+                                :href="ticketsShow.url(selectedSession.ticket_id)"
                                 class="flex items-center gap-1.5 px-3 py-2 border border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white rounded-lg font-bold uppercase transition-all"
                             >
                                 <FileText class="w-3.5 h-3.5" />
@@ -461,19 +466,19 @@ const getStatusDotClass = (status: string) => {
                     </div>
 
                     <!-- Conversation Message Stream -->
-                    <div 
-                        ref="messageContainer" 
+                    <div
+                        ref="messageContainer"
                         class="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-[#fcfdfd]"
                     >
-                        <div 
-                            v-for="msg in messages" 
+                        <div
+                            v-for="msg in messages"
                             :key="msg.id"
                             :class="[
                                 'flex flex-col max-w-[70%]',
-                                msg.sender_type === 'system' 
+                                msg.sender_type === 'system'
                                     ? 'mx-auto w-full max-w-none text-center my-2'
-                                    : msg.sender_type === 'agent' 
-                                        ? 'self-end items-end' 
+                                    : msg.sender_type === 'agent'
+                                        ? 'self-end items-end'
                                         : 'self-start items-start'
                             ]"
                         >
@@ -490,7 +495,7 @@ const getStatusDotClass = (status: string) => {
                                 <div class="flex items-center gap-1 mb-1 text-[9px] text-on-surface-variant font-bold uppercase">
                                     <span>{{ msg.sender_type === 'agent' ? (msg.sender?.name || 'Agent') : (selectedSession.customer_name) }}</span>
                                 </div>
-                                <div 
+                                <div
                                     :class="[
                                         'p-3.5 rounded-2xl shadow-sm text-[11px] leading-relaxed whitespace-pre-wrap',
                                         msg.sender_type === 'agent'
@@ -508,19 +513,19 @@ const getStatusDotClass = (status: string) => {
                     </div>
 
                     <!-- Input Reply Box -->
-                    <div 
+                    <div
                         v-if="sessionStatus === 'active'"
                         class="p-4 bg-surface border-t border-outline-variant/60"
                     >
                         <form @submit.prevent="submitMessage" class="flex gap-3">
-                            <textarea 
+                            <textarea
                                 v-model="messageForm.body"
                                 rows="1"
                                 placeholder="TYPE A MESSAGE DIRECTLY TO THE CUSTOMER (PRESS ENTER TO SEND)..."
                                 @keydown.enter.exact.prevent="submitMessage"
                                 class="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-medium resize-none text-[11px]"
                             ></textarea>
-                            <button 
+                            <button
                                 type="submit"
                                 :disabled="messageForm.processing || !messageForm.body.trim()"
                                 class="px-5 bg-navy text-lemon hover:bg-forest rounded-lg flex items-center justify-center transition-all cursor-pointer disabled:opacity-50"
@@ -559,7 +564,7 @@ const getStatusDotClass = (status: string) => {
                     <!-- Subject -->
                     <div class="flex flex-col gap-1.5">
                         <label for="subject" class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Ticket Subject</label>
-                        <input 
+                        <input
                             id="subject"
                             v-model="convertForm.subject"
                             type="text"
@@ -574,7 +579,7 @@ const getStatusDotClass = (status: string) => {
                         <!-- Category -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Category</label>
-                            <select 
+                            <select
                                 v-model="convertForm.category"
                                 required
                                 class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
@@ -588,7 +593,7 @@ const getStatusDotClass = (status: string) => {
                         <!-- Priority -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Priority</label>
-                            <select 
+                            <select
                                 v-model="convertForm.priority"
                                 required
                                 class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
@@ -601,14 +606,14 @@ const getStatusDotClass = (status: string) => {
 
                     <!-- Modal Actions -->
                     <div class="flex gap-3 justify-end pt-4 border-t border-outline-variant/30">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="showConvertModal = false"
                             class="px-4 py-2.5 border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary font-bold uppercase transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             type="submit"
                             :disabled="convertForm.processing"
                             class="px-5 py-2.5 bg-navy text-lemon font-black uppercase rounded-lg disabled:opacity-50 transition-all cursor-pointer"

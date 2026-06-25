@@ -11,7 +11,9 @@ import {
     Menu,
     X,
     UserCheck,
-    ListFilter
+    ListFilter,
+    BarChart3,
+    ShieldAlert
 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { logout as logoutRoute, home } from '@/routes';
@@ -23,6 +25,8 @@ import { index as pointTransactionsIndex } from '@/routes/admin/point-transactio
 import { index as paystackTransactionsIndex } from '@/routes/admin/paystack-transactions';
 import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as rewardsConfigIndex } from '@/routes/admin/rewards-config';
+import { index as metricsIndex } from '@/routes/admin/metrics';
+import { index as activityLogIndex } from '@/routes/admin/activity-log';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 
 type Breadcrumb = {
@@ -42,6 +46,8 @@ const isMobileMenuOpen = ref(false);
 const { isCurrentOrParentUrl } = useCurrentUrl();
 
 const navItems = [
+    { name: 'Metrics', href: metricsIndex.url(), icon: BarChart3 },
+    { name: 'Activity Log', href: activityLogIndex.url(), icon: ShieldAlert },
     { name: 'Auctions', href: auctionsIndex.url(), icon: Gavel },
     { name: 'Users', href: usersIndex.url(), icon: Users },
     { name: 'Agents', href: agentsIndex.url(), icon: UserCheck },

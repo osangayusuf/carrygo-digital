@@ -26,13 +26,14 @@ const statusLabel: Record<string, string> = {
     offline: 'Offline',
 };
 
-// Placeholder stats for later phases
-const stats = {
-    openTickets: 5,
-    myTickets: 2,
-    activeChats: 1,
-    onlineAgents: 3,
-};
+const props = defineProps<{
+    stats: {
+        openTickets: number;
+        myTickets: number;
+        activeChats: number;
+        onlineAgents: number;
+    };
+}>();
 </script>
 
 <template>

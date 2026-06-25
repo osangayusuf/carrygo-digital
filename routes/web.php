@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\AuctionController as AdminAuctionController;
+use App\Http\Controllers\Admin\MetricsController;
 use App\Http\Controllers\Admin\PaystackTransactionController;
 use App\Http\Controllers\Admin\PointTransactionController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -113,6 +115,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Rewards Config Management
         Route::get('rewards-config', [RewardsConfigController::class, 'index'])->name('rewards-config.index');
         Route::post('rewards-config', [RewardsConfigController::class, 'update'])->name('rewards-config.update');
+
+        // Metrics & Analytics
+        Route::get('metrics', [MetricsController::class, 'index'])->name('metrics.index');
+
+        // Activity Log & Spam Protection
+        Route::get('activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
     });
 
 Route::redirect('admin', '/admin/auctions', 301)->name('admin.dashboard');

@@ -279,7 +279,13 @@ watch(currentUser, (newUser) => {
 </script>
 
 <template>
-    <div class="fixed bottom-6 right-6 z-50 font-sans text-xs">
+    <div
+        class="fixed bottom-6 z-50 font-sans text-xs"
+        :class="isOpen
+            ? 'left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6'
+            : 'right-6'
+        "
+    >
         <!-- Minimized Floating Button -->
         <button
             v-if="!isOpen"
@@ -292,12 +298,12 @@ watch(currentUser, (newUser) => {
         <!-- Chat Box -->
         <div
             v-else
-            class="w-[360px] h-[500px] bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-fade-in"
+            class="w-[320px] md:w-[360px] h-[500px] bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-fade-in"
         >
             <!-- Header -->
             <div class="px-5 py-4 bg-navy text-white flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-2">
-                    <span :class="['w-2 h-2 rounded-full', isOnline ? 'bg-[#10b981]' : 'bg-gray-400']"></span>
+                    <span :class="['w-2 h-2 rounded-full', isOnline ? 'bg-surface-tint' : 'bg-gray-400']"></span>
                     <span class="font-extrabold tracking-wide uppercase text-[10px]">
                         {{ isChatActive ? (agentName ? `Chat with ${agentName}` : 'Support queue') : 'CarryGo Support' }}
                     </span>

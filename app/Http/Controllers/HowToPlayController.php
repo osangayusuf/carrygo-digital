@@ -92,7 +92,7 @@ class HowToPlayController extends Controller
                 ],
                 [
                     'question' => 'How are winners contacted?',
-                    'answer' => 'Carrygo reaches winners through registered profile details, so keep your phone and account information updated.',
+                    'answer' => 'Bidora reaches winners through registered profile details, so keep your phone and account information updated.',
                 ],
             ],
             'support' => [

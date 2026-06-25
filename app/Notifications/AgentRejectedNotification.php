@@ -25,7 +25,7 @@ class AgentRejectedNotification extends Notification
         return (new MailMessage)
             ->subject('Support Agent Registration Declined')
             ->greeting("Hello {$this->agentName},")
-            ->line('Thank you for your interest in joining the CarryGo support team.')
+            ->line('Thank you for your interest in joining the Bidora support team.')
             ->line('Unfortunately, your registration as a Customer Care Agent was not approved at this time.')
             ->line('As a result, your agent registration details and account have been removed from our system.');
     }

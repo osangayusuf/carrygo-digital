@@ -54,6 +54,7 @@ test('profile_updated activity is created when user updates their profile', func
     $this->actingAs($user)->patch(route('profile.update'), [
         'name' => 'Updated Name',
         'email' => $user->email,
+        'phone' => $user->phone,
     ]);
 
     $this->assertDatabaseHas('user_activities', [

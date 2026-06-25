@@ -1,11 +1,17 @@
 <?php
 
+use App\Enums\ChatSessionStatus;
+use App\Enums\TicketStatus;
 use App\Http\Controllers\Auth\AgentAuthController;
 use App\Http\Controllers\Support\ChatController;
 use App\Http\Controllers\Support\CustomerChatController;
 use App\Http\Controllers\Support\NotificationController;
 use App\Http\Controllers\Support\TicketController;
 use App\Http\Controllers\Support\TicketMessageController;
+use App\Models\AgentStatus;
+use App\Models\ChatSession;
+use App\Models\Ticket;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public Customer Chat Endpoints (no auth required for guest support)
@@ -39,8 +45,27 @@ Route::middleware(['web', 'auth'])->group(function () {
 Route::middleware(['web', 'auth', 'verified', 'role:agent|admin', 'agent.approved', 'agent.activity'])
     ->prefix('support')
     ->group(function () {
-        Route::get('/', function () {
-            return Inertia\Inertia::render('Support/Dashboard');
+        Route::get('/', function (Request $request) {
+            $user = $request->user();
+
+            return Inertia\Inertia::render('Support/Dashboard', [
+                'stats' => [
+                    'openTickets' => Ticket::whereNull('agent_id')
+                        ->where('status', '!=', TicketStatus::CLOSED)
+                        ->count(),
+                    'myTickets' => Ticket::where('agent_id', $user->id)
+                        ->where('status', '!=', TicketStatus::CLOSED)
+                        ->count(),
+                    'activeChats' => ChatSession::where('status', ChatSessionStatus::ACTIVE)
+                        ->when(! $user->isAdmin(), fn ($q) => $q->where('agent_id', $user->id))
+                        ->count(),
+                    'onlineAgents' => AgentStatus::where('status', App\Enums\AgentStatus::ONLINE)
+                        ->whereHas('user', function ($q) {
+                            $q->role(['agent', 'admin']);
+                        })
+                        ->count(),
+                ],
+            ]);
         })->name('support.dashboard');
 
         // Ticket Management

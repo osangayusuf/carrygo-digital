@@ -23,7 +23,7 @@
         'Segoe UI Emoji';
     --font-condensed: 'Barlow Condensed', sans-serif;
 
-    --color-primary: #0d1b2a;
+    --color-primary: #101828;
     --color-primary-container: #a7f3d0;
     --color-primary-fixed: #d1fae5;
     --color-primary-fixed-dim: #6ee7b7;
@@ -32,7 +32,7 @@
     --color-on-primary-fixed: #022c22;
     --color-on-primary-fixed-variant: #065f46;
 
-    --color-secondary: #c8e000;
+    --color-secondary: #ffb000;
     --color-secondary-container: #d8ebe9;
     --color-secondary-fixed: #d8ebe9;
     --color-secondary-fixed-dim: #b8d5d0;
@@ -83,21 +83,21 @@
     --animate-float-img: floatImg 4s ease-in-out infinite;
 
     /* Navbar / Home brand colours */
-    --color-navy: #0d1b2a;
-    --color-lemon: #c8e000;
-    --color-forest: #1a472a;
-    --color-forest-dark: #0f2d19;
-    --color-forest-mid: #1a5c2a;
-    --color-amber: #f5e642;
-    --color-muted-green: #3a4a30;
-    --color-ink: #0a0a0a;
-    --color-sage-tint: #f0f5e8;
-    --color-sage-border: #dde8cc;
-    --color-sage-light: #eef5e0;
-    --color-sage-mid: #e8f0d8;
-    --color-sage-dark: #5a7a4a;
-    --color-sage-bg: #f4f7f0;
-    --color-sage-border-dark: #c5d9b0;
+    --color-navy: #101828;
+    --color-lemon: #ffb000;
+    --color-forest: #1d2939;
+    --color-forest-dark: #0c111d;
+    --color-forest-mid: #152031;
+    --color-amber: #f59e0b;
+    --color-muted-green: #344054;
+    --color-ink: #05080f;
+    --color-sage-tint: #f8fafc;
+    --color-sage-border: #e2e8f0;
+    --color-sage-light: #f1f5f9;
+    --color-sage-mid: #e2e8f0;
+    --color-sage-dark: #475467;
+    --color-sage-bg: #f8fafc;
+    --color-sage-border-dark: #cbd5e1;
 
     /* Shadcn radius tokens kept for auth/admin components */
     --radius-lg: var(--radius);

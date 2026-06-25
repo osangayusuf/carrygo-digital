@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\ActivityService;
@@ -70,6 +71,17 @@ class UserController extends Controller
             // we don't strictly need to flush their sessions manually here, but toggling is saved.
         }
 
+        $this->activityService->log(
+            type: ActivityType::USER_STATUS_TOGGLED,
+            user: $request->user(),
+            subject: $user,
+            metadata: [
+                'target_user_id' => $user->id,
+                'target_user_email' => $user->email,
+                'status' => $user->is_active ? 'active' : 'inactive',
+            ]
+        );
+
         return back()->with('success', $user->is_active
             ? __('User account enabled successfully.')
             : __('User account disabled successfully.')
@@ -91,6 +103,17 @@ class UserController extends Controller
         }
 
         $user->syncRoles($role);
+
+        $this->activityService->log(
+            type: ActivityType::USER_ROLE_CHANGED,
+            user: $request->user(),
+            subject: $user,
+            metadata: [
+                'target_user_id' => $user->id,
+                'target_user_email' => $user->email,
+                'new_role' => $role,
+            ]
+        );
 
         return back()->with('success', __('User role updated successfully.'));
     }
