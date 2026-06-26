@@ -102,7 +102,7 @@ onMounted(() => {
     window.Echo?.join('support.agents')
         .listen('.NewChatSessionCreated', (event: any) => {
             const exists = waitingList.value.some(s => s.uuid === event.uuid);
-            
+
             if (!exists) {
                 waitingList.value.unshift({
                     id: event.id,
@@ -249,10 +249,12 @@ const getStatusDotClass = (status: string) => {
 </script>
 
 <template>
-    <Head title="Live Chat Support - CarryGo Support" />
+
+    <Head title="Live Chat Support - Bidora Support" />
 
     <SupportLayout :breadcrumbs="[{ title: 'Live Chat' }]">
-        <div class="h-[calc(100vh-12rem)] flex border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm bg-surface-container-lowest font-sans text-xs">
+        <div
+            class="h-[calc(100vh-12rem)] flex border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm bg-surface-container-lowest font-sans text-xs">
 
             <!-- Middle Panel: Chat Sessions List (300px wide) -->
             <div class="w-[320px] border-r border-outline-variant flex flex-col bg-surface">
@@ -260,13 +262,11 @@ const getStatusDotClass = (status: string) => {
                 <div class="flex items-center justify-between p-4 bg-surface border-b border-outline-variant">
                     <div class="flex items-center gap-2">
                         <span :class="['w-2.5 h-2.5 rounded-full', getStatusDotClass(currentStatus)]"></span>
-                        <span class="font-bold text-[10px] uppercase tracking-wider text-on-surface-variant">Agent: {{ currentStatus }}</span>
+                        <span class="font-bold text-[10px] uppercase tracking-wider text-on-surface-variant">Agent: {{
+                            currentStatus }}</span>
                     </div>
-                    <select
-                        v-model="currentStatus"
-                        @change="changePresenceStatus"
-                        class="bg-surface-container-lowest border border-outline-variant text-[10px] font-bold uppercase rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-secondary cursor-pointer"
-                    >
+                    <select v-model="currentStatus" @change="changePresenceStatus"
+                        class="bg-surface-container-lowest border border-outline-variant text-[10px] font-bold uppercase rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-secondary cursor-pointer">
                         <option value="online">Online</option>
                         <option value="away">Away</option>
                         <option value="offline">Offline</option>
@@ -275,37 +275,28 @@ const getStatusDotClass = (status: string) => {
 
                 <!-- Tabs header -->
                 <div class="flex border-b border-outline-variant/40">
-                    <button
-                        @click="currentTab = 'active'"
-                        :class="[
-                            'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
-                            currentTab === 'active'
-                                ? 'border-primary text-primary bg-surface-container-lowest'
-                                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                        ]"
-                    >
+                    <button @click="currentTab = 'active'" :class="[
+                        'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
+                        currentTab === 'active'
+                            ? 'border-primary text-primary bg-surface-container-lowest'
+                            : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                    ]">
                         Active ({{ activeList.length }})
                     </button>
-                    <button
-                        @click="currentTab = 'waiting'"
-                        :class="[
-                            'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
-                            currentTab === 'waiting'
-                                ? 'border-primary text-primary bg-surface-container-lowest'
-                                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                        ]"
-                    >
+                    <button @click="currentTab = 'waiting'" :class="[
+                        'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
+                        currentTab === 'waiting'
+                            ? 'border-primary text-primary bg-surface-container-lowest'
+                            : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                    ]">
                         Waiting ({{ waitingList.length }})
                     </button>
-                    <button
-                        @click="currentTab = 'closed'"
-                        :class="[
-                            'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
-                            currentTab === 'closed'
-                                ? 'border-primary text-primary bg-surface-container-lowest'
-                                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                        ]"
-                    >
+                    <button @click="currentTab = 'closed'" :class="[
+                        'flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 text-center',
+                        currentTab === 'closed'
+                            ? 'border-primary text-primary bg-surface-container-lowest'
+                            : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                    ]">
                         Closed
                     </button>
                 </div>
@@ -314,26 +305,26 @@ const getStatusDotClass = (status: string) => {
                 <div class="flex-1 overflow-y-auto divide-y divide-outline-variant/30">
                     <!-- Active List -->
                     <template v-if="currentTab === 'active'">
-                        <Link
-                            v-for="session in activeList"
-                            :key="session.uuid"
-                            :href="chatShow.url(session.uuid)"
+                        <Link v-for="session in activeList" :key="session.uuid" :href="chatShow.url(session.uuid)"
                             :class="[
                                 'block p-4 transition-all hover:bg-surface-container-low/30',
                                 selectedSession?.uuid === session.uuid ? 'bg-surface-container border-l-4 border-primary' : ''
-                            ]"
-                        >
+                            ]">
                             <div class="flex justify-between items-start mb-1">
                                 <span class="font-bold text-on-surface truncate pr-2">{{ session.customer_name }}</span>
                                 <span class="text-[9px] text-on-surface-variant/80 font-medium">
-                                    {{ session.started_at ? new Date(session.started_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Active' }}
+                                    {{ session.started_at ? new Date(session.started_at).toLocaleTimeString([], {
+                                        hour:
+                                            '2-digit', minute:'2-digit'}) : 'Active' }}
                                 </span>
                             </div>
                             <p class="text-[10px] text-on-surface-variant truncate font-medium">
                                 {{ session.customer_email || 'No email provided' }}
                             </p>
-                            <div class="flex items-center justify-between mt-2 text-[9px] text-on-surface-variant/75 font-semibold">
-                                <span v-if="session.agent" class="bg-secondary/15 text-primary border border-secondary/20 px-2 py-0.5 rounded-sm uppercase tracking-wide">
+                            <div
+                                class="flex items-center justify-between mt-2 text-[9px] text-on-surface-variant/75 font-semibold">
+                                <span v-if="session.agent"
+                                    class="bg-secondary/15 text-primary border border-secondary/20 px-2 py-0.5 rounded-sm uppercase tracking-wide">
                                     Agent: {{ session.agent.name }}
                                 </span>
                                 <span v-if="session.ticket_id" class="text-primary font-bold">✓ Converted</span>
@@ -347,15 +338,11 @@ const getStatusDotClass = (status: string) => {
 
                     <!-- Waiting List -->
                     <template v-if="currentTab === 'waiting'">
-                        <Link
-                            v-for="session in waitingList"
-                            :key="session.uuid"
-                            :href="chatShow.url(session.uuid)"
+                        <Link v-for="session in waitingList" :key="session.uuid" :href="chatShow.url(session.uuid)"
                             :class="[
                                 'block p-4 transition-all hover:bg-surface-container-low/30',
                                 selectedSession?.uuid === session.uuid ? 'bg-surface-container border-l-4 border-primary' : ''
-                            ]"
-                        >
+                            ]">
                             <div class="flex justify-between items-start mb-1">
                                 <span class="font-bold text-on-surface truncate pr-2">{{ session.customer_name }}</span>
                                 <span class="text-[9px] text-error font-bold flex items-center gap-1">
@@ -367,7 +354,9 @@ const getStatusDotClass = (status: string) => {
                                 {{ session.customer_email || 'No email provided' }}
                             </p>
                             <span class="inline-block mt-2 text-[9px] font-bold text-on-surface-variant/80">
-                                Requested: {{ new Date(session.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+                                Requested: {{ new Date(session.created_at).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                minute:'2-digit'}) }}
                             </span>
                         </Link>
                         <div v-if="waitingList.length === 0" class="py-12 text-center text-on-surface-variant/60">
@@ -378,25 +367,23 @@ const getStatusDotClass = (status: string) => {
 
                     <!-- Closed List -->
                     <template v-if="currentTab === 'closed'">
-                        <Link
-                            v-for="session in closedList"
-                            :key="session.uuid"
-                            :href="chatShow.url(session.uuid)"
+                        <Link v-for="session in closedList" :key="session.uuid" :href="chatShow.url(session.uuid)"
                             :class="[
                                 'block p-4 transition-all hover:bg-surface-container-low/30',
                                 selectedSession?.uuid === session.uuid ? 'bg-surface-container border-l-4 border-primary' : ''
-                            ]"
-                        >
+                            ]">
                             <div class="flex justify-between items-start mb-1">
                                 <span class="font-bold text-on-surface truncate pr-2">{{ session.customer_name }}</span>
                                 <span class="text-[9px] text-on-surface-variant/80 font-medium">
-                                    {{ session.closed_at ? new Date(session.closed_at).toLocaleDateString() : 'Closed' }}
+                                    {{ session.closed_at ? new Date(session.closed_at).toLocaleDateString() : 'Closed'
+                                    }}
                                 </span>
                             </div>
                             <p class="text-[10px] text-on-surface-variant truncate font-medium">
                                 {{ session.customer_email || 'No email provided' }}
                             </p>
-                            <div class="flex items-center justify-between mt-2 text-[9px] text-on-surface-variant/70 font-semibold">
+                            <div
+                                class="flex items-center justify-between mt-2 text-[9px] text-on-surface-variant/70 font-semibold">
                                 <span>Closed support</span>
                                 <span v-if="session.ticket_id" class="text-primary font-bold">✓ Converted</span>
                             </div>
@@ -414,51 +401,42 @@ const getStatusDotClass = (status: string) => {
                 <!-- If a chat is selected -->
                 <template v-if="selectedSession">
                     <!-- Session Header Bar -->
-                    <div class="px-6 py-4 bg-surface border-b border-outline-variant/60 flex items-center justify-between">
+                    <div
+                        class="px-6 py-4 bg-surface border-b border-outline-variant/60 flex items-center justify-between">
                         <div>
                             <h2 class="text-sm font-bold text-primary">{{ selectedSession.customer_name }}</h2>
                             <p class="text-[10px] text-on-surface-variant mt-0.5">
-                                {{ selectedSession.customer_email || 'Guest customer' }} • Session #{{ selectedSession.id }}
+                                {{ selectedSession.customer_email || 'Guest customer' }} • Session #{{
+                                selectedSession.id }}
                             </p>
                         </div>
 
                         <!-- Header Action buttons -->
                         <div class="flex items-center gap-2">
                             <!-- If status is Waiting -->
-                            <button
-                                v-if="sessionStatus === 'waiting'"
-                                @click="claimChat"
-                                class="flex items-center gap-1.5 px-4 py-2 border border-secondary/25 bg-secondary-container text-on-secondary-container hover:bg-secondary hover:text-primary rounded-lg font-bold uppercase transition-all cursor-pointer"
-                            >
+                            <button v-if="sessionStatus === 'waiting'" @click="claimChat"
+                                class="flex items-center gap-1.5 px-4 py-2 border border-secondary/25 bg-secondary-container text-on-secondary-container hover:bg-secondary hover:text-primary rounded-lg font-bold uppercase transition-all cursor-pointer">
                                 <UserCheck class="w-3.5 h-3.5" />
                                 <span>Claim Chat Session</span>
                             </button>
 
                             <!-- If status is Active -->
                             <template v-else-if="sessionStatus === 'active'">
-                                <button
-                                    v-if="!selectedSession.ticket_id"
-                                    @click="showConvertModal = true"
-                                    class="flex items-center gap-1.5 px-3 py-2 border border-outline-variant bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-bold uppercase transition-all cursor-pointer"
-                                >
+                                <button v-if="!selectedSession.ticket_id" @click="showConvertModal = true"
+                                    class="flex items-center gap-1.5 px-3 py-2 border border-outline-variant bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-bold uppercase transition-all cursor-pointer">
                                     <FileText class="w-3.5 h-3.5" />
                                     <span>Convert to Ticket</span>
                                 </button>
-                                <button
-                                    @click="closeChat"
-                                    class="flex items-center gap-1.5 px-3 py-2 border border-error/20 bg-error-container/10 text-error hover:bg-error hover:text-white rounded-lg font-bold uppercase transition-all cursor-pointer"
-                                >
+                                <button @click="closeChat"
+                                    class="flex items-center gap-1.5 px-3 py-2 border border-error/20 bg-error-container/10 text-error hover:bg-error hover:text-white rounded-lg font-bold uppercase transition-all cursor-pointer">
                                     <CheckCircle class="w-3.5 h-3.5" />
                                     <span>Close Session</span>
                                 </button>
                             </template>
 
                             <!-- If already converted to a ticket -->
-                            <Link
-                                v-if="selectedSession.ticket_id"
-                                :href="ticketsShow.url(selectedSession.ticket_id)"
-                                class="flex items-center gap-1.5 px-3 py-2 border border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white rounded-lg font-bold uppercase transition-all"
-                            >
+                            <Link v-if="selectedSession.ticket_id" :href="ticketsShow.url(selectedSession.ticket_id)"
+                                class="flex items-center gap-1.5 px-3 py-2 border border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white rounded-lg font-bold uppercase transition-all">
                                 <FileText class="w-3.5 h-3.5" />
                                 <span>Open Ticket #{{ selectedSession.ticket_id }}</span>
                             </Link>
@@ -466,25 +444,19 @@ const getStatusDotClass = (status: string) => {
                     </div>
 
                     <!-- Conversation Message Stream -->
-                    <div
-                        ref="messageContainer"
-                        class="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-[#fcfdfd]"
-                    >
-                        <div
-                            v-for="msg in messages"
-                            :key="msg.id"
-                            :class="[
-                                'flex flex-col max-w-[70%]',
-                                msg.sender_type === 'system'
-                                    ? 'mx-auto w-full max-w-none text-center my-2'
-                                    : msg.sender_type === 'agent'
-                                        ? 'self-end items-end'
-                                        : 'self-start items-start'
-                            ]"
-                        >
+                    <div ref="messageContainer" class="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-[#fcfdfd]">
+                        <div v-for="msg in messages" :key="msg.id" :class="[
+                            'flex flex-col max-w-[70%]',
+                            msg.sender_type === 'system'
+                                ? 'mx-auto w-full max-w-none text-center my-2'
+                                : msg.sender_type === 'agent'
+                                    ? 'self-end items-end'
+                                    : 'self-start items-start'
+                        ]">
                             <!-- System messages style -->
                             <template v-if="msg.sender_type === 'system'">
-                                <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-outline-variant bg-surface-container-low text-[9px] uppercase tracking-wider font-extrabold text-on-surface-variant mx-auto">
+                                <div
+                                    class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-outline-variant bg-surface-container-low text-[9px] uppercase tracking-wider font-extrabold text-on-surface-variant mx-auto">
                                     <AlertCircle class="w-3 h-3 text-primary" />
                                     <span>{{ msg.body }}</span>
                                 </div>
@@ -492,44 +464,37 @@ const getStatusDotClass = (status: string) => {
 
                             <!-- Chat bubbles style -->
                             <template v-else>
-                                <div class="flex items-center gap-1 mb-1 text-[9px] text-on-surface-variant font-bold uppercase">
-                                    <span>{{ msg.sender_type === 'agent' ? (msg.sender?.name || 'Agent') : (selectedSession.customer_name) }}</span>
-                                </div>
                                 <div
-                                    :class="[
-                                        'p-3.5 rounded-2xl shadow-sm text-[11px] leading-relaxed whitespace-pre-wrap',
-                                        msg.sender_type === 'agent'
-                                            ? 'bg-navy text-lemon rounded-tr-none border border-navy/10'
-                                            : 'bg-surface-container-low text-on-surface rounded-tl-none border border-outline-variant/35'
-                                    ]"
-                                >
+                                    class="flex items-center gap-1 mb-1 text-[9px] text-on-surface-variant font-bold uppercase">
+                                    <span>{{ msg.sender_type === 'agent' ? (msg.sender?.name || 'Agent') :
+                                        (selectedSession.customer_name) }}</span>
+                                </div>
+                                <div :class="[
+                                    'p-3.5 rounded-2xl shadow-sm text-[11px] leading-relaxed whitespace-pre-wrap',
+                                    msg.sender_type === 'agent'
+                                        ? 'bg-navy text-lemon rounded-tr-none border border-navy/10'
+                                        : 'bg-surface-container-low text-on-surface rounded-tl-none border border-outline-variant/35'
+                                ]">
                                     {{ msg.body }}
                                 </div>
                                 <span class="text-[8px] text-on-surface-variant/70 font-semibold mt-1">
-                                    {{ new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+                                    {{ new Date(msg.created_at).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                    minute:'2-digit'}) }}
                                 </span>
                             </template>
                         </div>
                     </div>
 
                     <!-- Input Reply Box -->
-                    <div
-                        v-if="sessionStatus === 'active'"
-                        class="p-4 bg-surface border-t border-outline-variant/60"
-                    >
+                    <div v-if="sessionStatus === 'active'" class="p-4 bg-surface border-t border-outline-variant/60">
                         <form @submit.prevent="submitMessage" class="flex gap-3">
-                            <textarea
-                                v-model="messageForm.body"
-                                rows="1"
+                            <textarea v-model="messageForm.body" rows="1"
                                 placeholder="TYPE A MESSAGE DIRECTLY TO THE CUSTOMER (PRESS ENTER TO SEND)..."
                                 @keydown.enter.exact.prevent="submitMessage"
-                                class="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-medium resize-none text-[11px]"
-                            ></textarea>
-                            <button
-                                type="submit"
-                                :disabled="messageForm.processing || !messageForm.body.trim()"
-                                class="px-5 bg-navy text-lemon hover:bg-forest rounded-lg flex items-center justify-center transition-all cursor-pointer disabled:opacity-50"
-                            >
+                                class="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-medium resize-none text-[11px]"></textarea>
+                            <button type="submit" :disabled="messageForm.processing || !messageForm.body.trim()"
+                                class="px-5 bg-navy text-lemon hover:bg-forest rounded-lg flex items-center justify-center transition-all cursor-pointer disabled:opacity-50">
                                 <Send class="w-4 h-4" />
                             </button>
                         </form>
@@ -541,21 +506,26 @@ const getStatusDotClass = (status: string) => {
                     <MessageSquare class="w-16 h-16 text-outline-variant/60 animate-bounce-slow" />
                     <p class="uppercase font-black tracking-widest text-[10px]">No Session Selected</p>
                     <p class="text-xs max-w-xs text-center text-on-surface-variant/75">
-                        Select an active or waiting chat session from the queue left sidebar to start communicating with customers in real-time.
+                        Select an active or waiting chat session from the queue left sidebar to start communicating with
+                        customers in
+                        real-time.
                     </p>
                 </div>
             </div>
         </div>
 
         <!-- Convert to Ticket Modal -->
-        <div v-if="showConvertModal" class="fixed inset-0 z-50 bg-on-background/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-surface-container-lowest border border-outline-variant w-full max-w-md p-6 flex flex-col gap-4 rounded-xl shadow-xl">
+        <div v-if="showConvertModal"
+            class="fixed inset-0 z-50 bg-on-background/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div
+                class="bg-surface-container-lowest border border-outline-variant w-full max-w-md p-6 flex flex-col gap-4 rounded-xl shadow-xl">
                 <div class="flex items-center justify-between border-b border-outline-variant/30 pb-4">
                     <h2 class="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
                         <FileText class="w-4 h-4 text-primary" />
                         <span>Convert Chat to Ticket</span>
                     </h2>
-                    <button @click="showConvertModal = false" class="text-on-surface-variant hover:text-primary cursor-pointer font-bold">
+                    <button @click="showConvertModal = false"
+                        class="text-on-surface-variant hover:text-primary cursor-pointer font-bold">
                         ✕
                     </button>
                 </div>
@@ -563,61 +533,51 @@ const getStatusDotClass = (status: string) => {
                 <form @submit.prevent="submitConvert" class="space-y-4 text-xs">
                     <!-- Subject -->
                     <div class="flex flex-col gap-1.5">
-                        <label for="subject" class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Ticket Subject</label>
-                        <input
-                            id="subject"
-                            v-model="convertForm.subject"
-                            type="text"
-                            required
+                        <label for="subject"
+                            class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Ticket
+                            Subject</label>
+                        <input id="subject" v-model="convertForm.subject" type="text" required
                             placeholder="E.G. BILLING DISPUTE DISCOVERED DURING CHAT"
-                            class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
-                        />
-                        <p v-if="convertForm.errors.subject" class="text-error mt-1">{{ convertForm.errors.subject }}</p>
+                            class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase" />
+                        <p v-if="convertForm.errors.subject" class="text-error mt-1">{{ convertForm.errors.subject }}
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <!-- Category -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Category</label>
-                            <select
-                                v-model="convertForm.category"
-                                required
-                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
-                            >
+                            <label
+                                class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Category</label>
+                            <select v-model="convertForm.category" required
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase">
                                 <option value="">-- CHOOSE --</option>
                                 <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                             </select>
-                            <p v-if="convertForm.errors.category" class="text-error mt-1">{{ convertForm.errors.category }}</p>
+                            <p v-if="convertForm.errors.category" class="text-error mt-1">{{ convertForm.errors.category
+                                }}</p>
                         </div>
 
                         <!-- Priority -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Priority</label>
-                            <select
-                                v-model="convertForm.priority"
-                                required
-                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
-                            >
+                            <label
+                                class="text-on-surface-variant uppercase tracking-wider text-[10px] font-bold">Priority</label>
+                            <select v-model="convertForm.priority" required
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase">
                                 <option v-for="prio in priorities" :key="prio" :value="prio">{{ prio }}</option>
                             </select>
-                            <p v-if="convertForm.errors.priority" class="text-error mt-1">{{ convertForm.errors.priority }}</p>
+                            <p v-if="convertForm.errors.priority" class="text-error mt-1">{{ convertForm.errors.priority
+                                }}</p>
                         </div>
                     </div>
 
                     <!-- Modal Actions -->
                     <div class="flex gap-3 justify-end pt-4 border-t border-outline-variant/30">
-                        <button
-                            type="button"
-                            @click="showConvertModal = false"
-                            class="px-4 py-2.5 border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary font-bold uppercase transition-colors cursor-pointer"
-                        >
+                        <button type="button" @click="showConvertModal = false"
+                            class="px-4 py-2.5 border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary font-bold uppercase transition-colors cursor-pointer">
                             Cancel
                         </button>
-                        <button
-                            type="submit"
-                            :disabled="convertForm.processing"
-                            class="px-5 py-2.5 bg-navy text-lemon font-black uppercase rounded-lg disabled:opacity-50 transition-all cursor-pointer"
-                        >
+                        <button type="submit" :disabled="convertForm.processing"
+                            class="px-5 py-2.5 bg-navy text-lemon font-black uppercase rounded-lg disabled:opacity-50 transition-all cursor-pointer">
                             Convert & Open
                         </button>
                     </div>

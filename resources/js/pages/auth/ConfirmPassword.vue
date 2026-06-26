@@ -10,6 +10,7 @@ const showPassword = ref(false);
 </script>
 
 <template>
+
     <Head title="Confirm password" />
 
     <div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-6 py-12">
@@ -23,7 +24,7 @@ const showPassword = ref(false);
             <!-- Logo -->
             <div class="mb-8 flex justify-center">
                 <Link href="/">
-                    <img :src="`${page.props.asset_url}logo.png`" alt="CarryGo" class="h-12 w-auto" />
+                    <img :src="`${page.props.asset_url}logo.png`" alt="Bidora" class="h-12 w-auto" />
                 </Link>
             </div>
 
@@ -41,40 +42,24 @@ const showPassword = ref(false);
                     This is a secure area. Please enter your password before continuing.
                 </p>
 
-                <Form
-                    v-bind="store.form()"
-                    reset-on-success
-                    v-slot="{ errors, processing }"
-                >
+                <Form v-bind="store.form()" reset-on-success v-slot="{ errors, processing }">
                     <div class="space-y-5">
                         <div class="space-y-1.5">
-                            <label
-                                for="password"
-                                class="ml-0.5 block text-xs font-bold tracking-widest text-ink/70 uppercase"
-                            >
+                            <label for="password"
+                                class="ml-0.5 block text-xs font-bold tracking-widest text-ink/70 uppercase">
                                 Password
                             </label>
                             <div class="relative">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    :type="showPassword ? 'text' : 'password'"
-                                    autocomplete="current-password"
-                                    required
-                                    autofocus
+                                <input id="password" name="password" :type="showPassword ? 'text' : 'password'"
+                                    autocomplete="current-password" required autofocus
                                     class="block w-full rounded-lg border-none bg-surface-container-low px-5 py-3.5 pr-12 text-sm text-on-surface shadow-sm transition-all placeholder:text-outline/50 focus:ring-2 focus:ring-forest/40 focus:outline-none"
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="button"
+                                    placeholder="••••••••" />
+                                <button type="button"
                                     class="absolute inset-y-0 right-0 flex items-center px-4 text-outline transition-colors hover:text-ink"
                                     :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                                    @click="showPassword = !showPassword"
-                                >
-                                    <span
-                                        :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                                        class="text-base"
-                                    ></span>
+                                    @click="showPassword = !showPassword">
+                                    <span :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                                        class="text-base"></span>
                                 </button>
                             </div>
                             <p v-if="errors.password" class="mt-1 text-xs font-medium text-error">
@@ -82,12 +67,8 @@ const showPassword = ref(false);
                             </p>
                         </div>
 
-                        <button
-                            type="submit"
-                            :disabled="processing"
-                            data-test="confirm-password-button"
-                            class="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-3.5 text-sm font-extrabold text-lemon shadow-lg shadow-navy/20 transition-all hover:bg-forest active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
+                        <button type="submit" :disabled="processing" data-test="confirm-password-button"
+                            class="flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-3.5 text-sm font-extrabold text-lemon shadow-lg shadow-navy/20 transition-all hover:bg-forest active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
                             <span v-if="processing" class="pi pi-spinner animate-spin text-base"></span>
                             <span>{{ processing ? 'Confirming…' : 'Confirm password' }}</span>
                         </button>

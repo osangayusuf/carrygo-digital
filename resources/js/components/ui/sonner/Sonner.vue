@@ -7,22 +7,16 @@ const { appearance } = useAppearance();
 </script>
 
 <template>
-    <SonnerPrimitive
-        :theme="appearance"
-        class="carrygo-toaster group"
-        position="bottom-right"
-        :gap="12"
-        :visible-toasts="4"
-        :toast-options="{
+    <SonnerPrimitive :theme="appearance" class="bidora-toaster group" position="bottom-right" :gap="12"
+        :visible-toasts="4" :toast-options="{
             classNames: {
-                toast: 'carrygo-toast',
-                title: 'carrygo-toast__title',
-                description: 'carrygo-toast__description',
-                actionButton: 'carrygo-toast__action',
-                cancelButton: 'carrygo-toast__cancel',
-                closeButton: 'carrygo-toast__close',
-                icon: 'carrygo-toast__icon',
+                toast: 'bidora-toast',
+                title: 'bidora-toast__title',
+                description: 'bidora-toast__description',
+                actionButton: 'bidora-toast__action',
+                cancelButton: 'bidora-toast__cancel',
+                closeButton: 'bidora-toast__close',
+                icon: 'bidora-toast__icon',
             },
-        }"
-    />
+        }" />
 </template>

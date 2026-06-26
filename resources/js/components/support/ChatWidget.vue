@@ -106,13 +106,13 @@ const loadHistory = async (uuid: string) => {
             connectEcho(uuid);
             scrollToBottom();
         } else {
-            sessionStorage.removeItem('carrygo_chat_session_uuid');
+            sessionStorage.removeItem('bidora_chat_session_uuid');
             sessionUuid.value = null;
             isChatActive.value = false;
         }
     } catch (e) {
         console.error('Failed to load chat history', e);
-        sessionStorage.removeItem('carrygo_chat_session_uuid');
+        sessionStorage.removeItem('bidora_chat_session_uuid');
     } finally {
         isLoading.value = false;
     }
@@ -138,7 +138,7 @@ const startChat = async () => {
             sessionUuid.value = data.uuid;
             sessionStatus.value = data.status;
             isChatActive.value = true;
-            sessionStorage.setItem('carrygo_chat_session_uuid', data.uuid);
+            sessionStorage.setItem('bidora_chat_session_uuid', data.uuid);
             connectEcho(data.uuid);
 
             // Add a local welcome message
@@ -146,7 +146,7 @@ const startChat = async () => {
                 {
                     id: 0,
                     sender_type: 'system',
-                    body: 'Connecting to CarryGo support. Please wait for an agent to claim the session...',
+                    body: 'Connecting to Bidora support. Please wait for an agent to claim the session...',
                     created_at: new Date().toISOString()
                 }
             ];
@@ -234,7 +234,7 @@ const submitOfflineForm = async () => {
 };
 
 const startNewChat = () => {
-    sessionStorage.removeItem('carrygo_chat_session_uuid');
+    sessionStorage.removeItem('bidora_chat_session_uuid');
 
     if (sessionUuid.value) {
         window.Echo?.leave(`chat.${sessionUuid.value}`);
@@ -258,7 +258,7 @@ onMounted(() => {
     }
 
     // Check if there is an active session UUID stored in sessionStorage
-    const storedUuid = sessionStorage.getItem('carrygo_chat_session_uuid');
+    const storedUuid = sessionStorage.getItem('bidora_chat_session_uuid');
 
     if (storedUuid) {
         loadHistory(storedUuid);
@@ -279,33 +279,25 @@ watch(currentUser, (newUser) => {
 </script>
 
 <template>
-    <div
-        class="fixed bottom-6 z-50 font-sans text-xs"
-        :class="isOpen
-            ? 'left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6'
-            : 'right-6'
-        "
-    >
+    <div class="fixed bottom-6 z-50 font-sans text-xs" :class="isOpen
+        ? 'left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6'
+        : 'right-6'
+        ">
         <!-- Minimized Floating Button -->
-        <button
-            v-if="!isOpen"
-            @click="isOpen = true"
-            class="w-14 h-14 bg-navy hover:bg-forest text-lemon rounded-full shadow-2xl flex items-center justify-center cursor-pointer transition-all hover:scale-105"
-        >
+        <button v-if="!isOpen" @click="isOpen = true"
+            class="w-14 h-14 bg-navy hover:bg-forest text-lemon rounded-full shadow-2xl flex items-center justify-center cursor-pointer transition-all hover:scale-105">
             <MessageSquare class="w-6 h-6" />
         </button>
 
         <!-- Chat Box -->
-        <div
-            v-else
-            class="w-[320px] md:w-[360px] h-[500px] bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-fade-in"
-        >
+        <div v-else
+            class="w-[320px] md:w-[360px] h-[500px] bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-fade-in">
             <!-- Header -->
             <div class="px-5 py-4 bg-navy text-white flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-2">
                     <span :class="['w-2 h-2 rounded-full', isOnline ? 'bg-surface-tint' : 'bg-gray-400']"></span>
                     <span class="font-extrabold tracking-wide uppercase text-[10px]">
-                        {{ isChatActive ? (agentName ? `Chat with ${agentName}` : 'Support queue') : 'CarryGo Support' }}
+                        {{ isChatActive ? (agentName ? `Chat with ${agentName}` : 'Support queue') : 'Bidora Support' }}
                     </span>
                 </div>
                 <button @click="isOpen = false" class="text-white/80 hover:text-white cursor-pointer p-0.5">
@@ -322,39 +314,31 @@ watch(currentUser, (newUser) => {
 
                 <!-- 2. Active Chat Stream -->
                 <template v-else-if="isChatActive">
-                    <div
-                        ref="messageContainer"
-                        class="flex-1 p-5 overflow-y-auto flex flex-col gap-3 bg-[#fcfdfd]"
-                    >
-                        <div
-                            v-for="msg in messages"
-                            :key="msg.id"
-                            :class="[
-                                'flex flex-col max-w-[75%]',
-                                msg.sender_type === 'system'
-                                    ? 'mx-auto w-full max-w-none text-center my-1.5'
-                                    : msg.sender_type === 'customer'
-                                        ? 'self-end items-end'
-                                        : 'self-start items-start'
-                            ]"
-                        >
+                    <div ref="messageContainer" class="flex-1 p-5 overflow-y-auto flex flex-col gap-3 bg-[#fcfdfd]">
+                        <div v-for="msg in messages" :key="msg.id" :class="[
+                            'flex flex-col max-w-[75%]',
+                            msg.sender_type === 'system'
+                                ? 'mx-auto w-full max-w-none text-center my-1.5'
+                                : msg.sender_type === 'customer'
+                                    ? 'self-end items-end'
+                                    : 'self-start items-start'
+                        ]">
                             <!-- System notification -->
                             <template v-if="msg.sender_type === 'system'">
-                                <div class="inline-block px-3 py-1 rounded bg-surface-container text-[8.5px] uppercase tracking-wider font-extrabold text-on-surface-variant/80 border border-outline-variant/30">
+                                <div
+                                    class="inline-block px-3 py-1 rounded bg-surface-container text-[8.5px] uppercase tracking-wider font-extrabold text-on-surface-variant/80 border border-outline-variant/30">
                                     {{ msg.body }}
                                 </div>
                             </template>
 
                             <!-- User message bubbles -->
                             <template v-else>
-                                <div
-                                    :class="[
-                                        'p-3 rounded-2xl text-[10.5px] leading-relaxed shadow-sm whitespace-pre-wrap',
-                                        msg.sender_type === 'customer'
-                                            ? 'bg-navy text-lemon rounded-tr-none border border-navy/10'
-                                            : 'bg-surface-container-low text-on-surface rounded-tl-none border border-outline-variant/35'
-                                    ]"
-                                >
+                                <div :class="[
+                                    'p-3 rounded-2xl text-[10.5px] leading-relaxed shadow-sm whitespace-pre-wrap',
+                                    msg.sender_type === 'customer'
+                                        ? 'bg-navy text-lemon rounded-tr-none border border-navy/10'
+                                        : 'bg-surface-container-low text-on-surface rounded-tl-none border border-outline-variant/35'
+                                ]">
                                     {{ msg.body }}
                                 </div>
                             </template>
@@ -364,25 +348,18 @@ watch(currentUser, (newUser) => {
                     <!-- Input / Ending Banner -->
                     <div class="p-3 bg-surface border-t border-outline-variant/50">
                         <div v-if="sessionStatus === 'closed'" class="text-center py-2 space-y-2">
-                            <p class="text-[10px] font-bold text-on-surface-variant uppercase">This chat has been closed.</p>
-                            <button
-                                @click="startNewChat"
-                                class="px-4 py-2 bg-navy text-lemon font-black uppercase text-[9px] rounded-lg tracking-widest cursor-pointer"
-                            >
+                            <p class="text-[10px] font-bold text-on-surface-variant uppercase">This chat has been
+                                closed.</p>
+                            <button @click="startNewChat"
+                                class="px-4 py-2 bg-navy text-lemon font-black uppercase text-[9px] rounded-lg tracking-widest cursor-pointer">
                                 Start New Chat
                             </button>
                         </div>
                         <form v-else @submit.prevent="sendChatMessage" class="flex gap-2">
-                            <input
-                                v-model="messageText"
-                                placeholder="Type a message..."
-                                class="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary text-[11px] font-medium"
-                            />
-                            <button
-                                type="submit"
-                                :disabled="!messageText.trim()"
-                                class="px-4 bg-navy text-lemon hover:bg-forest rounded-lg flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
-                            >
+                            <input v-model="messageText" placeholder="Type a message..."
+                                class="flex-1 bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary text-[11px] font-medium" />
+                            <button type="submit" :disabled="!messageText.trim()"
+                                class="px-4 bg-navy text-lemon hover:bg-forest rounded-lg flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50">
                                 <Send class="w-3.5 h-3.5" />
                             </button>
                         </form>
@@ -393,38 +370,30 @@ watch(currentUser, (newUser) => {
                 <div v-else-if="isOnline" class="flex-1 p-6 flex flex-col justify-center overflow-y-auto">
                     <div class="text-center mb-6">
                         <MessageSquare class="w-12 h-12 text-primary mx-auto mb-2" />
-                        <h3 class="text-xs font-black uppercase tracking-wider text-primary">Chat with CarryGo Support</h3>
-                        <p class="text-[10px] text-on-surface-variant mt-1">Our customer care agents are online and ready to assist you.</p>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-primary">Chat with Bidora Support
+                        </h3>
+                        <p class="text-[10px] text-on-surface-variant mt-1">Our customer care agents are online and
+                            ready to assist you.
+                        </p>
                     </div>
 
                     <form @submit.prevent="startChat" class="space-y-4">
                         <div class="flex flex-col gap-1">
-                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Your Name</label>
-                            <input
-                                v-model="prechatForm.name"
-                                required
-                                type="text"
-                                placeholder="Enter name"
-                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold capitalize"
-                            />
+                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Your
+                                Name</label>
+                            <input v-model="prechatForm.name" required type="text" placeholder="Enter name"
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold capitalize" />
                         </div>
 
                         <div class="flex flex-col gap-1">
-                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Email Address</label>
-                            <input
-                                v-model="prechatForm.email"
-                                required
-                                type="email"
-                                placeholder="Enter email"
-                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold lowercase"
-                            />
+                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Email
+                                Address</label>
+                            <input v-model="prechatForm.email" required type="email" placeholder="Enter email"
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold lowercase" />
                         </div>
 
-                        <button
-                            type="submit"
-                            :disabled="isSubmitting"
-                            class="w-full py-3 bg-navy text-lemon font-black uppercase rounded-lg tracking-wider transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
-                        >
+                        <button type="submit" :disabled="isSubmitting"
+                            class="w-full py-3 bg-navy text-lemon font-black uppercase rounded-lg tracking-wider transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5">
                             <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
                             <span>Start Live Chat</span>
                         </button>
@@ -436,48 +405,35 @@ watch(currentUser, (newUser) => {
                     <div class="text-center mb-6">
                         <Clock class="w-12 h-12 text-on-surface-variant/80 mx-auto mb-2" />
                         <h3 class="text-xs font-black uppercase tracking-wider text-primary">Support is Offline</h3>
-                        <p class="text-[10px] text-on-surface-variant mt-1">Our team is currently offline. Drop us a message below and we will automatically create a support ticket.</p>
+                        <p class="text-[10px] text-on-surface-variant mt-1">Our team is currently offline. Drop us a
+                            message below and
+                            we will automatically create a support ticket.</p>
                     </div>
 
                     <form @submit.prevent="submitOfflineForm" class="space-y-4">
                         <div class="flex flex-col gap-1">
-                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Your Name</label>
-                            <input
-                                v-model="offlineForm.name"
-                                required
-                                type="text"
-                                placeholder="Enter name"
-                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
-                            />
+                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Your
+                                Name</label>
+                            <input v-model="offlineForm.name" required type="text" placeholder="Enter name"
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase" />
                         </div>
 
                         <div class="flex flex-col gap-1">
-                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Email Address</label>
-                            <input
-                                v-model="offlineForm.email"
-                                required
-                                type="email"
-                                placeholder="Enter email"
-                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase"
-                            />
+                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Email
+                                Address</label>
+                            <input v-model="offlineForm.email" required type="email" placeholder="Enter email"
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-bold uppercase" />
                         </div>
 
                         <div class="flex flex-col gap-1">
-                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Inquiry Details</label>
-                            <textarea
-                                v-model="offlineForm.body"
-                                required
-                                rows="3"
-                                placeholder="Provide description..."
-                                class="bg-surface-container-low border border-outline-variant text-on-surface p-4 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-medium text-[11px]"
-                            ></textarea>
+                            <label class="text-on-surface-variant font-bold text-[9px] uppercase tracking-wider">Inquiry
+                                Details</label>
+                            <textarea v-model="offlineForm.body" required rows="3" placeholder="Provide description..."
+                                class="bg-surface-container-low border border-outline-variant text-on-surface p-4 rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary font-medium text-[11px]"></textarea>
                         </div>
 
-                        <button
-                            type="submit"
-                            :disabled="isSubmitting"
-                            class="w-full py-3 bg-navy text-lemon font-black uppercase rounded-lg tracking-wider transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
-                        >
+                        <button type="submit" :disabled="isSubmitting"
+                            class="w-full py-3 bg-navy text-lemon font-black uppercase rounded-lg tracking-wider transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5">
                             <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
                             <span>Submit Request</span>
                         </button>

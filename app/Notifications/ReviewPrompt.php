@@ -33,7 +33,7 @@ class ReviewPrompt extends Notification implements ShouldQueue
             ->line("We hope you love your new \"{$this->auction->name}\".")
             ->line('Please take a moment to share your feedback and submit proof of delivery (photos/videos).')
             ->action('Submit Review', url('/auctions/'.$this->auction->id))
-            ->line('Thank you for choosing Carrygo!');
+            ->line('Thank you for choosing Bidora!');
     }
 
     /**

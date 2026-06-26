@@ -28,7 +28,7 @@ class WelcomeNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Welcome to Carrygo! 🎉')
+            ->subject('Welcome to Bidora! 🎉')
             ->greeting("Hello {$notifiable->name},")
             ->line('Thank you for verifying your email address.')
             ->line("To welcome you, we have credited {$this->transaction->amount} points to your wallet!")
@@ -44,10 +44,10 @@ class WelcomeNotification extends Notification implements ShouldQueue
     {
         return [
             'type' => 'welcome_bonus',
-            'title' => 'Welcome to Carrygo! Your account is verified.',
+            'title' => 'Welcome to Bidora! Your account is verified.',
             'url' => '/wallet',
             'amount' => $this->transaction->amount,
-            'message' => "Welcome to Carrygo! {$this->transaction->amount} welcome points have been credited to your account.",
+            'message' => "Welcome to Bidora! {$this->transaction->amount} welcome points have been credited to your account.",
         ];
     }
 }

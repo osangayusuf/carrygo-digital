@@ -17,7 +17,7 @@ test('new agent can register', function () {
 
     $response = $this->post(route('support.register.store'), [
         'name' => 'Agent Name',
-        'email' => 'agent@carrygo.com',
+        'email' => 'agent@bidora.com',
         'phone' => '08031112222',
         'department' => 'Support Department',
         'employee_id' => 'EMP-AGENT-1',

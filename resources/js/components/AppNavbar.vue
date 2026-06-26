@@ -236,107 +236,83 @@ const marqueeItems = computed(() => {
         <nav class="bg-white border-b-2 border-lemon shadow-md">
             <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-x-3 md:gap-x-10 gap-y-2 py-2 sm:py-1.5 px-4">
                 <Link :href="home.url()" class="flex items-center no-underline shrink-0 order-1">
-                    <img class="h-7 sm:h-10 w-auto block" :src="`${$page.props.asset_url}logo.png`" alt="CarryGo" />
+                    <img class="h-7 sm:h-10 w-auto block" :src="`${$page.props.asset_url}logo.png`" alt="Bidora" />
                 </Link>
                 <!-- Search: full-width second row on mobile, inline flex-1 on md+ -->
                 <div class="flex w-full md:flex-1 md:w-auto order-3 md:order-2 min-w-0">
-                    <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Search luxury items, brands, auctions..."
+                    <input v-model="search" type="text" placeholder="Search luxury items, brands, auctions..."
                         class="flex-1 border-2 border-forest border-r-0 py-1.5 sm:py-2 px-3.5 text-xs sm:text-sm font-sans rounded-l-xl outline-none min-w-0"
-                        @input="onSearch"
-                    />
-                    <button
-                        type="button"
+                        @input="onSearch" />
+                    <button type="button"
                         class="bg-forest text-lemon border-none py-2 px-4.5 text-sm font-bold cursor-pointer rounded-r-xl whitespace-nowrap hover:bg-forest-dark"
-                        @click="onSearch"
-                    >
+                        @click="onSearch">
                         <i class="pi pi-search"></i>
                     </button>
                 </div>
                 <div class="flex items-center gap-2 md:gap-5 relative ml-auto md:ml-0 order-2 md:order-3">
-                    <button id="notification-btn" class="bg-transparent border-none cursor-pointer relative p-1.5" @click="toggleNotifications">
-                        <i class="pi pi-bell text-base sm:text-xl text-muted-green hover:text-navy transition-colors"></i>
-                        <div
-                            v-if="unreadCount > 0"
-                            class="absolute top-0 right-0 bg-ink text-lemon rounded-full w-4 h-4 text-[10px] font-extrabold flex items-center justify-center"
-                        >
+                    <button id="notification-btn" class="bg-transparent border-none cursor-pointer relative p-1.5"
+                        @click="toggleNotifications">
+                        <i
+                            class="pi pi-bell text-base sm:text-xl text-muted-green hover:text-navy transition-colors"></i>
+                        <div v-if="unreadCount > 0"
+                            class="absolute top-0 right-0 bg-ink text-lemon rounded-full w-4 h-4 text-[10px] font-extrabold flex items-center justify-center">
                             {{ unreadCount > 9 ? '9+' : unreadCount }}
                         </div>
                     </button>
 
                     <!-- Notification Panel -->
-                    <div
-                        v-if="notificationsOpen"
-                        id="notification-panel"
-                        class="absolute top-full mt-2 right-0 md:-right-2 w-80 sm:w-96 bg-white border-2 border-lemon shadow-xl rounded-2xl z-50 overflow-hidden flex flex-col max-h-[80vh]"
-                    >
+                    <div v-if="notificationsOpen" id="notification-panel"
+                        class="absolute top-full mt-2 right-0 md:-right-2 w-80 sm:w-96 bg-white border-2 border-lemon shadow-xl rounded-2xl z-50 overflow-hidden flex flex-col max-h-[80vh]">
                         <div class="flex items-center justify-between px-4 py-3 border-b-2 border-lemon bg-gray-50/50">
                             <h3 class="font-extrabold text-navy m-0 text-sm font-headline">Notifications</h3>
-                            <button
-                                v-if="unreadCount > 0"
+                            <button v-if="unreadCount > 0"
                                 class="text-xs text-primary font-bold bg-transparent border-none cursor-pointer hover:text-forest transition-colors p-0"
-                                @click="markAllRead"
-                            >
+                                @click="markAllRead">
                                 Mark all read
                             </button>
                         </div>
                         <div class="overflow-y-auto overflow-x-hidden hide-scrollbar flex-1 bg-white">
-                            <div
-                                v-if="notifications.length === 0"
-                                class="p-8 text-center text-secondary text-sm font-bold flex flex-col items-center justify-center h-full gap-2"
-                            >
+                            <div v-if="notifications.length === 0"
+                                class="p-8 text-center text-secondary text-sm font-bold flex flex-col items-center justify-center h-full gap-2">
                                 <i class="pi pi-check-circle text-3xl text-gray-300"></i>
                                 You're all caught up!
                             </div>
-                            <div
-                                v-for="notification in notifications"
-                                :key="notification.id"
-                                :class="[
-                                    'px-4 py-4 border-b border-gray-100 last:border-b-0 flex gap-3.5 transition-colors',
-                                    isUnread(notification) ? 'bg-forest/5' : 'bg-white hover:bg-gray-50',
-                                ]"
-                            >
+                            <div v-for="notification in notifications" :key="notification.id" :class="[
+                                'px-4 py-4 border-b border-gray-100 last:border-b-0 flex gap-3.5 transition-colors',
+                                isUnread(notification) ? 'bg-forest/5' : 'bg-white hover:bg-gray-50',
+                            ]">
                                 <div class="mt-0.5 shrink-0">
-                                    <span
-                                        class="material-symbols-outlined text-2xl"
-                                        :class="isUnread(notification) ? 'text-forest' : 'text-gray-400'"
-                                    >
+                                    <span class="material-symbols-outlined text-2xl"
+                                        :class="isUnread(notification) ? 'text-forest' : 'text-gray-400'">
                                         {{ notification.icon || 'notifications' }}
                                     </span>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-start justify-between gap-2 mb-1.5">
-                                        <h4
-                                            :class="[
-                                                'm-0 text-sm leading-tight font-sans',
-                                                isUnread(notification) ? 'font-extrabold text-navy' : 'font-bold text-secondary',
-                                            ]"
-                                        >
+                                        <h4 :class="[
+                                            'm-0 text-sm leading-tight font-sans',
+                                            isUnread(notification) ? 'font-extrabold text-navy' : 'font-bold text-secondary',
+                                        ]">
                                             {{ notification.title }}
                                         </h4>
-                                        <span class="text-[10px] text-gray-400 whitespace-nowrap font-bold shrink-0 mt-0.5">{{
-                                            formatDate(notification.created_at)
-                                        }}</span>
+                                        <span
+                                            class="text-[10px] text-gray-400 whitespace-nowrap font-bold shrink-0 mt-0.5">{{
+                                                formatDate(notification.created_at)
+                                            }}</span>
                                     </div>
-                                    <p :class="['m-0 text-xs leading-relaxed', isUnread(notification) ? 'text-navy' : 'text-secondary']">{{ notification.body }}</p>
+                                    <p
+                                        :class="['m-0 text-xs leading-relaxed', isUnread(notification) ? 'text-navy' : 'text-secondary']">
+                                        {{ notification.body }}</p>
                                     <div class="mt-2.5 flex flex-wrap items-center gap-3">
-                                        <Link
-                                            v-if="notification.url"
-                                            :href="notification.url"
+                                        <Link v-if="notification.url" :href="notification.url"
                                             class="inline-flex items-center gap-1 text-xs font-bold text-forest hover:text-forest-dark transition-colors"
-                                            @click="onNotificationNavigate(notification)"
-                                        >
+                                            @click="onNotificationNavigate(notification)">
                                             View details
                                             <i class="pi pi-arrow-right text-[10px]"></i>
                                         </Link>
-                                        <button
-                                            v-if="isUnread(notification)"
-                                            type="button"
+                                        <button v-if="isUnread(notification)" type="button"
                                             class="text-xs font-bold text-secondary hover:text-navy bg-transparent border-none cursor-pointer p-0 transition-colors"
-                                            @click="markRead(notification.id)"
-                                        >
+                                            @click="markRead(notification.id)">
                                             Mark read
                                         </button>
                                     </div>
@@ -346,54 +322,33 @@ const marqueeItems = computed(() => {
                     </div>
 
                     <template v-if="!currentUser">
-                        <Link
-                            :href="loginShow.url()"
-                            as="button"
-                            class="bg-lemon text-navy border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber transition-colors"
-                        >
+                        <Link :href="loginShow.url()" as="button"
+                            class="bg-lemon text-navy border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber transition-colors">
                             Log In
                         </Link>
-                        <Link
-                            :href="register.url()"
-                            as="button"
-                            class="bg-navy text-lemon border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-forest transition-colors"
-                        >
+                        <Link :href="register.url()" as="button"
+                            class="bg-navy text-lemon border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-forest transition-colors">
                             Register
                         </Link>
                     </template>
                     <template v-else>
-                        <Link
-                            v-if="isAdmin"
-                            :href="adminDashboard.url()"
-                            as="button"
-                            class="bg-amber text-navy border-none md:h-12 h-10 px-3 md:px-4 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-lemon flex items-center gap-1.5 transition-colors"
-                        >
+                        <Link v-if="isAdmin" :href="adminDashboard.url()" as="button"
+                            class="bg-amber text-navy border-none md:h-12 h-10 px-3 md:px-4 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-lemon flex items-center gap-1.5 transition-colors">
                             <i class="pi pi-shield text-sm"></i>
                             <span class="hidden sm:inline">Admin</span>
                         </Link>
-                        <Link
-                            :href="profile.url()"
-                            as="button"
-                            class="bg-lemon text-navy border-none md:h-12 h-10 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors"
-                        >
+                        <Link :href="profile.url()" as="button"
+                            class="bg-lemon text-navy border-none md:h-12 h-10 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors">
                             <i class="pi pi-wallet text-sm text-forest"></i>
                             <span class="hidden sm:inline">{{ currentUser.points_balance ?? 0 }} pts</span>
                             <span class="sm:hidden">{{ currentUser.points_balance ?? 0 }}</span>
                         </Link>
-                        <Link
-                            :href="logoutRoute.url()"
-                            method="post"
-                            as="button"
-                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 md:h-12 h-10 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block"
-                        >
+                        <Link :href="logoutRoute.url()" method="post" as="button"
+                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 md:h-12 h-10 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block">
                             Log Out
                         </Link>
-                        <Link
-                            :href="logoutRoute.url()"
-                            method="post"
-                            as="button"
-                            class="bg-transparent border-none text-gray-500 hover:text-navy md:h-12 h-10 px-3 md:px-4 rounded-xl cursor-pointer sm:hidden"
-                        >
+                        <Link :href="logoutRoute.url()" method="post" as="button"
+                            class="bg-transparent border-none text-gray-500 hover:text-navy md:h-12 h-10 px-3 md:px-4 rounded-xl cursor-pointer sm:hidden">
                             <i class="pi pi-sign-out text-sm sm:text-xl"></i>
                         </Link>
                     </template>
@@ -404,13 +359,10 @@ const marqueeItems = computed(() => {
         <!-- SUB NAV -->
         <div class="bg-navy relative">
             <!-- Desktop View -->
-            <div class="hidden md:flex max-w-7xl mx-auto items-center min-w-full gap-1 justify-between overflow-x-auto hide-scrollbar">
-                <a
-                    v-for="link in navLinks"
-                    :key="link.label"
-                    :href="link.href"
-                    :class="['text-white no-underline py-2 px-4 text-sm whitespace-nowrap block mx-auto hover:bg-lemon/18 hover:text-white cursor-pointer', navItemClass(link.href)]"
-                >
+            <div
+                class="hidden md:flex max-w-7xl mx-auto items-center min-w-full gap-1 justify-between overflow-x-auto hide-scrollbar">
+                <a v-for="link in navLinks" :key="link.label" :href="link.href"
+                    :class="['text-white no-underline py-2 px-4 text-sm whitespace-nowrap block mx-auto hover:bg-lemon/18 hover:text-white cursor-pointer', navItemClass(link.href)]">
                     <i v-if="link.icon" :class="[link.icon, 'mr-1']"></i> {{ link.label }}
                 </a>
             </div>
@@ -418,28 +370,18 @@ const marqueeItems = computed(() => {
             <!-- Mobile View -->
             <div class="md:hidden w-full flex flex-col">
                 <div class="flex items-center w-full justify-between px-1">
-                    <a
-                        v-for="link in firstLineLinks"
-                        :key="link.label"
-                        :href="link.href"
-                        :class="[
-                            'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
-                            navItemClass(link.href),
-                        ]"
-                    >
+                    <a v-for="link in firstLineLinks" :key="link.label" :href="link.href" :class="[
+                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
+                        navItemClass(link.href),
+                    ]">
                         {{ link.label }}
                     </a>
                 </div>
                 <div class="flex items-center w-full justify-between px-1 bg-navy/90 border-t border-white/10">
-                    <a
-                        v-for="link in secondLineLinks"
-                        :key="link.label"
-                        :href="link.href"
-                        :class="[
-                            'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
-                            navItemClass(link.href),
-                        ]"
-                    >
+                    <a v-for="link in secondLineLinks" :key="link.label" :href="link.href" :class="[
+                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
+                        navItemClass(link.href),
+                    ]">
                         {{ link.label }}
                     </a>
                 </div>
