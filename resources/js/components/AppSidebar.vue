@@ -45,7 +45,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="home.url()">
+                        <Link :href="home.url()" class="focus:ring-2 focus:ring-primary focus:outline-none rounded-lg" aria-label="Bidora Home" title="Go to Bidora Home">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>

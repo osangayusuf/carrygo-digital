@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { getRemainingTime } from '@/lib/utils';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
+import { getRemainingTime } from '@/lib/utils';
 import type { Bid } from '@/types/auction';
 
 const props = defineProps<{

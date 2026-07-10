@@ -8,7 +8,13 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
+test('guest is redirected from leaderboard page to register with redirected param', function () {
+    $this->get(route('leaderboard'))
+        ->assertRedirect(route('register', ['redirected' => 1]));
+});
+
 test('leaderboard page lists live auctions with top bidders ranked by total bid amount per item', function () {
+    $user = User::factory()->create();
     $auction = Auction::factory()->triggered()->create(['name' => 'Gold Watch', 'bid_count' => 5]);
     $topBidder = User::factory()->create(['phone' => '08011112222']);
     $secondBidder = User::factory()->create(['phone' => '08033334444']);
@@ -19,7 +25,8 @@ test('leaderboard page lists live auctions with top bidders ranked by total bid 
 
     Auction::factory()->closed()->create(['name' => 'Closed Item']);
 
-    $this->get(route('leaderboard'))
+    $this->actingAs($user)
+        ->get(route('leaderboard'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Leaderboard/Index')
@@ -33,14 +40,16 @@ test('leaderboard page lists live auctions with top bidders ranked by total bid 
 });
 
 test('leaderboard limits top bidders to three per auction', function () {
+    $user = User::factory()->create();
     $auction = Auction::factory()->active()->create();
 
     foreach (range(1, 4) as $index) {
-        $user = User::factory()->create(['phone' => "0800000000{$index}"]);
-        Bid::factory()->forAuction($auction)->forUser($user)->create(['amount' => $index * 100]);
+        $u = User::factory()->create(['phone' => "0800000000{$index}"]);
+        Bid::factory()->forAuction($auction)->forUser($u)->create(['amount' => $index * 100]);
     }
 
-    $this->get(route('leaderboard'))
+    $this->actingAs($user)
+        ->get(route('leaderboard'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->has('auctions.data.0.top_bidders', 3)
@@ -48,10 +57,12 @@ test('leaderboard limits top bidders to three per auction', function () {
 });
 
 test('leaderboard filters auctions by name search', function () {
+    $user = User::factory()->create();
     Auction::factory()->triggered()->create(['name' => 'Unique Item']);
     Auction::factory()->triggered()->create(['name' => 'Other Item']);
 
-    $this->get(route('leaderboard', ['search' => 'Unique']))
+    $this->actingAs($user)
+        ->get(route('leaderboard', ['search' => 'Unique']))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->where('search', 'Unique')
@@ -60,9 +71,11 @@ test('leaderboard filters auctions by name search', function () {
 });
 
 test('leaderboard shows auctions without bids with empty top bidders', function () {
+    $user = User::factory()->create();
     Auction::factory()->active()->create(['name' => 'No Bids Yet']);
 
-    $this->get(route('leaderboard'))
+    $this->actingAs($user)
+        ->get(route('leaderboard'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->has('auctions.data', 1)

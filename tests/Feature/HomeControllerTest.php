@@ -47,6 +47,13 @@ test('homepage passes navbar search query to inertia', function () {
             ->where('search', 'Gucci'));
 });
 
+test('homepage returns featuredBids as a deferred prop', function () {
+    $response = $this->get('/');
+    $page = $response->original->getData()['page'];
+
+    expect($page['deferredProps']['default'] ?? [])->toContain('featuredBids');
+});
+
 test('auction search scope filters by name category or description', function () {
     Auction::factory()->active()->create([
         'name' => 'Gucci Leather Bag',

@@ -13,11 +13,13 @@ import {
     Image as ImageIcon,
     Search
 } from 'lucide-vue-next';
+import { formatPrice } from '@/lib/utils';
 
 type Auction = {
     id: number;
     category: string;
     name: string;
+    price: string | number;
     description: string;
     opening_points: number;
     current_points: number;
@@ -72,6 +74,7 @@ const selectedAuction = ref<Auction | null>(null);
 const form = useForm({
     category: '',
     name: '',
+    price: 0,
     description: '',
     opening_points: 100,
     countdown_duration_seconds: 60,
@@ -96,6 +99,7 @@ const openEditModal = (auction: Auction) => {
     selectedAuction.value = auction;
     form.category = auction.category;
     form.name = auction.name;
+    form.price = auction.price as any;
     form.description = auction.description;
     form.opening_points = auction.opening_points;
     form.countdown_duration_seconds = auction.countdown_duration_seconds;
@@ -110,6 +114,7 @@ const submitEdit = () => {
         _method: 'PUT',
         category: form.category,
         name: form.name,
+        price: form.price,
         description: form.description,
         opening_points: form.opening_points,
         countdown_duration_seconds: form.countdown_duration_seconds,
@@ -234,7 +239,7 @@ const handleImageChange = (e: Event) => {
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-4">
                                         <div class="w-14 h-14 rounded-lg bg-surface-container-low border border-outline-variant flex items-center justify-center overflow-hidden flex-shrink-0 transition-transform group-hover:scale-105">
-                                            <img v-if="auction.image" :src="`/storage/${auction.image}`" class="w-full h-full object-cover" />
+                                            <img v-if="auction.image" :src="auction.image.startsWith('http') || auction.image.startsWith('/') ? auction.image : `/storage/${auction.image}`" class="w-full h-full object-cover" />
                                             <ImageIcon v-else class="w-6 h-6 text-on-surface-variant/40" />
                                         </div>
                                         <div>
@@ -257,7 +262,10 @@ const handleImageChange = (e: Event) => {
                                         {{ auction.status }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-primary font-bold">{{ auction.opening_points }} <span class="text-[10px] text-on-surface-variant font-normal">PTS</span></td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-primary">{{ auction.opening_points }} <span class="text-[10px] text-on-surface-variant font-normal">PTS</span></div>
+                                    <div class="text-[10px] text-on-surface-variant mt-0.5 font-medium">{{ formatPrice(auction.price) }}</div>
+                                </td>
                                 <td class="px-6 py-4">
                                     <div class="space-y-1.5">
                                         <div class="flex justify-between text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">
@@ -392,7 +400,19 @@ const handleImageChange = (e: Event) => {
                         ></textarea>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Price (₦)</label>
+                            <input 
+                                v-model="form.price" 
+                                type="number" 
+                                required
+                                min="0"
+                                step="0.01"
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                placeholder="e.g. 50000"
+                            />
+                        </div>
                         <div class="flex flex-col gap-2">
                             <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Threshold Points</label>
                             <input 
@@ -487,7 +507,19 @@ const handleImageChange = (e: Event) => {
                         ></textarea>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Price (₦)</label>
+                            <input 
+                                v-model="form.price" 
+                                type="number" 
+                                required
+                                min="0"
+                                step="0.01"
+                                class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                placeholder="e.g. 50000"
+                            />
+                        </div>
                         <div class="flex flex-col gap-2">
                             <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Threshold Points</label>
                             <input 

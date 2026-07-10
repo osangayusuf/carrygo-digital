@@ -19,6 +19,7 @@ class UpdateAuctionRequest extends FormRequest
         return [
             'category' => ['sometimes', 'string', 'max:255'],
             'name' => ['sometimes', 'string', 'max:255'],
+            'price' => ['sometimes', 'numeric', 'min:0'],
             'description' => ['sometimes', 'string'],
             'opening_points' => ['sometimes', 'integer', 'min:1'],
             'countdown_duration_seconds' => ['sometimes', 'integer', 'min:1'],

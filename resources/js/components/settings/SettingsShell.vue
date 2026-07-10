@@ -2,12 +2,14 @@
 import { Link } from '@inertiajs/vue3';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { profile, wallet } from '@/routes/index';
+import { leaderboard } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 
 const navItems = [
     { label: 'Profile', href: profile(), icon: 'person' },
     { label: 'Wallet', href: wallet(), icon: 'account_balance_wallet' },
     { label: 'Security', href: editSecurity(), icon: 'security' },
+    { label: 'Leaderboard', href: leaderboard(), icon: 'leaderboard' },
 ] as const;
 
 const { isCurrentUrl } = useCurrentUrl();

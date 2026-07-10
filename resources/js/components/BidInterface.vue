@@ -144,6 +144,11 @@ function submitBid(): void {
                 </span>
                 <span v-else>Place Bid</span>
             </button>
+
+            <p class="bid-policy-notice">
+                <span class="material-symbols-outlined bid-policy-icon">info</span>
+                Points bidden cannot be refunded and wallet credits are non-withdrawable.
+            </p>
         </div>
 
         <!-- Pre-trigger state (auction active but not yet triggered) -->
@@ -318,5 +323,21 @@ function submitBid(): void {
     background: var(--color-sage-dark);
     border-color: var(--color-sage-dark);
     color: var(--color-sage-light);
+}
+
+.bid-policy-notice {
+    font-size: 0.7rem;
+    color: var(--color-sage-dark);
+    text-align: center;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.bid-policy-icon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
 }
 </style>

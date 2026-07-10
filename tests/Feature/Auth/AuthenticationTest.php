@@ -13,6 +13,16 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
+test('login screen can be rendered with redirected param', function () {
+    $response = $this->get(route('login', ['redirected' => 1]));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('auth/Login')
+        ->where('redirected', true)
+    );
+});
+
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 

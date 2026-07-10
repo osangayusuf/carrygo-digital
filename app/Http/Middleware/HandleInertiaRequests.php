@@ -43,17 +43,28 @@ class HandleInertiaRequests extends Middleware
 
         // Fetch marquee items
         $marqueeItems = [];
+        $triggeredAuctionsData = [];
 
         try {
-            // 1. Get live (triggered) auctions
+            // 1. Get live (triggered) auctions that are not yet expired
             $triggeredAuctions = Auction::where('status', AuctionStatus::TRIGGERED)
+                ->where('expires_at', '>', now())
                 ->orderBy('expires_at', 'asc')
-                ->limit(3)
                 ->get();
-            foreach ($triggeredAuctions as $auction) {
+
+            foreach ($triggeredAuctions->take(3) as $auction) {
                 $marqueeItems[] = [
                     'text' => "LIVE AUCTION: {$auction->name} @ ₦".number_format($auction->price),
                     'icon' => 'pi pi-bolt',
+                ];
+            }
+
+            foreach ($triggeredAuctions as $auction) {
+                $triggeredAuctionsData[] = [
+                    'id' => $auction->id,
+                    'name' => $auction->name,
+                    'expires_at' => $auction->expires_at?->toISOString(),
+                    'url' => '/auctions/'.$auction->id,
                 ];
             }
 
@@ -128,6 +139,7 @@ class HandleInertiaRequests extends Middleware
                 : [],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'marquee_items' => $marqueeItems,
+            'triggeredAuctions' => $triggeredAuctionsData,
         ];
     }
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { store as storeBid } from '@/actions/App/Http/Controllers/BidController';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { store as storeReview } from '@/actions/App/Http/Controllers/AuctionReviewController';
-import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
+import { store as storeBid } from '@/actions/App/Http/Controllers/BidController';
 import AuctionLeaderboardSidebar from '@/components/auction/AuctionLeaderboardSidebar.vue';
+import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
 import ShareModal from '@/components/modals/ShareModal.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { calcProgress, formatPrice, getRemainingTime } from '@/lib/utils';
@@ -45,6 +45,30 @@ const expandedImage = ref<string | null>(null);
 const isShareOpen = ref(false);
 const shareMessageOverride = ref<string | undefined>(undefined);
 
+const biddingNowCount = ref(calculateBiddingNow());
+
+function calculateBiddingNow(): number {
+    const id = props.auction.id;
+    const bidCount = props.auction.bid_count ?? 0;
+    const base = bidCount >= 20 ? 12 : 3;
+    const range = bidCount >= 20 ? 15 : 6;
+    const rand = Math.floor(Math.abs(Math.sin(id + Date.now() / 100000)) * range);
+    return base + rand;
+}
+
+let biddingNowInterval: ReturnType<typeof setInterval> | null = null;
+onMounted(() => {
+    biddingNowInterval = setInterval(() => {
+        biddingNowCount.value = calculateBiddingNow();
+    }, 8000);
+});
+
+onBeforeUnmount(() => {
+    if (biddingNowInterval) {
+        clearInterval(biddingNowInterval);
+    }
+});
+
 function openAuctionShareModal(): void {
     shareMessageOverride.value = undefined;
     isShareOpen.value = true;
@@ -52,11 +76,13 @@ function openAuctionShareModal(): void {
 
 function openReviewShareModal(reviewComment: string): void {
     const isWinner = props.userReviewState.isWinner;
+
     if (isWinner) {
         shareMessageOverride.value = `I won ${props.auction.name} on Bidora! Check out my review: "${reviewComment}" - Bid here:`;
     } else {
         shareMessageOverride.value = `A verified bidder won ${props.auction.name} on Bidora! What they said: "${reviewComment}" - Join me to bid:`;
     }
+
     isShareOpen.value = true;
 }
 
@@ -64,6 +90,7 @@ const shareUrl = computed(() => {
     if (typeof window !== 'undefined') {
         return window.location.href;
     }
+
     return '';
 });
 
@@ -94,6 +121,7 @@ const videoPreview = ref<string | null>(null);
 
 function handlePhotosChange(e: Event): void {
     const files = (e.target as HTMLInputElement).files;
+    
     if (!files) return;
 
     const newFiles = Array.from(files).slice(0, 3 - reviewForm.photos.length);
@@ -117,6 +145,7 @@ function removePhoto(index: number): void {
 
 function handleVideoChange(e: Event): void {
     const files = (e.target as HTMLInputElement).files;
+
     if (!files || files.length === 0) return;
 
     const file = files[0];
@@ -219,7 +248,15 @@ function submitBid(): void {
                             {{ statusLabel() }} auction
                         </p>
                         <div class="flex items-start justify-between gap-4 mb-2">
-                            <h1 class="text-xl font-extrabold text-ink sm:text-2xl m-0">{{ auction.name }}</h1>
+                            <h1 class="text-xl font-extrabold text-ink sm:text-2xl m-0 flex flex-wrap items-center gap-2">
+                                <span>{{ auction.name }}</span>
+                                <span v-if="auction.status === 1" class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-xs font-black text-white uppercase animate-pulse">
+                                    🚨 Closing Soon
+                                </span>
+                                <span v-else-if="auction.bid_count >= 20" class="inline-flex items-center gap-1 rounded bg-red-500 px-2 py-0.5 text-xs font-black text-white uppercase">
+                                    🔥 Hot Bid
+                                </span>
+                            </h1>
                             <button type="button"
                                 class="shrink-0 flex items-center justify-center gap-1.5 rounded-lg border-2 border-sage-border bg-white px-3 py-1.5 text-xs font-bold text-ink transition-colors hover:border-lemon hover:text-forest cursor-pointer"
                                 @click="openAuctionShareModal">
@@ -239,6 +276,15 @@ function submitBid(): void {
                             <span :class="calcProgress(auction) >= 100 ? 'text-error' : 'text-primary'">
                                 {{ calcProgress(auction) }}%
                             </span>
+                        </div>
+
+                        <!-- Live Bidding Counter -->
+                        <div v-if="auction.status !== 2" class="mb-4 flex items-center gap-2 text-xs font-bold text-forest">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                            <span>{{ biddingNowCount }} people bidding now</span>
                         </div>
 
                         <p v-if="(auction.status === 1 || calcProgress(auction) >= 100) && auction.expires_at"

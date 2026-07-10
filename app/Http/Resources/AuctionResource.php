@@ -18,6 +18,7 @@ class AuctionResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'category' => $this->category,
+            'price' => $this->price,
             'image' => $this->image,
             'status' => $this->status,
             'event' => $this->event,

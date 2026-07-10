@@ -6,10 +6,12 @@ use App\Enums\AuctionStatus;
 use Database\Factories\AuctionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'category',
@@ -41,6 +43,20 @@ class Auction extends Model
             'triggered_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the auction's image URL.
+     */
+    protected function image(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => blank($value)
+                ? null
+                : (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')
+                    ? $value
+                    : Storage::disk('public')->url($value)),
+        );
     }
 
     public function bids(): HasMany

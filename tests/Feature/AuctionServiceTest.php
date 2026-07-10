@@ -19,6 +19,7 @@ test('creates a draft auction', function () {
     $data = [
         'category' => 'Electronics',
         'name' => 'Test Auction',
+        'price' => 25000.00,
         'description' => 'A test auction description.',
         'opening_points' => 500,
         'countdown_duration_seconds' => 120,
@@ -31,20 +32,22 @@ test('creates a draft auction', function () {
         ->toBeInstanceOf(Auction::class)
         ->status->toBe(AuctionStatus::DRAFT)
         ->name->toBe('Test Auction')
+        ->price->toBe('25000.00')
         ->opening_points->toBe(500)
         ->current_points->toBe(0)
         ->bid_count->toBe(0);
 
-    Storage::disk('public')->assertExists($auction->image);
+    Storage::disk('public')->assertExists($auction->getRawOriginal('image'));
 });
 
 test('updates a draft auction', function () {
-    $auction = Auction::factory()->draft()->create(['name' => 'Old Name']);
+    $auction = Auction::factory()->draft()->create(['name' => 'Old Name', 'price' => 1000.00]);
 
-    $this->service->update($auction, ['name' => 'New Name', 'opening_points' => 999]);
+    $this->service->update($auction, ['name' => 'New Name', 'price' => 1500.00, 'opening_points' => 999]);
 
     expect($auction->refresh())
         ->name->toBe('New Name')
+        ->price->toBe('1500.00')
         ->opening_points->toBe(999);
 });
 
@@ -56,7 +59,7 @@ test('replaces image when updating a draft auction', function () {
     $this->service->update($auction, ['image' => $newImage]);
 
     Storage::disk('public')->assertMissing('auctions/old.jpg');
-    Storage::disk('public')->assertExists($auction->refresh()->image);
+    Storage::disk('public')->assertExists($auction->refresh()->getRawOriginal('image'));
 });
 
 test('cannot update a non-draft auction', function () {

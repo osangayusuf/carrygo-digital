@@ -5,6 +5,10 @@ import { store } from '@/routes/register';
 import { login, home } from '@/routes';
 import { redirect } from '@/routes/auth/social';
 
+defineProps<{
+    redirected?: boolean;
+}>();
+
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const referralCode = ref('');
@@ -41,12 +45,31 @@ defineOptions({ layout: null });
 
             <div
                 class="rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-8 py-10 shadow-[0_20px_60px_rgba(13,27,42,0.10)]">
+                <!-- Marketing CTA Banner (Shown when redirected) -->
+                <div v-if="redirected"
+                    class="mb-6 overflow-hidden rounded-xl border border-forest/30 bg-gradient-to-br from-forest/10 to-navy/10 p-4 shadow-[0_8px_32px_rgba(40,167,69,0.05)] backdrop-blur-md">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-forest/20 text-forest">
+                            <span class="pi pi-gift text-base animate-pulse"></span>
+                        </div>
+                        <div class="space-y-0.5">
+                            <h3 class="font-condensed text-sm font-bold tracking-tight text-ink">
+                                Exclusive Gated Content
+                            </h3>
+                            <p class="text-xs leading-relaxed text-outline">
+                                Register to enjoy spectacular items! Bid small, win big.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <h1 class="mb-1 text-center font-condensed text-3xl font-black tracking-tight text-ink">
                     Create your account
                 </h1>
-                <p class="mb-8 text-center text-sm text-outline">
-                    Join thousands of bidders and win luxury items
+                <p v-if="!redirected" class="mb-8 text-center text-sm text-outline">
+                    Register to enjoy spectacular items! Bid small, win big.
                 </p>
+                <div v-else class="mb-8"></div>
 
                 <Form :action="store.url()" method="post" :reset-on-success="['password', 'password_confirmation']"
                     v-slot="{ errors, processing }">
@@ -230,7 +253,7 @@ defineOptions({ layout: null });
                 <!-- Login link -->
                 <p class="mt-7 text-center text-sm text-outline">
                     Already have an account?
-                    <Link :href="login()" class="font-bold text-forest hover:underline">
+                    <Link :href="login() + (redirected ? '?redirected=1' : '')" class="font-bold text-forest hover:underline">
                         Log in
                     </Link>
                 </p>

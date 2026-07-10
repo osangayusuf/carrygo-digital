@@ -3,10 +3,14 @@
 namespace App\Services;
 
 use App\Enums\AuctionStatus;
+use App\Enums\TransactionStatus;
+use App\Enums\TransactionType;
 use App\Models\Auction;
 use App\Models\Bid;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class LeaderboardService
 {
@@ -108,6 +112,40 @@ class LeaderboardService
             ->get()
             ->map(fn ($row): array => $this->mapBidderRow($row))
             ->all();
+    }
+
+    /**
+     * @return list<array{rank: int, name: string, msisdn: string, total_bid_pts: int}>
+     */
+    public function currentWeekTopBidders(int $limit = 10): array
+    {
+        $weekStart = Carbon::now()->startOfWeek();
+
+        $rows = DB::table('point_transactions')
+            ->join('users', 'users.id', '=', 'point_transactions.user_id')
+            ->where('point_transactions.type', TransactionType::BID_DEBIT->value)
+            ->where('point_transactions.status', TransactionStatus::COMPLETED->value)
+            ->where('point_transactions.created_at', '>=', $weekStart)
+            ->groupBy('point_transactions.user_id', 'users.name', 'users.phone')
+            ->select(['users.name', 'users.phone'])
+            ->selectRaw('SUM(point_transactions.amount) as total_bid_pts')
+            ->orderByDesc('total_bid_pts')
+            ->limit($limit)
+            ->get();
+
+        return $rows->values()->map(function (object $row, int $index): array {
+            $phone = (string) ($row->phone ?? '');
+            $masked = strlen($phone) > 4
+                ? substr($phone, 0, -4).'****'
+                : '****';
+
+            return [
+                'rank' => $index + 1,
+                'name' => (string) ($row->name ?? ''),
+                'msisdn' => $masked,
+                'total_bid_pts' => (int) $row->total_bid_pts,
+            ];
+        })->all();
     }
 
     /**

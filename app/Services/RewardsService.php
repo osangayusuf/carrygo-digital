@@ -138,9 +138,12 @@ class RewardsService
         $notified = 0;
 
         User::query()->eachById(function (User $user) use ($grant, &$notified): void {
-            $user->increment('spins_balance', $grant);
-            $user->notify(new DailySpinGranted($grant));
-            $notified++;
+            if ($user->spins_balance < $grant) {
+                $user->spins_balance = $grant;
+                $user->save();
+                $user->notify(new DailySpinGranted($grant));
+                $notified++;
+            }
         });
 
         return $notified;

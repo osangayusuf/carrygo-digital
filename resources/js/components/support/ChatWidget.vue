@@ -248,7 +248,13 @@ const startNewChat = () => {
     checkStatus();
 };
 
+const handleOpenSupportChat = (): void => {
+    isOpen.value = true;
+};
+
 onMounted(() => {
+    window.addEventListener('open-support-chat', handleOpenSupportChat);
+
     // Check if logged-in user to prefill
     if (currentUser.value) {
         prechatForm.value.name = currentUser.value.name;
@@ -276,10 +282,14 @@ watch(currentUser, (newUser) => {
         offlineForm.value.email = newUser.email;
     }
 });
+
+onUnmounted(() => {
+    window.removeEventListener('open-support-chat', handleOpenSupportChat);
+});
 </script>
 
 <template>
-    <div class="fixed bottom-6 z-50 font-sans text-xs" :class="isOpen
+    <div class="fixed bottom-20 md:bottom-6 z-50 font-sans text-xs" :class="isOpen
         ? 'left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6'
         : 'right-6'
         ">

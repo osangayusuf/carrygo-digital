@@ -32,6 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('support.login');
             }
 
+            if ($request->routeIs('winners') || $request->routeIs('leaderboard') || $request->routeIs('recommended')) {
+                return route('register', ['redirected' => 1]);
+            }
+
             return route('login');
         });
 

@@ -13,7 +13,7 @@ const props = defineProps<{
     };
 }>();
 
-const rankEmoji = ['🥇', '🥈', '🥉'];
+const rankEmoji = ['🥇', '🥈', '🥉', '🥉', '🥉'];
 const rankColors = [
     'bg-yellow-400/20 text-yellow-600 border-yellow-400/30',
     'bg-slate-300/30 text-slate-500 border-slate-300/40',
@@ -51,16 +51,22 @@ onUnmounted(() => clearInterval(timer));
 </script>
 
 <template>
-    <div class="rounded-3xl border border-outline-variant/30 bg-surface p-6 shadow-sm sm:p-8">
+    <div
+        class="rounded-3xl border border-outline-variant/30 bg-surface p-6 shadow-sm sm:p-8"
+    >
         <!-- Header -->
         <div class="mb-6 flex items-center justify-between">
             <div>
-                <h2 class="font-headline text-xl font-bold text-on-surface">Weekly Top 3</h2>
+                <h2 class="font-headline text-xl font-bold text-on-surface">
+                    Weekly Top 5
+                </h2>
                 <p class="mt-0.5 text-sm text-on-surface-variant">
                     Top bidders this week win bonus points
                 </p>
             </div>
-            <div class="rounded-full bg-surface-container px-3 py-1.5 text-xs font-bold text-on-surface-variant">
+            <div
+                class="rounded-full bg-surface-container px-3 py-1.5 text-xs font-bold text-on-surface-variant"
+            >
                 Ends in {{ countdown }}
             </div>
         </div>
@@ -72,11 +78,14 @@ onUnmounted(() => clearInterval(timer));
                 :key="user.rank"
                 :class="[
                     'flex items-center gap-4 rounded-2xl border p-4 transition-all',
-                    rankColors[user.rank - 1] ?? 'bg-background border-outline-variant/20',
+                    rankColors[user.rank - 1] ??
+                        'border-outline-variant/20 bg-background',
                 ]"
             >
                 <!-- Rank -->
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center text-2xl">
+                <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center text-2xl"
+                >
                     {{ rankEmoji[user.rank - 1] ?? user.rank }}
                 </div>
 
@@ -84,14 +93,19 @@ onUnmounted(() => clearInterval(timer));
                 <div
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
                 >
-                    <span class="material-symbols-outlined text-xl!">person</span>
+                    <span class="material-symbols-outlined text-xl!"
+                        >person</span
+                    >
                 </div>
 
                 <!-- Info -->
-                <div class="flex-1 min-w-0">
-                    <p class="truncate text-sm font-bold text-on-surface">{{ user.msisdn_masked }}</p>
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-bold text-on-surface">
+                        {{ user.msisdn_masked }}
+                    </p>
                     <p class="text-xs text-on-surface-variant">
-                        {{ user.total_bid_pts.toLocaleString() }} pts bid this week
+                        {{ user.total_bid_pts.toLocaleString() }} pts bid this
+                        week
                     </p>
                 </div>
             </div>
@@ -99,8 +113,13 @@ onUnmounted(() => clearInterval(timer));
 
         <!-- Empty state -->
         <div v-else class="py-8 text-center">
-            <span class="material-symbols-outlined text-4xl text-on-surface-variant/40">leaderboard</span>
-            <p class="mt-2 text-sm text-on-surface-variant">No bidding activity yet this week</p>
+            <span
+                class="material-symbols-outlined text-4xl text-on-surface-variant/40"
+                >leaderboard</span
+            >
+            <p class="mt-2 text-sm text-on-surface-variant">
+                No bidding activity yet this week
+            </p>
         </div>
 
         <!-- User's own rank (if outside top 3) -->
@@ -108,10 +127,15 @@ onUnmounted(() => clearInterval(timer));
             v-if="leaderboard.user_rank !== null && leaderboard.user_rank > 3"
             class="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-outline-variant/20 bg-background p-3"
         >
-            <span class="material-symbols-outlined text-sm! text-on-surface-variant">person</span>
+            <span
+                class="material-symbols-outlined text-sm! text-on-surface-variant"
+                >person</span
+            >
             <span class="text-sm text-on-surface-variant">
                 Your rank this week:
-                <span class="font-black text-on-surface">#{{ leaderboard.user_rank }}</span>
+                <span class="font-black text-on-surface"
+                    >#{{ leaderboard.user_rank }}</span
+                >
             </span>
         </div>
     </div>

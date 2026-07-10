@@ -8,7 +8,13 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
+test('guest is redirected from winners page to register with redirected param', function () {
+    $this->get(route('winners'))
+        ->assertRedirect(route('register', ['redirected' => 1]));
+});
+
 test('winners page renders closed auctions with winners only', function () {
+    $user = User::factory()->create();
     $winner = User::factory()->create(['name' => 'Ada Winner', 'phone' => '08012345678']);
     $auction = Auction::factory()->closed()->create([
         'name' => 'Luxury Watch',
@@ -22,7 +28,8 @@ test('winners page renders closed auctions with winners only', function () {
     Auction::factory()->active()->create(['name' => 'Still Live']);
     Auction::factory()->closed()->create(['name' => 'No Winner', 'winner_id' => null]);
 
-    $this->get(route('winners'))
+    $this->actingAs($user)
+        ->get(route('winners'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Winners/Index')
@@ -35,6 +42,7 @@ test('winners page renders closed auctions with winners only', function () {
 });
 
 test('winners page filters by search keyword', function () {
+    $user = User::factory()->create();
     $winner = User::factory()->create(['name' => 'John Doe']);
     $auction = Auction::factory()->closed()->create(['name' => 'Gucci Bag', 'winner_id' => $winner->id]);
     Bid::factory()->forAuction($auction)->forUser($winner)->winning()->create(['amount' => 100]);
@@ -43,7 +51,8 @@ test('winners page filters by search keyword', function () {
     $other = Auction::factory()->closed()->create(['name' => 'Rolex', 'winner_id' => $otherWinner->id]);
     Bid::factory()->forAuction($other)->forUser($otherWinner)->winning()->create();
 
-    $this->get(route('winners', ['search' => 'Gucci']))
+    $this->actingAs($user)
+        ->get(route('winners', ['search' => 'Gucci']))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->where('search', 'Gucci')
@@ -52,11 +61,13 @@ test('winners page filters by search keyword', function () {
 });
 
 test('winners page excludes closed auctions without winner_id', function () {
+    $user = User::factory()->create();
     $winner = User::factory()->create();
     Auction::factory()->closed()->create(['winner_id' => $winner->id, 'name' => 'Has Winner']);
     Auction::factory()->closed()->create(['winner_id' => null, 'name' => 'No Winner']);
 
-    $this->get(route('winners'))
+    $this->actingAs($user)
+        ->get(route('winners'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page->has('winners.data', 1));
 });

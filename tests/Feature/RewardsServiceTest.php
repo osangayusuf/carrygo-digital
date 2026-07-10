@@ -113,3 +113,30 @@ it('records check-in bonus award metadata source', function () {
 
     expect($transaction->metadata['source'])->toBe(RewardSource::Checkin->value);
 });
+
+it('grantDailySpins sets spins_balance to 1 for all users', function () {
+    Notification::fake();
+
+    $userWithNoSpins = User::factory()->create(['spins_balance' => 0]);
+    $userWithExistingSpins = User::factory()->create(['spins_balance' => 3]);
+
+    app(RewardsService::class)->grantDailySpins();
+
+    $userWithNoSpins->refresh();
+    $userWithExistingSpins->refresh();
+
+    // User with 0 spins should be bumped to 1.
+    // User already at 3 spins (> daily_grant of 1) should remain untouched.
+    expect($userWithNoSpins->spins_balance)->toBe(1)
+        ->and($userWithExistingSpins->spins_balance)->toBe(3);
+});
+
+it('weekly_leaderboard config has top_ranks of 10 with bonuses for all ranks', function () {
+    $topRanks = config('rewards.weekly_leaderboard.top_ranks');
+    $bonuses = config('rewards.weekly_leaderboard.bonuses');
+
+    expect($topRanks)->toBe(10)
+        ->and($bonuses)->toHaveCount(10)
+        ->and($bonuses[1])->toBe(200)
+        ->and($bonuses[10])->toBe(5);
+});

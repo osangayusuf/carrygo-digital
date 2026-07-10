@@ -81,6 +81,11 @@ const userPoints = computed(
                         >
                         Confirm Bid
                     </button>
+
+                    <p class="mt-3 text-center text-xs text-outline">
+                        <span class="material-symbols-outlined align-middle text-[13px]">info</span>
+                        Points bidden cannot be refunded and wallet credits are non-withdrawable.
+                    </p>
                 </form>
             </div>
         </div>

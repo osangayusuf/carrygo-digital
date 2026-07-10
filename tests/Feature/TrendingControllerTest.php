@@ -86,3 +86,32 @@ test('trending page excludes draft and closed auctions', function () {
             ->has('bids.data', 1)
             ->where('bids.data.0.name', 'Visible'));
 });
+
+test('trending page sorts by closing_soon ranking triggered first', function () {
+    // Create an active auction
+    $active = Auction::factory()->active()->create(['name' => 'Active Item', 'expires_at' => now()->addHours(10)]);
+    // Create two triggered auctions with different expires_at
+    $triggeredFar = Auction::factory()->triggered()->create(['name' => 'Triggered Far', 'expires_at' => now()->addHours(5)]);
+    $triggeredSoon = Auction::factory()->triggered()->create(['name' => 'Triggered Soon', 'expires_at' => now()->addMinutes(30)]);
+
+    $this->get(route('trending', ['sort' => 'closing_soon']))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('sort', 'closing_soon')
+            ->has('bids.data', 3)
+            ->where('bids.data.0.name', 'Triggered Soon')
+            ->where('bids.data.1.name', 'Triggered Far')
+            ->where('bids.data.2.name', 'Active Item'));
+});
+
+test('triggered auctions are shared globally in inertia page props', function () {
+    Auction::factory()->active()->create(['name' => 'Active Item']);
+    $triggered = Auction::factory()->triggered()->create(['name' => 'Triggered Item', 'expires_at' => now()->addHours(2)]);
+
+    $this->get(route('trending'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('triggeredAuctions', 1)
+            ->where('triggeredAuctions.0.name', 'Triggered Item')
+            ->where('triggeredAuctions.0.url', '/auctions/'.$triggered->id));
+});

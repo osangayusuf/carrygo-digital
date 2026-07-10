@@ -36,14 +36,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('open-bids', [OpenBidsController::class, 'index'])->name('open-bids');
-Route::get('winners', [WinnersController::class, 'index'])->name('winners');
-Route::get('leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 Route::get('how-to-play', [HowToPlayController::class, 'index'])->name('how-to-play');
 Route::get('auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
 Route::get('auctions/{auction}/timeline', [AuctionTimelineController::class, 'index'])->name('auctions.timeline');
 Route::get('search', [SearchController::class, 'index'])->name('search');
 Route::get('trending', [TrendingController::class, 'index'])->name('trending');
-Route::get('recommended', [RecommendedController::class, 'index'])->name('recommended');
 
 Route::get('auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
     ->name('auth.social.redirect')
@@ -54,6 +51,9 @@ Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback']
     ->whereIn('provider', ['google', 'facebook']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('winners', [WinnersController::class, 'index'])->name('winners');
+    Route::get('leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+    Route::get('recommended', [RecommendedController::class, 'index'])->name('recommended');
     Route::get('event-items', [EventItemsController::class, 'index'])->name('event-items');
 
     Route::get('onboarding', [OnboardingController::class, 'index'])->name('onboarding');
@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('spin', SpinController::class)->name('spin');
     Route::post('rewards/claim', RewardClaimController::class)->name('rewards.claim');
     Route::get('profile', [ProfileController::class, 'index'])->name('profile');
+    Route::get('profile/leaderboard', [ProfileController::class, 'leaderboard'])->name('profile.leaderboard');
     Route::get('security', [SecurityController::class, 'edit'])->name('security.edit');
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');

@@ -132,5 +132,11 @@ async function initiateDeposit(): Promise<void> {
             <span class="material-symbols-outlined text-sm">payments</span>
             {{ isProcessing ? 'Initializing…' : 'Pay with Paystack' }}
         </button>
+
+        <p class="mt-4 text-xs text-on-surface-variant">
+            <span class="material-symbols-outlined align-middle text-[14px]">info</span>
+            Points bidden cannot be refunded and wallet credits are non-withdrawable.
+        </p>
     </div>
 </template>
+

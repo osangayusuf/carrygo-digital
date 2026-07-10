@@ -158,7 +158,7 @@ class TaskCenterPageService
         foreach ($rankings as $index => $row) {
             $rank = $index + 1;
 
-            if ($rank <= 3) {
+            if ($rank <= 5) {
                 $topUser = User::find($row->user_id);
 
                 $topUsers[] = [

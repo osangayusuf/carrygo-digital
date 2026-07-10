@@ -18,6 +18,7 @@ class AuctionService
      * @param array{
      *     category: string,
      *     name: string,
+     *     price: float|int,
      *     description: string,
      *     opening_points: int,
      *     countdown_duration_seconds: int,
@@ -31,6 +32,7 @@ class AuctionService
         return Auction::create([
             'category' => $data['category'],
             'name' => $data['name'],
+            'price' => $data['price'],
             'description' => $data['description'],
             'opening_points' => $data['opening_points'],
             'countdown_duration_seconds' => $data['countdown_duration_seconds'],
@@ -54,7 +56,7 @@ class AuctionService
 
         if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
             if ($auction->image) {
-                Storage::disk('public')->delete($auction->image);
+                Storage::disk('public')->delete($auction->getRawOriginal('image'));
             }
 
             $data['image'] = $data['image']->store('auctions', 'public');
@@ -105,7 +107,7 @@ class AuctionService
         }
 
         if ($auction->image) {
-            Storage::disk('public')->delete($auction->image);
+            Storage::disk('public')->delete($auction->getRawOriginal('image'));
         }
 
         $auction->delete();

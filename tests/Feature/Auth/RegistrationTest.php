@@ -15,6 +15,16 @@ test('registration screen can be rendered', function () {
     $response->assertOk();
 });
 
+test('registration screen can be rendered with redirected param', function () {
+    $response = $this->get(route('register', ['redirected' => 1]));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('auth/Register')
+        ->where('redirected', true)
+    );
+});
+
 test('new users can register', function () {
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',

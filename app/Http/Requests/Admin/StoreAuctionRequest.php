@@ -19,6 +19,7 @@ class StoreAuctionRequest extends FormRequest
         return [
             'category' => ['required', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
+            'price' => ['required', 'numeric', 'min:0'],
             'description' => ['required', 'string'],
             'opening_points' => ['required', 'integer', 'min:1'],
             'countdown_duration_seconds' => ['required', 'integer', 'min:1'],

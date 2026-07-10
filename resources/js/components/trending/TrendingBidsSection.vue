@@ -21,6 +21,7 @@ const showFilters = ref(false);
 
 const sortOptions: { value: string; label: string }[] = [
     { value: 'recent', label: 'Most Recent Activity' },
+    { value: 'closing_soon', label: 'Closing Soon' },
     { value: 'popular', label: 'Most Popular' },
     { value: 'price', label: 'Value: High to Low' },
     { value: 'new', label: 'Recently Added' },
@@ -29,6 +30,15 @@ const sortOptions: { value: string; label: string }[] = [
 const sortLabel = computed(
     () => sortOptions.find((option) => option.value === sort.value)?.label ?? 'Sort By',
 );
+
+function toggleClosingSoon(): void {
+    if (sort.value === 'closing_soon') {
+        sort.value = 'recent';
+    } else {
+        sort.value = 'closing_soon';
+    }
+    visit({ page: 1 });
+}
 
 const activeFilters = computed(() => {
     const chips: { key: string; label: string }[] = [];
@@ -124,6 +134,19 @@ function goToPage(page: number): void {
                             </option>
                         </select>
                     </div>
+
+                    <button
+                        type="button"
+                        class="flex w-full cursor-pointer items-center justify-center rounded-xl border-2 px-5 py-3 transition-colors sm:w-auto whitespace-nowrap"
+                        :class="
+                            sort === 'closing_soon'
+                                ? 'border-navy bg-navy text-lemon font-extrabold shadow-sm animate-pulse-subtle'
+                                : 'border-sage-border bg-white text-ink hover:border-lemon font-bold'
+                        "
+                        @click="toggleClosingSoon"
+                    >
+                        <span class="text-sm">Closing Soon ⏳</span>
+                    </button>
 
                     <div class="relative">
                         <button

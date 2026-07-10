@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { formatPrice } from '@/lib/utils';
 import type { Winner } from '@/pages/Home/Index.vue';
 
 const props = defineProps<{
@@ -57,7 +58,10 @@ function relativeTime(dateStr: string): string {
                 class="w-full lg:w-auto lg:min-w-[320px] shrink-0 rounded-2xl border-2 border-primary-container/20 bg-surface-container-lowest p-6 shadow-sm transition-shadow hover:shadow-md"
             >
                 <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full text-primary bg-primary-container/30">
+                    <div v-if="latestWinner.bid?.image" class="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-surface-container">
+                        <img :src="latestWinner.bid.image" :alt="latestWinner.bid?.name ?? 'Item'" class="h-full w-full object-cover" />
+                    </div>
+                    <div v-else class="flex h-12 w-12 items-center justify-center rounded-full text-primary bg-primary-container/30">
                         <span class="material-symbols-outlined" data-weight="fill">person</span>
                     </div>
                     <div>
@@ -76,6 +80,9 @@ function relativeTime(dateStr: string): string {
                             : (latestWinner.bid?.name ?? '—')
                     }}
                 </h3>
+                <div v-if="latestWinner.bid?.price" class="mt-1 text-xs font-bold text-secondary">
+                    Market Price: <span class="text-primary">{{ formatPrice(latestWinner.bid.price) }}</span>
+                </div>
                 <div class="mt-4 flex items-center justify-between border-t border-surface-container pt-4">
                     <div class="flex items-center gap-1 text-tertiary">
                         <span class="material-symbols-outlined text-sm">stars</span>
@@ -100,7 +107,10 @@ function relativeTime(dateStr: string): string {
                         class="min-w-[320px] shrink-0 rounded-2xl bg-surface-container-lowest p-6 shadow-sm transition-shadow hover:shadow-md"
                     >
                         <div class="mb-4 flex items-center gap-4">
-                            <div class="flex h-12 w-12 items-center justify-center rounded-full text-primary bg-secondary-container">
+                            <div v-if="winner.bid?.image" class="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-surface-container">
+                                <img :src="winner.bid.image" :alt="winner.bid?.name ?? 'Item'" class="h-full w-full object-cover" />
+                            </div>
+                            <div v-else class="flex h-12 w-12 items-center justify-center rounded-full text-primary bg-secondary-container">
                                 <span class="material-symbols-outlined" data-weight="fill">person</span>
                             </div>
                             <div>
@@ -119,6 +129,9 @@ function relativeTime(dateStr: string): string {
                                     : (winner.bid?.name ?? '—')
                             }}
                         </h3>
+                        <div v-if="winner.bid?.price" class="mt-1 text-xs font-bold text-secondary">
+                            Market Price: <span class="text-primary">{{ formatPrice(winner.bid.price) }}</span>
+                        </div>
                         <div class="mt-4 flex items-center justify-between border-t border-surface-container pt-4">
                             <div class="flex items-center gap-1 text-tertiary">
                                 <span class="material-symbols-outlined text-sm">stars</span>

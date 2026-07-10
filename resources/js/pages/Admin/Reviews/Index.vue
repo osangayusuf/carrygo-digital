@@ -165,17 +165,17 @@ const toggleReviewVisibility = (review: Review) => {
                                             v-for="(photo, idx) in review.photos"
                                             :key="idx"
                                             class="h-8 w-8 rounded border border-outline-variant bg-surface-container-low overflow-hidden cursor-pointer hover:scale-105 transition-transform"
-                                            @click="expandedImage = `/storage/${photo}`"
+                                            @click="expandedImage = `${$page.props.asset_url}storage/${photo}`"
                                         >
-                                            <img :src="`/storage/${photo}`" class="h-full w-full object-cover" />
+                                            <img :src="`${$page.props.asset_url}storage/${photo}`" class="h-full w-full object-cover" />
                                         </div>
                                         <div
                                             v-if="review.video"
                                             class="h-8 w-12 rounded border border-outline-variant bg-black overflow-hidden cursor-pointer flex items-center justify-center relative hover:scale-105 transition-transform"
-                                            @click="expandedVideo = `/storage/${review.video}`"
+                                            @click="expandedVideo = `${$page.props.asset_url}storage/${review.video}`"
                                         >
                                             <Play class="w-2.5 h-2.5 text-white absolute z-10 fill-white" />
-                                            <video :src="`/storage/${review.video}`" class="h-full w-full object-cover opacity-60"></video>
+                                            <video :src="`${$page.props.asset_url}storage/${review.video}`" class="h-full w-full object-cover opacity-60"></video>
                                         </div>
                                     </div>
                                 </td>

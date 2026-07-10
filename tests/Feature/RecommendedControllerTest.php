@@ -8,11 +8,14 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
-test('guests can access recommended page without redirect', function () {
-    $this->get(route('recommended'))->assertSuccessful();
+test('guest is redirected from recommended page to register with redirected param', function () {
+    $this->get(route('recommended'))
+        ->assertRedirect(route('register', ['redirected' => 1]));
 });
 
-test('recommended page falls back to hybrid sorting for guests', function () {
+test('recommended page falls back to hybrid sorting for authenticated users without bid history', function () {
+    $user = User::factory()->create();
+
     // Create auctions with different interest levels
     Auction::factory()->active()->create([
         'name' => 'Low Interest',
@@ -27,7 +30,8 @@ test('recommended page falls back to hybrid sorting for guests', function () {
         'current_points' => 1,
     ]);
 
-    $this->get(route('recommended'))
+    $this->actingAs($user)
+        ->get(route('recommended'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Recommended/Index')

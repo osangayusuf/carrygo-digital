@@ -10,6 +10,7 @@ defineProps<{
     status?: string;
     canResetPassword?: boolean;
     canRegister?: boolean;
+    redirected?: boolean;
 }>();
 
 const showPassword = ref(false);
@@ -44,12 +45,31 @@ defineOptions({ layout: null });
                     {{ status }}
                 </div>
 
+                <!-- Marketing CTA Banner (Shown when redirected) -->
+                <div v-if="redirected"
+                    class="mb-6 overflow-hidden rounded-xl border border-forest/30 bg-gradient-to-br from-forest/10 to-navy/10 p-4 shadow-[0_8px_32px_rgba(40,167,69,0.05)] backdrop-blur-md">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-forest/20 text-forest">
+                            <span class="pi pi-gift text-base animate-pulse"></span>
+                        </div>
+                        <div class="space-y-0.5">
+                            <h3 class="font-condensed text-sm font-bold tracking-tight text-ink">
+                                Exclusive Gated Content
+                            </h3>
+                            <p class="text-xs leading-relaxed text-outline">
+                                Register to enjoy spectacular items! Bid small, win big.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <h1 class="mb-1 text-center font-condensed text-3xl font-black tracking-tight text-ink">
                     Welcome back
                 </h1>
-                <p class="mb-8 text-center text-sm text-outline">
-                    Enter your credentials to continue bidding
+                <p v-if="!redirected" class="mb-8 text-center text-sm text-outline">
+                    Login to enjoy spectacular items! Bid small, win big.
                 </p>
+                <div v-else class="mb-8"></div>
 
                 <Form :action="store.url()" method="post" :reset-on-success="['password']"
                     v-slot="{ errors, processing }">
@@ -161,7 +181,7 @@ defineOptions({ layout: null });
                 <!-- Register link -->
                 <p v-if="canRegister !== false" class="mt-7 text-center text-sm text-outline">
                     Don't have an account?
-                    <Link :href="register()" class="font-bold text-forest hover:underline">
+                    <Link :href="register() + (redirected ? '?redirected=1' : '')" class="font-bold text-forest hover:underline">
                         Create one
                     </Link>
                 </p>

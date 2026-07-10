@@ -103,6 +103,7 @@ class AuctionListingService
             'id' => $auction->id,
             'name' => $auction->name,
             'image' => $auction->image,
+            'description' => $auction->description,
             'url' => '/auctions/'.$auction->id,
             'price' => number_format((float) $auction->price, 2),
             'opening_points' => $auction->opening_points,
@@ -133,6 +134,9 @@ class AuctionListingService
     private function applySort(Builder $query, string $sort): void
     {
         match ($sort) {
+            'closing_soon' => $query->orderByRaw('case when status = ? then 0 else 1 end', [AuctionStatus::TRIGGERED->value])
+                ->orderBy('expires_at', 'asc')
+                ->orderBy('updated_at', 'desc'),
             'price', 'value_desc' => $query->orderBy('price', 'desc'),
             'popular' => $query->orderBy('bid_count', 'desc'),
             'new' => $query->orderBy('created_at', 'desc'),

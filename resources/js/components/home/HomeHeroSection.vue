@@ -60,9 +60,9 @@ const prevSlide = () => {
                     🇳🇬 Nigeria's #1 Auction Platform
                 </div>
                 <h1 class="font-condensed text-5xl font-black text-white leading-none mb-2.5">
-                    Win More.<span class="text-lemon block">Carry More.</span>
+                    Bid Small.<span class="text-lemon block">Win Big.</span>
                 </h1>
-                <p class="text-sm text-white/65 mb-5.5 leading-relaxed">Bid on premium luxury items. Pay nothing if you win.</p>
+                <p class="text-sm text-white/65 mb-5.5 leading-relaxed">Your points give you a chance to win real products.</p>
                 <div class="flex gap-2.5 mb-6">
                     <Link :href="trending.url()" class="bg-lemon text-navy border-none py-2.5 px-6 rounded-lg text-sm font-extrabold cursor-pointer whitespace-nowrap">
                         Start Bidding

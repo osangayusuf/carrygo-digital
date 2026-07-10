@@ -4,6 +4,7 @@ import { useDebounceFn } from '@vueuse/core';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRealtimeNotifications } from '@/composables/useRealtimeNotifications';
 import { formatDate } from '@/lib/utils';
+import { dashboard as adminDashboard } from '@/routes/admin/index';
 import {
     eventItems,
     home,
@@ -19,7 +20,6 @@ import {
     trending,
     winners,
 } from '@/routes/index';
-import { dashboard as adminDashboard } from '@/routes/admin/index';
 import notificationsRoutes from '@/routes/notifications';
 
 interface Notification {
@@ -172,7 +172,7 @@ const navLinks = [
     { label: 'Event Items', href: eventItems.url(), icon: 'pi pi-calendar' },
     { label: 'Winners', href: winners.url(), icon: 'pi pi-history' },
     { label: 'Leaderboard', href: leaderboard.url(), icon: 'pi pi-chart-bar' },
-    { label: 'Tasks', href: tasks.url(), icon: 'pi pi-check-square' },
+    { label: 'Earn Free Points', href: tasks.url(), icon: 'pi pi-check-square' },
     { label: 'How to play', href: howToPlay.url(), icon: 'pi pi-question-circle' },
 ];
 
@@ -215,42 +215,98 @@ const marqueeItems = computed(() => {
         { text: 'New auction drops every Monday!', icon: 'pi pi-send' }
     ];
 });
+
+const triggeredAuctions = computed(() => (page.props.triggeredAuctions as any[]) ?? []);
+const activeTriggeredAuction = computed(() => triggeredAuctions.value[0] ?? null);
+const bannerTimeLeft = ref('');
+const isExpired = ref(false);
+let bannerInterval: ReturnType<typeof setInterval> | null = null;
+
+function updateBannerTimer() {
+    const auction = activeTriggeredAuction.value;
+    if (!auction || !auction.expires_at) {
+        bannerTimeLeft.value = '';
+        isExpired.value = true;
+        return;
+    }
+    const diff = Math.floor((new Date(auction.expires_at).getTime() - Date.now()) / 1000);
+    if (diff <= 0) {
+        bannerTimeLeft.value = '';
+        isExpired.value = true;
+        return;
+    }
+    isExpired.value = false;
+    const mins = Math.floor(diff / 60);
+    const secs = diff % 60;
+    bannerTimeLeft.value = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+watch(activeTriggeredAuction, (newVal) => {
+    if (newVal) {
+        updateBannerTimer();
+        if (!bannerInterval) {
+            bannerInterval = setInterval(updateBannerTimer, 1000);
+        }
+    } else {
+        if (bannerInterval) {
+            clearInterval(bannerInterval);
+            bannerInterval = null;
+        }
+    }
+}, { immediate: true });
+
+onBeforeUnmount(() => {
+    if (bannerInterval) {
+        clearInterval(bannerInterval);
+    }
+});
 </script>
 
 <template>
     <nav class="glass-nav sticky top-0 z-50 shadow-sm dark:shadow-none">
-        <!-- TOP BAR -->
-        <div class="bg-navy text-lemon text-xs py-1 px-4 flex items-center justify-between gap-2">
-            <div class="flex-1 overflow-hidden whitespace-nowrap">
-                <span class="inline-block animate-marquee">
-                    <template v-for="(item, idx) in marqueeItems" :key="idx">
-                        <i :class="[item.icon || 'pi pi-bolt', 'mr-1']"></i>
-                        {{ item.text }}
-                        <span v-if="idx < marqueeItems.length - 1" class="mx-3">&nbsp;|&nbsp;</span>
-                    </template>
+        <!-- Persistent Countdown Banner -->
+        <div v-if="activeTriggeredAuction && !isExpired" class="bg-red-600 text-white text-center py-2 px-4 text-xs font-bold flex flex-wrap items-center justify-center gap-x-3 gap-y-1 transition-all duration-300">
+            <div class="flex items-center gap-1.5 justify-center">
+                <span>
+                    Closing Soon: <strong class="text-lemon">{{ activeTriggeredAuction.name }}</strong> is ending soon!
                 </span>
+            </div>
+            <div class="flex items-center gap-3 justify-center">
+                <span class="font-mono bg-black/35 px-2 py-0.5 rounded text-[11px] font-black tracking-wide border border-white/15 shadow-inner flex items-center gap-1">
+                    <i class="pi pi-hourglass text-sm"></i>
+                    <span>{{ bannerTimeLeft }}</span>
+                </span>
+                <Link :href="`/auctions/${activeTriggeredAuction.id}`" class="underline hover:text-lemon transition-colors font-extrabold flex items-center gap-0.5 focus:ring-2 focus:ring-white focus:outline-none rounded px-1" :aria-label="`Bid Now on ${activeTriggeredAuction.name}`" :title="`Bid Now on ${activeTriggeredAuction.name}`">
+                    Bid Now <i class="pi pi-arrow-right text-[10px]"></i>
+                </Link>
             </div>
         </div>
 
         <!-- NAVBAR -->
         <nav class="bg-white border-b-2 border-lemon shadow-md">
             <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-x-3 md:gap-x-10 gap-y-2 py-2 sm:py-1.5 px-4">
-                <Link :href="home.url()" class="flex items-center no-underline shrink-0 order-1">
+                <Link :href="home.url()" class="flex items-center no-underline shrink-0 order-1 focus:ring-2 focus:ring-primary focus:outline-none rounded-lg" aria-label="Bidora Home" title="Go to Bidora Home">
                     <img class="h-7 sm:h-10 w-auto block" :src="`${$page.props.asset_url}logo.png`" alt="Bidora" />
                 </Link>
                 <!-- Search: full-width second row on mobile, inline flex-1 on md+ -->
                 <div class="flex w-full md:flex-1 md:w-auto order-3 md:order-2 min-w-0">
                     <input v-model="search" type="text" placeholder="Search luxury items, brands, auctions..."
-                        class="flex-1 border-2 border-forest border-r-0 py-1.5 sm:py-2 px-3.5 text-xs sm:text-sm font-sans rounded-l-xl outline-none min-w-0"
+                        class="flex-1 border-2 border-forest border-r-0 py-1.5 sm:py-2 px-3.5 text-xs sm:text-sm font-sans rounded-l-xl outline-none focus:ring-2 focus:ring-primary focus:outline-none min-w-0"
+                        title="Search luxury items, brands, auctions"
+                        aria-label="Search luxury items, brands, auctions"
                         @input="onSearch" />
                     <button type="button"
-                        class="bg-forest text-lemon border-none py-2 px-4.5 text-sm font-bold cursor-pointer rounded-r-xl whitespace-nowrap hover:bg-forest-dark"
+                        class="bg-forest text-lemon border-none py-2 px-4.5 text-sm font-bold cursor-pointer rounded-r-xl whitespace-nowrap hover:bg-forest-dark focus:ring-2 focus:ring-primary focus:outline-none"
+                        aria-label="Submit search"
+                        title="Submit search"
                         @click="onSearch">
                         <i class="pi pi-search"></i>
                     </button>
                 </div>
                 <div class="flex items-center gap-2 md:gap-5 relative ml-auto md:ml-0 order-2 md:order-3">
-                    <button id="notification-btn" class="bg-transparent border-none cursor-pointer relative p-1.5"
+                    <button id="notification-btn" class="bg-transparent border-none cursor-pointer relative p-1.5 focus:ring-2 focus:ring-primary focus:outline-none rounded-lg"
+                        aria-label="Notifications"
+                        title="Toggle notifications panel"
                         @click="toggleNotifications">
                         <i
                             class="pi pi-bell text-base sm:text-xl text-muted-green hover:text-navy transition-colors"></i>
@@ -266,7 +322,9 @@ const marqueeItems = computed(() => {
                         <div class="flex items-center justify-between px-4 py-3 border-b-2 border-lemon bg-gray-50/50">
                             <h3 class="font-extrabold text-navy m-0 text-sm font-headline">Notifications</h3>
                             <button v-if="unreadCount > 0"
-                                class="text-xs text-primary font-bold bg-transparent border-none cursor-pointer hover:text-forest transition-colors p-0"
+                                class="text-xs text-primary font-bold bg-transparent border-none cursor-pointer hover:text-forest transition-colors p-0 focus:ring-2 focus:ring-primary focus:outline-none rounded"
+                                aria-label="Mark all notifications as read"
+                                title="Mark all notifications as read"
                                 @click="markAllRead">
                                 Mark all read
                             </button>
@@ -305,13 +363,16 @@ const marqueeItems = computed(() => {
                                         {{ notification.body }}</p>
                                     <div class="mt-2.5 flex flex-wrap items-center gap-3">
                                         <Link v-if="notification.url" :href="notification.url"
-                                            class="inline-flex items-center gap-1 text-xs font-bold text-forest hover:text-forest-dark transition-colors"
+                                            class="inline-flex items-center gap-1 text-xs font-bold text-forest hover:text-forest-dark transition-colors focus:ring-2 focus:ring-primary focus:outline-none rounded"
+                                            title="View notification details"
                                             @click="onNotificationNavigate(notification)">
                                             View details
                                             <i class="pi pi-arrow-right text-[10px]"></i>
                                         </Link>
                                         <button v-if="isUnread(notification)" type="button"
-                                            class="text-xs font-bold text-secondary hover:text-navy bg-transparent border-none cursor-pointer p-0 transition-colors"
+                                            class="text-xs font-bold text-secondary hover:text-navy bg-transparent border-none cursor-pointer p-0 transition-colors focus:ring-2 focus:ring-primary focus:outline-none rounded"
+                                            aria-label="Mark notification as read"
+                                            title="Mark notification as read"
                                             @click="markRead(notification.id)">
                                             Mark read
                                         </button>
@@ -323,32 +384,44 @@ const marqueeItems = computed(() => {
 
                     <template v-if="!currentUser">
                         <Link :href="loginShow.url()" as="button"
-                            class="bg-lemon text-navy border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber transition-colors">
+                            class="bg-lemon text-navy border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                            aria-label="Log In"
+                            title="Log In to your account">
                             Log In
                         </Link>
                         <Link :href="register.url()" as="button"
-                            class="bg-navy text-lemon border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-forest transition-colors">
+                            class="bg-navy text-lemon border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-forest transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                            aria-label="Register"
+                            title="Register a new account">
                             Register
                         </Link>
                     </template>
                     <template v-else>
                         <Link v-if="isAdmin" :href="adminDashboard.url()" as="button"
-                            class="bg-amber text-navy border-none md:h-12 h-10 px-3 md:px-4 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-lemon flex items-center gap-1.5 transition-colors">
+                            class="bg-amber text-navy border-none md:h-12 h-10 px-3 md:px-4 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-lemon flex items-center gap-1.5 transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                            aria-label="Admin Dashboard"
+                            title="Go to Admin Dashboard">
                             <i class="pi pi-shield text-sm"></i>
                             <span class="hidden sm:inline">Admin</span>
                         </Link>
                         <Link :href="profile.url()" as="button"
-                            class="bg-lemon text-navy border-none md:h-12 h-10 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors">
+                            class="bg-lemon text-navy border-none md:h-12 h-10 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                            :aria-label="`Wallet: ${currentUser.points_balance ?? 0} points`"
+                            title="View profile and wallet balance">
                             <i class="pi pi-wallet text-sm text-forest"></i>
                             <span class="hidden sm:inline">{{ currentUser.points_balance ?? 0 }} pts</span>
                             <span class="sm:hidden">{{ currentUser.points_balance ?? 0 }}</span>
                         </Link>
                         <Link :href="logoutRoute.url()" method="post" as="button"
-                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 md:h-12 h-10 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block">
+                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 md:h-12 h-10 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block focus:ring-2 focus:ring-primary focus:outline-none"
+                            aria-label="Log Out"
+                            title="Log Out of your account">
                             Log Out
                         </Link>
                         <Link :href="logoutRoute.url()" method="post" as="button"
-                            class="bg-transparent border-none text-gray-500 hover:text-navy md:h-12 h-10 px-3 md:px-4 rounded-xl cursor-pointer sm:hidden">
+                            class="bg-transparent border-none text-gray-500 hover:text-navy md:h-12 h-10 px-3 md:px-4 rounded-xl cursor-pointer sm:hidden focus:ring-2 focus:ring-primary focus:outline-none"
+                            aria-label="Log Out"
+                            title="Log Out of your account">
                             <i class="pi pi-sign-out text-sm sm:text-xl"></i>
                         </Link>
                     </template>
@@ -362,7 +435,9 @@ const marqueeItems = computed(() => {
             <div
                 class="hidden md:flex max-w-7xl mx-auto items-center min-w-full gap-1 justify-between overflow-x-auto hide-scrollbar">
                 <a v-for="link in navLinks" :key="link.label" :href="link.href"
-                    :class="['text-white no-underline py-2 px-4 text-sm whitespace-nowrap block mx-auto hover:bg-lemon/18 hover:text-white cursor-pointer', navItemClass(link.href)]">
+                    :class="['text-white no-underline py-2 px-4 text-sm whitespace-nowrap block mx-auto hover:bg-lemon/18 hover:text-white cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none rounded', navItemClass(link.href)]"
+                    :aria-label="link.label"
+                    :title="link.label">
                     <i v-if="link.icon" :class="[link.icon, 'mr-1']"></i> {{ link.label }}
                 </a>
             </div>
@@ -371,17 +446,21 @@ const marqueeItems = computed(() => {
             <div class="md:hidden w-full flex flex-col">
                 <div class="flex items-center w-full justify-between px-1">
                     <a v-for="link in firstLineLinks" :key="link.label" :href="link.href" :class="[
-                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
+                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none rounded',
                         navItemClass(link.href),
-                    ]">
+                    ]"
+                        :aria-label="link.label"
+                        :title="link.label">
                         {{ link.label }}
                     </a>
                 </div>
                 <div class="flex items-center w-full justify-between px-1 bg-navy/90 border-t border-white/10">
                     <a v-for="link in secondLineLinks" :key="link.label" :href="link.href" :class="[
-                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer',
+                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none rounded',
                         navItemClass(link.href),
-                    ]">
+                    ]"
+                        :aria-label="link.label"
+                        :title="link.label">
                         {{ link.label }}
                     </a>
                 </div>

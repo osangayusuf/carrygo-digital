@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Enums\AuctionStatus;
 use App\Models\Auction;
 use App\Models\Review;
+use App\Services\LeaderboardService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class HomeController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, LeaderboardService $leaderboard)
     {
         $search = $request->filled('search')
             ? trim($request->string('search')->toString())
@@ -62,7 +63,15 @@ class HomeController extends Controller
                 ->get()
                 ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
+            'featuredBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
+                ->orderBy('price', 'desc')
+                ->limit(5)
+                ->get()
+                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+
             'categoryBids' => Inertia::defer(fn () => $this->resolveCategoryBids($search)),
+
+            'homeTopBidders' => Inertia::defer(fn () => $leaderboard->currentWeekTopBidders(5)),
 
             'winners' => Inertia::defer(function () {
                 return Auction::where('status', AuctionStatus::CLOSED)
@@ -180,6 +189,7 @@ class HomeController extends Controller
             'id' => $auction->id,
             'name' => $auction->name,
             'image' => $auction->image,
+            'description' => $auction->description,
             'url' => '/auctions/'.$auction->id,
             'price' => number_format((float) $auction->price, 2),
             'opening_points' => $auction->opening_points,

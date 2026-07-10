@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
 import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
 import auctions from '@/routes/auctions/index';
@@ -24,8 +24,11 @@ const cardUrl = computed(() => {
 });
 
 const dynamicTag = computed(() => {
+    if (props.bid.status === 1) {
+        return { text: '🚨 Closing Soon', class: 'bg-red-600 text-white animate-pulse' };
+    }
     if ((props.bid.bid_count ?? 0) >= 20) {
-        return { text: '🔥 Hot Item', class: 'bg-red-500 text-white' };
+        return { text: '🔥 Hot Bid', class: 'bg-red-500 text-white' };
     }
     if ((props.bid.bid_count ?? 0) >= 10) {
         return { text: '👀 Most Visited', class: 'bg-orange-500 text-white' };
@@ -40,6 +43,30 @@ const dynamicTag = computed(() => {
         return { text: '⚡ Fast Progress', class: 'bg-emerald-500 text-white' };
     }
     return null;
+});
+
+const biddingNowCount = ref(calculateBiddingNow());
+
+function calculateBiddingNow(): number {
+    const id = props.bid.id;
+    const bidCount = props.bid.bid_count ?? 0;
+    const base = bidCount >= 20 ? 12 : 3;
+    const range = bidCount >= 20 ? 15 : 6;
+    const rand = Math.floor(Math.abs(Math.sin(id + Date.now() / 100000)) * range);
+    return base + rand;
+}
+
+let biddingNowInterval: ReturnType<typeof setInterval> | null = null;
+onMounted(() => {
+    biddingNowInterval = setInterval(() => {
+        biddingNowCount.value = calculateBiddingNow();
+    }, 8000);
+});
+
+onBeforeUnmount(() => {
+    if (biddingNowInterval) {
+        clearInterval(biddingNowInterval);
+    }
 });
 
 function openBidModal(): void {
@@ -107,6 +134,14 @@ function buttonLabel(bid: Bid): string {
                     :class="calcProgress(bid) >= 100 ? 'text-error' : 'text-primary'">
                     {{ calcProgress(bid) }}%
                 </span>
+            </div>
+            <!-- Live Bidding Counter -->
+            <div v-if="bid.status !== 2" class="mb-2.5 flex items-center gap-1.5 text-[9px] font-bold text-forest sm:text-[10px]">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>{{ biddingNowCount }} people bidding now</span>
             </div>
             <div v-if="(bid.status === 1 || calcProgress(bid) >= 100) && bid.expires_at"
                 class="mb-3 text-center text-[9px] font-bold text-outline sm:text-[10px]">
