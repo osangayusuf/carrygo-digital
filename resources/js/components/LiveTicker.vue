@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
 import { Link, useHttp } from '@inertiajs/vue3';
-import auctions from '@/routes/auctions/index';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { search } from '@/routes';
+import auctions from '@/routes/auctions/index';
 
 const triggeredAuctions = ref([]);
-let intervalId = null;
+const intervalId = null;
 
 const http = useHttp({});
 
@@ -18,7 +18,7 @@ const fetchTriggered = () => {
         },
         onError: () => {
             // Silently fail if not ready yet
-        }
+        },
     });
 };
 
@@ -29,17 +29,29 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (intervalId) clearInterval(intervalId);
+    if (intervalId) {
+        clearInterval(intervalId);
+    }
 });
 </script>
 
 <template>
-    <div v-if="triggeredAuctions.length > 0"
-        class="bg-[#F5E642] text-forest text-sm font-semibold overflow-hidden relative w-full flex items-center h-8">
-        <div class="whitespace-nowrap animate-marquee flex space-x-8 px-4">
-            <span v-for="auction in triggeredAuctions" :key="auction.id" class="flex items-center">
-                🔥 <Link :href="auctions.show.url(auction.id)" class="hover:underline ml-2">{{ auction.name }} -
-                    LIVE COUNTDOWN</Link>
+    <div
+        v-if="triggeredAuctions.length > 0"
+        class="relative flex h-8 w-full items-center overflow-hidden bg-[#F5E642] text-sm font-semibold text-forest"
+    >
+        <div class="flex animate-marquee space-x-8 px-4 whitespace-nowrap">
+            <span
+                v-for="auction in triggeredAuctions"
+                :key="auction.id"
+                class="flex items-center"
+            >
+                🔥
+                <Link
+                    :href="auctions.show.url(auction.id)"
+                    class="ml-2 hover:underline"
+                    >{{ auction.name }} - LIVE COUNTDOWN</Link
+                >
             </span>
         </div>
     </div>

@@ -23,7 +23,9 @@ const sortOptions: { value: string; label: string }[] = [
 ];
 
 const sortLabel = computed(
-    () => sortOptions.find((option) => option.value === sort.value)?.label ?? 'Sort By',
+    () =>
+        sortOptions.find((option) => option.value === sort.value)?.label ??
+        'Sort By',
 );
 
 const activeFilters = computed(() => {
@@ -43,7 +45,11 @@ function visit(extra: Record<string, string | number> = {}): void {
         ...extra,
     };
 
-    router.get(openBids.url({ query }), {}, { preserveState: true, preserveScroll: true, replace: true });
+    router.get(
+        openBids.url({ query }),
+        {},
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
 }
 
 function onSortChange(): void {
@@ -55,7 +61,9 @@ function removeFilter(key: string): void {
         router.get(
             openBids.url({
                 query: {
-                    ...(sort.value !== 'ending_soon' ? { sort: sort.value } : {}),
+                    ...(sort.value !== 'ending_soon'
+                        ? { sort: sort.value }
+                        : {}),
                     page: 1,
                 },
             }),
@@ -73,32 +81,53 @@ function goToPage(page: number): void {
 <template>
     <section class="mx-auto max-w-[1300px] px-4 pt-8 pb-20">
         <header class="mb-10">
-            <div class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div
+                class="flex flex-col justify-between gap-6 md:flex-row md:items-end"
+            >
                 <div class="space-y-2">
-                    <span class="text-xs font-bold uppercase tracking-widest text-muted-green">Active Bids</span>
-                    <h1 class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl">Open Bids</h1>
+                    <span
+                        class="text-xs font-bold tracking-widest text-muted-green uppercase"
+                        >Active Bids</span
+                    >
+                    <h1
+                        class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl"
+                    >
+                        Open Bids
+                    </h1>
                 </div>
 
                 <div class="relative min-w-[220px]">
                     <div
                         class="flex cursor-pointer items-center justify-between rounded-xl border-2 border-sage-border bg-white px-5 py-3 transition-colors hover:border-lemon"
                     >
-                        <span class="mr-4 text-sm font-bold text-ink">{{ sortLabel }}</span>
-                        <span class="material-symbols-outlined text-sm text-muted-green">expand_more</span>
+                        <span class="mr-4 text-sm font-bold text-ink">{{
+                            sortLabel
+                        }}</span>
+                        <span
+                            class="material-symbols-outlined text-sm text-muted-green"
+                            >expand_more</span
+                        >
                     </div>
                     <select
                         v-model="sort"
                         class="absolute inset-0 w-full cursor-pointer appearance-none opacity-0"
                         @change="onSortChange"
                     >
-                        <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+                        <option
+                            v-for="option in sortOptions"
+                            :key="option.value"
+                            :value="option.value"
+                        >
                             {{ option.label }}
                         </option>
                     </select>
                 </div>
             </div>
 
-            <div v-if="activeFilters.length > 0 || bids.total > 0" class="mt-5 flex flex-wrap items-center gap-3">
+            <div
+                v-if="activeFilters.length > 0 || bids.total > 0"
+                class="mt-5 flex flex-wrap items-center gap-3"
+            >
                 <div
                     v-for="filter in activeFilters"
                     :key="filter.key"
@@ -120,16 +149,38 @@ function goToPage(page: number): void {
             </div>
         </header>
 
-        <div v-if="bids.data.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
-            <span class="material-symbols-outlined mb-4 text-5xl text-muted-green">timer_off</span>
-            <p class="font-condensed text-xl font-extrabold text-ink">No auctions are currently in countdown phase.</p>
-            <p class="mt-2 text-sm text-muted-green">Check back soon or browse trending items.</p>
+        <div
+            v-if="bids.data.length === 0"
+            class="flex flex-col items-center justify-center py-24 text-center"
+        >
+            <span
+                class="material-symbols-outlined mb-4 text-5xl text-muted-green"
+                >timer_off</span
+            >
+            <p class="font-condensed text-xl font-extrabold text-ink">
+                No auctions are currently in countdown phase.
+            </p>
+            <p class="mt-2 text-sm text-muted-green">
+                Check back soon or browse trending items.
+            </p>
         </div>
 
-        <div v-else class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
-            <BidCard v-for="bid in bids.data" :key="bid.id" :bid="bid" :user-points="props.userPoints" />
+        <div
+            v-else
+            class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5"
+        >
+            <BidCard
+                v-for="bid in bids.data"
+                :key="bid.id"
+                :bid="bid"
+                :user-points="props.userPoints"
+            />
         </div>
 
-        <AppPaginator :current-page="bids.current_page" :last-page="bids.last_page" @page-change="goToPage" />
+        <AppPaginator
+            :current-page="bids.current_page"
+            :last-page="bids.last_page"
+            @page-change="goToPage"
+        />
     </section>
 </template>

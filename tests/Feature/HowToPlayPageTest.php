@@ -7,7 +7,7 @@ test('guest can access how to play page', function () {
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('HowToPlay/Index')
-            ->has('steps', 5)
+            ->has('steps', 6)
             ->has('sections')
             ->has('faqs')
             ->has('support')

@@ -52,7 +52,7 @@ class AuctionReviewController extends Controller
             $rules['photos.*'] = 'required|image|max:5120';
             $rules['video'] = 'nullable|file|mimes:mp4,mov,quicktime|max:25600';
         } else {
-            if ($request->has('photos') || $request->hasFile('photos') || $request->hasFile('video')) {
+            if ($request->hasFile('photos') || $request->hasFile('video')) {
                 throw ValidationException::withMessages([
                     'comment' => 'Only winners are allowed to upload media as proof of delivery.',
                 ]);
@@ -82,7 +82,7 @@ class AuctionReviewController extends Controller
             'social_handle' => $validated['social_handle'] ?? null,
             'photos' => $isWinner && ! empty($photoPaths) ? $photoPaths : null,
             'video' => $isWinner ? $videoPath : null,
-            'is_visible' => true,
+            'is_visible' => false,
         ]);
 
         return back()->with('success', 'Thank you for your feedback!');

@@ -22,7 +22,7 @@ beforeEach(function () {
 test('places a valid bid and debits user points_balance', function () {
     $this->service->placeBid($this->user, $this->auction, 50);
 
-    expect($this->user->refresh()->points_balance)->toBe('9950.00');
+    expect((int) $this->user->refresh()->points_balance)->toBe(9950);
     expect(Bid::where('auction_id', $this->auction->id)->count())->toBe(1);
 });
 
@@ -98,18 +98,36 @@ test('second higher cumulative bidder takes is_winning from first bidder', funct
     expect($losingBids)->toBe(0);
 });
 
-test('tied cumulative totals result in no is_winning bids', function () {
+test('tied cumulative totals result in user who reached the total first winning', function () {
     $userA = User::factory()->create(['points_balance' => 10000]);
     $userB = User::factory()->create(['points_balance' => 10000]);
 
+    // 1. User A bids 50. Total A: 50. A is winning.
     $this->service->placeBid($userA, $this->auction, 50);
+
+    // 2. User B bids 50. Total B: 50. Both are at 50, but User A reached 50 first. User A should be winning.
     $this->service->placeBid($userB, $this->auction, 50);
 
-    $winningCount = Bid::where('auction_id', $this->auction->id)
+    $winningBid = Bid::where('auction_id', $this->auction->id)
         ->where('is_winning', true)
-        ->count();
+        ->first();
+    expect($winningBid->user_id)->toBe($userA->id);
 
-    expect($winningCount)->toBe(0);
+    // 3. User B bids another 50. Total B: 100, Total A: 50. User B should be winning.
+    $this->service->placeBid($userB, $this->auction, 50);
+
+    $winningBid = Bid::where('auction_id', $this->auction->id)
+        ->where('is_winning', true)
+        ->first();
+    expect($winningBid->user_id)->toBe($userB->id);
+
+    // 4. User A bids another 50. Total A: 100, Total B: 100. Both are at 100, but User B reached 100 first. User B should be winning.
+    $this->service->placeBid($userA, $this->auction, 50);
+
+    $winningBid = Bid::where('auction_id', $this->auction->id)
+        ->where('is_winning', true)
+        ->first();
+    expect($winningBid->user_id)->toBe($userB->id);
 });
 
 test('crossing opening_points sets status to triggered with triggered_at and expires_at', function () {

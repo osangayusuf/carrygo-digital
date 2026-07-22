@@ -56,6 +56,7 @@ export const useAuctionStore = defineStore('auction', () => {
         if (!auction.value) {
             return;
         }
+
         auction.value.current_points = payload.current_points;
         auction.value.bid_count = payload.bid_count;
 
@@ -69,10 +70,14 @@ export const useAuctionStore = defineStore('auction', () => {
     /**
      * Called when an AuctionTriggeredEvent is received via Echo.
      */
-    function onAuctionTriggered(payload: { expires_at: string; status: AuctionStatus }): void {
+    function onAuctionTriggered(payload: {
+        expires_at: string;
+        status: AuctionStatus;
+    }): void {
         if (!auction.value) {
             return;
         }
+
         auction.value.expires_at = payload.expires_at;
         auction.value.status = payload.status;
     }
@@ -80,10 +85,14 @@ export const useAuctionStore = defineStore('auction', () => {
     /**
      * Called when an AuctionClosedEvent is received via Echo.
      */
-    function onAuctionClosed(payload: { winner_id: number | null; status: AuctionStatus }): void {
+    function onAuctionClosed(payload: {
+        winner_id: number | null;
+        status: AuctionStatus;
+    }): void {
         if (!auction.value) {
             return;
         }
+
         auction.value.winner_id = payload.winner_id;
         auction.value.status = payload.status;
     }

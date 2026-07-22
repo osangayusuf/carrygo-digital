@@ -20,6 +20,7 @@ class AuctionResource extends JsonResource
             'category' => $this->category,
             'price' => $this->price,
             'image' => $this->image,
+            'description' => $this->description,
             'status' => $this->status,
             'event' => $this->event,
             'current_points' => $this->current_points,
@@ -27,6 +28,7 @@ class AuctionResource extends JsonResource
             'opening_points' => $this->opening_points,
             'expires_at' => $this->expires_at?->toISOString(),
             'winner_id' => $this->winner_id,
+            'external_url' => $this->external_url,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

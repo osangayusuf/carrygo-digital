@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Storage;
     'status',
     'event',
     'image',
+    'external_url',
     'bid_count',
     'countdown_duration_seconds',
     'triggered_at',

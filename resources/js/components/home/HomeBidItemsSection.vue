@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import BidCard from '@/components/cards/BidCard.vue';
-import type { Bid } from '@/types/auction';
 import { trending } from '@/routes/index';
+import type { Bid } from '@/types/auction';
 
 defineProps<{
     bids: Bid[];
@@ -12,15 +12,30 @@ defineProps<{
 
 <template>
     <section class="mx-auto max-w-screen-2xl px-8 pt-5 pb-8">
-        <div class="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-            <h2 class="font-headline text-2xl md:text-4xl font-extrabold tracking-tighter py-2">Live Opportunities</h2>
+        <div
+            class="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center"
+        >
+            <h2
+                class="py-2 font-headline text-2xl font-extrabold tracking-tighter md:text-4xl"
+            >
+                Live Opportunities
+            </h2>
         </div>
 
         <!-- Empty state -->
-        <div v-if="bids.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
-            <span class="material-symbols-outlined mb-4 text-5xl text-outline">search_off</span>
-            <p class="font-headline text-xl font-bold text-on-surface-variant">No bids found</p>
-            <p class="mt-2 text-sm text-outline">Try adjusting your search or check back soon.</p>
+        <div
+            v-if="bids.length === 0"
+            class="flex flex-col items-center justify-center py-24 text-center"
+        >
+            <span class="material-symbols-outlined mb-4 text-5xl text-outline"
+                >search_off</span
+            >
+            <p class="font-headline text-xl font-bold text-on-surface-variant">
+                No bids found
+            </p>
+            <p class="mt-2 text-sm text-outline">
+                Try adjusting your search or check back soon.
+            </p>
         </div>
 
         <div v-else class="grid grid-cols-2 gap-2.5 md:grid-cols-5">

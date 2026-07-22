@@ -1,6 +1,6 @@
+import { useHttp } from '@inertiajs/vue3';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { useHttp } from '@inertiajs/vue3';
 
 export interface AppNotification {
     id: string;
@@ -24,10 +24,15 @@ export const useNotificationStore = defineStore('notifications', () => {
      */
     async function fetchNotifications(): Promise<void> {
         isLoading.value = true;
+
         try {
             const response = await fetch('/notifications', {
-                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
             });
+
             if (response.ok) {
                 const data = (await response.json()) as AppNotification[];
                 notifications.value = data;
@@ -47,12 +52,17 @@ export const useNotificationStore = defineStore('notifications', () => {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN':
-                    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)
-                        ?.content ?? '',
+                    (
+                        document.querySelector(
+                            'meta[name="csrf-token"]',
+                        ) as HTMLMetaElement
+                    )?.content ?? '',
             },
         });
+
         if (response.ok) {
             const notification = notifications.value.find((n) => n.id === id);
+
             if (notification) {
                 notification.read_at = new Date().toISOString();
             }
@@ -69,10 +79,14 @@ export const useNotificationStore = defineStore('notifications', () => {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN':
-                    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)
-                        ?.content ?? '',
+                    (
+                        document.querySelector(
+                            'meta[name="csrf-token"]',
+                        ) as HTMLMetaElement
+                    )?.content ?? '',
             },
         });
+
         if (response.ok) {
             const now = new Date().toISOString();
             notifications.value.forEach((n) => {

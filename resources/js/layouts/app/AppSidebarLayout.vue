@@ -27,4 +27,3 @@ withDefaults(defineProps<Props>(), {
         <MobileBottomNav />
     </AppShell>
 </template>
-

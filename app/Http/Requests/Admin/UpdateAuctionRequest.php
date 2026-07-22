@@ -23,7 +23,9 @@ class UpdateAuctionRequest extends FormRequest
             'description' => ['sometimes', 'string'],
             'opening_points' => ['sometimes', 'integer', 'min:1'],
             'countdown_duration_seconds' => ['sometimes', 'integer', 'min:1'],
-            'image' => ['sometimes', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'max:2048'],
+            'external_url' => ['nullable', 'url', 'max:2048'],
+            'publish' => ['nullable', 'boolean'],
         ];
     }
 }

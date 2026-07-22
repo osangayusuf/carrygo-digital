@@ -1,5 +1,6 @@
 import { echo } from '@laravel/echo-vue';
-import { onBeforeUnmount, watch, type Ref } from 'vue';
+import { onBeforeUnmount, watch } from 'vue';
+import type { Ref } from 'vue';
 
 export interface NavbarNotification {
     id: string;
@@ -25,6 +26,7 @@ export function useRealtimeNotifications(
         if (typeof window === 'undefined') {
             return;
         }
+
         if (channelName !== null) {
             echo().leave(channelName);
             channelName = null;
@@ -35,26 +37,30 @@ export function useRealtimeNotifications(
         if (typeof window === 'undefined') {
             return;
         }
+
         unsubscribe();
         channelName = `App.Models.User.${id}`;
 
         echo()
             .private(channelName)
-            .listen('.NotificationCreated', (payload: { notification?: NavbarNotification }) => {
-                const item = payload?.notification;
+            .listen(
+                '.NotificationCreated',
+                (payload: { notification?: NavbarNotification }) => {
+                    const item = payload?.notification;
 
-                if (!item?.id) {
-                    refreshNotifications();
+                    if (!item?.id) {
+                        refreshNotifications();
 
-                    return;
-                }
+                        return;
+                    }
 
-                if (notifications.value.some((n) => n.id === item.id)) {
-                    return;
-                }
+                    if (notifications.value.some((n) => n.id === item.id)) {
+                        return;
+                    }
 
-                notifications.value.unshift(item);
-            });
+                    notifications.value.unshift(item);
+                },
+            );
     }
 
     watch(

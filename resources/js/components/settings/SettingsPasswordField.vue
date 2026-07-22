@@ -15,7 +15,9 @@ const showPassword = ref(false);
 
 <template>
     <div class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-on-surface" :for="id">{{ label }}</label>
+        <label class="text-xs font-semibold text-on-surface" :for="id">{{
+            label
+        }}</label>
         <div class="relative">
             <input
                 :id="id"

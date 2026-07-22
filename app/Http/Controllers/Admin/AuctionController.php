@@ -36,8 +36,16 @@ class AuctionController extends Controller
             $query->where('status', $statusFilter);
         }
 
+        $categories = Auction::distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->filter()
+            ->values()
+            ->all();
+
         return Inertia::render('Admin/Auctions/Index', [
             'auctions' => $query->paginate(20)->withQueryString(),
+            'categories' => $categories,
             'filters' => [
                 'search' => $search,
                 'status' => $statusFilter,
@@ -47,18 +55,30 @@ class AuctionController extends Controller
 
     public function store(StoreAuctionRequest $request): RedirectResponse
     {
-        $this->auctionService->create($request->validated());
+        $auction = $this->auctionService->create($request->validated());
+
+        if ($request->boolean('publish')) {
+            $this->auctionService->publish($auction);
+        }
 
         return redirect()->route('admin.auctions.index')
-            ->with('success', 'Auction created successfully.');
+            ->with('success', $request->boolean('publish')
+                ? 'Auction created and published successfully.'
+                : 'Auction created successfully.');
     }
 
     public function update(UpdateAuctionRequest $request, Auction $auction): RedirectResponse
     {
         $this->auctionService->update($auction, $request->validated());
 
+        if ($request->boolean('publish')) {
+            $this->auctionService->publish($auction);
+        }
+
         return redirect()->route('admin.auctions.index')
-            ->with('success', 'Auction updated successfully.');
+            ->with('success', $request->boolean('publish')
+                ? 'Auction updated and published successfully.'
+                : 'Auction updated successfully.');
     }
 
     public function destroy(Auction $auction): RedirectResponse

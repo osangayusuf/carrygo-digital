@@ -25,6 +25,7 @@ class AuctionFactory extends Factory
             'status' => AuctionStatus::DRAFT,
             'price' => $open_points * 10,
             'image' => 'https://images.unsplash.com/photo-1611348586755-53860f7ae57a?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHBsYWNlaG9sZGVyfGVufDB8fDB8fHww',
+            'external_url' => fake()->optional()->url(),
             'bid_count' => 0,
             'countdown_duration_seconds' => fake()->randomElement([3600, 7200, 10800, 14400]),
             'triggered_at' => null,

@@ -10,11 +10,16 @@ defineProps<{ getCategoryIcon: (category: string) => string }>();
 
 const categories = computed(() => (page.props.categories as string[]) ?? []);
 
-const bannerImages = ['/images/banner1.jpeg', '/images/banner2.png', '/images/banner3.png'];
+const bannerImages = [
+    '/images/banner1.jpeg',
+    '/images/banner2.png',
+    '/images/banner3.png',
+];
 const currentBannerIndex = ref(0);
 
 const { pause } = useIntervalFn(() => {
-    currentBannerIndex.value = (currentBannerIndex.value + 1) % bannerImages.length;
+    currentBannerIndex.value =
+        (currentBannerIndex.value + 1) % bannerImages.length;
 }, 3000);
 
 const stopAutoSlide = () => pause();
@@ -26,27 +31,38 @@ const goToSlide = (index: number) => {
 
 const nextSlide = () => {
     stopAutoSlide();
-    currentBannerIndex.value = (currentBannerIndex.value + 1) % bannerImages.length;
+    currentBannerIndex.value =
+        (currentBannerIndex.value + 1) % bannerImages.length;
 };
 
 const prevSlide = () => {
     stopAutoSlide();
-    currentBannerIndex.value = (currentBannerIndex.value - 1 + bannerImages.length) % bannerImages.length;
+    currentBannerIndex.value =
+        (currentBannerIndex.value - 1 + bannerImages.length) %
+        bannerImages.length;
 };
 </script>
 
 <template>
     <!-- HERO -->
-    <section class="max-w-7xl mx-auto mt-2.5 px-4 md:grid gap-2.5 items-stretch" style="grid-template-columns: 1fr 4fr">
+    <section
+        class="mx-auto mt-2.5 max-w-7xl items-stretch gap-2.5 px-4 md:grid"
+        style="grid-template-columns: 1fr 4fr"
+    >
         <!-- LEFT CATEGORIES NAV -->
-        <div class="bg-white rounded-xl overflow-hidden border border-outline-variant flex-col hidden md:flex">
+        <div
+            class="hidden flex-col overflow-hidden rounded-xl border border-outline-variant bg-white md:flex"
+        >
             <Link
                 v-for="cat in categories"
                 :key="cat"
                 :href="trending.url() + '?category=' + encodeURIComponent(cat)"
-                class="flex items-center gap-2.5 px-3.5 text-sm font-bold text-ink no-underline border-b border-sage-tint transition-all duration-150 flex-1 whitespace-nowrap last:border-b-0 hover:bg-sage-tint hover:text-primary hover:pl-4.5"
+                class="flex flex-1 items-center gap-2.5 border-b border-sage-tint px-3.5 text-sm font-bold whitespace-nowrap text-ink no-underline transition-all duration-150 last:border-b-0 hover:bg-sage-tint hover:pl-4.5 hover:text-primary"
             >
-                <span v-if="getCategoryIcon(cat)" class="material-symbols-outlined mr-1 text-sm">
+                <span
+                    v-if="getCategoryIcon(cat)"
+                    class="material-symbols-outlined mr-1 text-sm"
+                >
                     {{ getCategoryIcon(cat) }}
                 </span>
                 {{ cat }} <i class="pi pi-chevron-right ml-auto text-xs"></i>
@@ -54,69 +70,119 @@ const prevSlide = () => {
         </div>
 
         <!-- MAIN BANNER -->
-        <div class="relative rounded-xl overflow-hidden bg-forest-dark flex items-stretch min-h-84">
-            <div class="grow py-7.5 px-8 flex flex-col justify-center z-2">
-                <div class="bg-lemon text-navy text-xs font-extrabold py-1 px-3 rounded-full inline-flex items-center gap-1 uppercase tracking-wider self-start mb-3.5">
+        <div
+            class="relative flex min-h-84 items-stretch overflow-hidden rounded-xl bg-forest-dark"
+        >
+            <div class="z-2 flex grow flex-col justify-center px-8 py-7.5">
+                <div
+                    class="mb-3.5 inline-flex items-center gap-1 self-start rounded-full bg-lemon px-3 py-1 text-xs font-extrabold tracking-wider text-navy uppercase"
+                >
                     🇳🇬 Nigeria's #1 Auction Platform
                 </div>
-                <h1 class="font-condensed text-5xl font-black text-white leading-none mb-2.5">
-                    Bid Small.<span class="text-lemon block">Win Big.</span>
+                <h1
+                    class="mb-2.5 font-condensed text-5xl leading-none font-black text-white"
+                >
+                    Bid Small.<span class="block text-lemon">Win Big.</span>
                 </h1>
-                <p class="text-sm text-white/65 mb-5.5 leading-relaxed">Your points give you a chance to win real products.</p>
-                <div class="flex gap-2.5 mb-6">
-                    <Link :href="trending.url()" class="bg-lemon text-navy border-none py-2.5 px-6 rounded-lg text-sm font-extrabold cursor-pointer whitespace-nowrap">
+                <p class="mb-5.5 text-sm leading-relaxed text-white/65">
+                    Your points give you a chance to win real products.
+                </p>
+                <div class="mb-6 flex gap-2.5">
+                    <Link
+                        :href="trending.url()"
+                        class="cursor-pointer rounded-lg border-none bg-lemon px-6 py-2.5 text-sm font-extrabold whitespace-nowrap text-navy"
+                    >
                         Start Bidding
                     </Link>
-                    <Link :href="howToPlay.url()" class="bg-transparent text-lemon border-2 border-lemon py-2 px-5 rounded-lg text-sm font-bold cursor-pointer whitespace-nowrap">
+                    <Link
+                        :href="howToPlay.url()"
+                        class="cursor-pointer rounded-lg border-2 border-lemon bg-transparent px-5 py-2 text-sm font-bold whitespace-nowrap text-lemon"
+                    >
                         How It Works
                     </Link>
                 </div>
                 <div class="flex gap-7">
                     <div>
-                        <span class="text-2xl font-black text-lemon block leading-none">50K+</span>
-                        <span class="text-xs text-white/55 block mt-0.5">Happy Winners</span>
+                        <span
+                            class="block text-2xl leading-none font-black text-lemon"
+                            >50K+</span
+                        >
+                        <span class="mt-0.5 block text-xs text-white/55"
+                            >Happy Winners</span
+                        >
                     </div>
                     <div>
-                        <span class="text-2xl font-black text-lemon block leading-none">₦0</span>
-                        <span class="text-xs text-white/55 block mt-0.5">Lost Bid Cost</span>
+                        <span
+                            class="block text-2xl leading-none font-black text-lemon"
+                            >₦0</span
+                        >
+                        <span class="mt-0.5 block text-xs text-white/55"
+                            >Lost Bid Cost</span
+                        >
                     </div>
                     <div>
-                        <span class="text-2xl font-black text-lemon block leading-none">100%</span>
-                        <span class="text-xs text-white/55 block mt-0.5">Transparent</span>
+                        <span
+                            class="block text-2xl leading-none font-black text-lemon"
+                            >100%</span
+                        >
+                        <span class="mt-0.5 block text-xs text-white/55"
+                            >Transparent</span
+                        >
                     </div>
                 </div>
             </div>
 
-            <div class="shrink-0 relative overflow-hidden hero-banner-right-bg w-1/2 select-none hidden md:flex group">
-                <div id="heroCarousel" class="w-full h-full relative overflow-hidden flex items-center justify-center">
+            <div
+                class="hero-banner-right-bg group relative hidden w-1/2 shrink-0 overflow-hidden select-none md:flex"
+            >
+                <div
+                    id="heroCarousel"
+                    class="relative flex h-full w-full items-center justify-center overflow-hidden"
+                >
                     <div
-                        class="flex w-full h-full items-center transition-transform duration-500 ease-in-out"
-                        :style="{ transform: `translateX(-${currentBannerIndex * 100}%)` }"
+                        class="flex h-full w-full items-center transition-transform duration-500 ease-in-out"
+                        :style="{
+                            transform: `translateX(-${currentBannerIndex * 100}%)`,
+                        }"
                     >
-                        <div v-for="(img, index) in bannerImages" :key="index" class="min-w-full flex flex-col items-center justify-center">
-                            <img :src="`${$page.props.asset_url}${img}`" alt="Banner" class="w-full h-auto object-contain animate-float-img rounded-md px-7" />
+                        <div
+                            v-for="(img, index) in bannerImages"
+                            :key="index"
+                            class="flex min-w-full flex-col items-center justify-center"
+                        >
+                            <img
+                                :src="`${$page.props.asset_url}${img}`"
+                                alt="Banner"
+                                class="h-auto w-full animate-float-img rounded-md object-contain px-7"
+                            />
                         </div>
                     </div>
 
                     <button
-                        class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10 cursor-pointer border-none opacity-0 group-hover:opacity-100"
+                        class="absolute top-1/2 left-2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-black/30 text-white opacity-0 transition-colors group-hover:opacity-100 hover:bg-black/50"
                         @click="prevSlide"
                     >
                         <i class="pi pi-chevron-left text-sm"></i>
                     </button>
                     <button
-                        class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10 cursor-pointer border-none opacity-0 group-hover:opacity-100"
+                        class="absolute top-1/2 right-2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-black/30 text-white opacity-0 transition-colors group-hover:opacity-100 hover:bg-black/50"
                         @click="nextSlide"
                     >
                         <i class="pi pi-chevron-right text-sm"></i>
                     </button>
 
-                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10 drop-shadow-md">
+                    <div
+                        class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 drop-shadow-md"
+                    >
                         <button
                             v-for="(_, index) in bannerImages"
                             :key="`dot-${index}`"
-                            class="rounded-full transition-all duration-300 border-none cursor-pointer p-0"
-                            :class="currentBannerIndex === index ? 'bg-lemon w-6 h-2' : 'bg-white/50 hover:bg-white/80 w-2 h-2'"
+                            class="cursor-pointer rounded-full border-none p-0 transition-all duration-300"
+                            :class="
+                                currentBannerIndex === index
+                                    ? 'h-2 w-6 bg-lemon'
+                                    : 'h-2 w-2 bg-white/50 hover:bg-white/80'
+                            "
                             @click="goToSlide(index)"
                         ></button>
                     </div>
@@ -125,36 +191,57 @@ const prevSlide = () => {
         </div>
 
         <!-- Mobile banner carousel -->
-        <div class="overflow-hidden w-full select-none hidden max-md:flex my-5 relative group">
-            <div id="heroCarouselMobile" class="w-full h-full relative overflow-hidden flex items-center justify-center">
+        <div
+            class="group relative my-5 hidden w-full overflow-hidden select-none max-md:flex"
+        >
+            <div
+                id="heroCarouselMobile"
+                class="relative flex h-full w-full items-center justify-center overflow-hidden"
+            >
                 <div
-                    class="flex w-full h-full items-center transition-transform duration-500 ease-in-out"
-                    :style="{ transform: `translateX(-${currentBannerIndex * 100}%)` }"
+                    class="flex h-full w-full items-center transition-transform duration-500 ease-in-out"
+                    :style="{
+                        transform: `translateX(-${currentBannerIndex * 100}%)`,
+                    }"
                 >
-                    <div v-for="(img, index) in bannerImages" :key="index" class="min-w-full flex flex-col items-center justify-center">
-                        <img :src="`${$page.props.asset_url}${img}`" alt="Banner" class="w-full h-auto object-contain animate-float-img rounded-md px-7" />
+                    <div
+                        v-for="(img, index) in bannerImages"
+                        :key="index"
+                        class="flex min-w-full flex-col items-center justify-center"
+                    >
+                        <img
+                            :src="`${$page.props.asset_url}${img}`"
+                            alt="Banner"
+                            class="h-auto w-full animate-float-img rounded-md object-contain px-7"
+                        />
                     </div>
                 </div>
 
                 <button
-                    class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10 cursor-pointer border-none"
+                    class="absolute top-1/2 left-2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-black/30 text-white transition-colors hover:bg-black/50"
                     @click="prevSlide"
                 >
                     <i class="pi pi-chevron-left text-sm"></i>
                 </button>
                 <button
-                    class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10 cursor-pointer border-none"
+                    class="absolute top-1/2 right-2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-black/30 text-white transition-colors hover:bg-black/50"
                     @click="nextSlide"
                 >
                     <i class="pi pi-chevron-right text-sm"></i>
                 </button>
 
-                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+                <div
+                    class="absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2"
+                >
                     <button
                         v-for="(_, index) in bannerImages"
                         :key="`dot-mobile-${index}`"
-                        class="rounded-full transition-all duration-300 border-none cursor-pointer p-0"
-                        :class="currentBannerIndex === index ? 'bg-ink w-6 h-2' : 'bg-ink/30 hover:bg-ink/50 w-2 h-2'"
+                        class="cursor-pointer rounded-full border-none p-0 transition-all duration-300"
+                        :class="
+                            currentBannerIndex === index
+                                ? 'h-2 w-6 bg-ink'
+                                : 'h-2 w-2 bg-ink/30 hover:bg-ink/50'
+                        "
                         @click="goToSlide(index)"
                     ></button>
                 </div>

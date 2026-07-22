@@ -2,13 +2,13 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import RewardClaimController from '@/actions/App/Http/Controllers/RewardClaimController';
 import AchievementBadgesSection from '@/components/rewards/AchievementBadgesSection.vue';
 import DailyCheckinSection from '@/components/rewards/DailyCheckinSection.vue';
 import SpinWheelSection from '@/components/rewards/SpinWheelSection.vue';
 import WeeklyLeaderboardSection from '@/components/rewards/WeeklyLeaderboardSection.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { home, profile } from '@/routes';
-import RewardClaimController from '@/actions/App/Http/Controllers/RewardClaimController';
 
 defineOptions({ layout: PublicLayout });
 
@@ -113,8 +113,14 @@ function onSpun(pointsWon: number) {
     <div class="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <div class="mx-auto max-w-3xl">
             <div class="mb-8">
-                <h1 class="font-headline text-3xl font-black tracking-tight text-on-surface">Task Center</h1>
-                <p class="mt-1 text-on-surface-variant">Complete tasks to earn bonus points, then claim to bid</p>
+                <h1
+                    class="font-headline text-3xl font-black tracking-tight text-on-surface"
+                >
+                    Task Center
+                </h1>
+                <p class="mt-1 text-on-surface-variant">
+                    Complete tasks to earn bonus points, then claim to bid
+                </p>
                 <p class="mt-2 text-sm font-bold text-primary">
                     Spendable balance: {{ user_points }} pts
                 </p>
@@ -133,16 +139,26 @@ function onSpun(pointsWon: number) {
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">🎁</span>
                             <div>
-                                <p class="font-headline font-bold">Unclaimed Bonus Points</p>
+                                <p class="font-headline font-bold">
+                                    Unclaimed Bonus Points
+                                </p>
                                 <p class="text-sm opacity-90">
-                                    <span class="font-black">{{ wallet.unclaimed_points }} bonus pts</span>
+                                    <span class="font-black"
+                                        >{{ wallet.unclaimed_points }} bonus
+                                        pts</span
+                                    >
                                     <template v-if="wallet.spendable_on_claim">
-                                        → {{ wallet.spendable_on_claim }} spendable on claim
+                                        →
+                                        {{ wallet.spendable_on_claim }}
+                                        spendable on claim
                                     </template>
                                 </p>
                             </div>
                         </div>
-                        <Form :action="RewardClaimController.url()" method="post">
+                        <Form
+                            :action="RewardClaimController.url()"
+                            method="post"
+                        >
                             <button
                                 type="submit"
                                 class="shrink-0 rounded-xl border-2 border-secondary bg-secondary px-4 py-2 text-sm font-black text-on-tertiary shadow-sm transition hover:opacity-90 active:scale-95"
@@ -158,11 +174,18 @@ function onSpun(pointsWon: number) {
                 <DailyCheckinSection :checkin="checkin" />
                 <AchievementBadgesSection :achievements="achievements" />
 
-                <div class="rounded-3xl border-2 border-outline-variant/50 bg-surface p-6 shadow-sm sm:p-8">
+                <div
+                    class="rounded-3xl border-2 border-outline-variant/50 bg-surface p-6 shadow-sm sm:p-8"
+                >
                     <div>
-                        <h2 class="font-headline text-xl font-bold text-on-surface">Invite &amp; Earn</h2>
+                        <h2
+                            class="font-headline text-xl font-bold text-on-surface"
+                        >
+                            Invite &amp; Earn
+                        </h2>
                         <p class="mt-1 text-sm text-on-surface-variant">
-                            Share your referral code and earn when friends join and bid
+                            Share your referral code and earn when friends join
+                            and bid
                         </p>
                     </div>
 
@@ -170,60 +193,112 @@ function onSpun(pointsWon: number) {
                         <!-- Left: Referral Code & Link Sharing -->
                         <div class="space-y-4">
                             <div>
-                                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Your Referral Code</span>
+                                <span
+                                    class="text-xs font-bold tracking-wider text-on-surface-variant/80 uppercase"
+                                    >Your Referral Code</span
+                                >
                                 <div class="mt-1 flex items-center gap-2">
-                                    <span class="font-condensed text-2xl font-black tracking-wide text-primary select-all bg-primary/10 px-3 py-1 rounded-xl border border-primary/20">
+                                    <span
+                                        class="rounded-xl border border-primary/20 bg-primary/10 px-3 py-1 font-condensed text-2xl font-black tracking-wide text-primary select-all"
+                                    >
                                         {{ referral.code }}
                                     </span>
                                 </div>
                             </div>
 
                             <div>
-                                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Your Invite Link</span>
+                                <span
+                                    class="text-xs font-bold tracking-wider text-on-surface-variant/80 uppercase"
+                                    >Your Invite Link</span
+                                >
                                 <div class="mt-1.5 flex gap-2">
                                     <input
                                         type="text"
                                         readonly
                                         :value="referral.url"
-                                        class="w-full rounded-xl border border-outline-variant bg-background px-4 py-2.5 text-xs text-on-surface-variant select-all focus:outline-none focus:ring-1 focus:ring-primary"
+                                        class="w-full rounded-xl border border-outline-variant bg-background px-4 py-2.5 text-xs text-on-surface-variant select-all focus:ring-1 focus:ring-primary focus:outline-none"
                                     />
                                     <button
                                         type="button"
                                         @click="copyReferralLink(referral.url)"
-                                        class="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary shadow-sm transition-all hover:bg-forest active:scale-95 shrink-0"
+                                        class="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-on-primary shadow-sm transition-all hover:bg-forest active:scale-95"
                                     >
-                                        <span class="material-symbols-outlined text-sm!">
-                                            {{ copied ? 'check' : 'content_copy' }}
+                                        <span
+                                            class="material-symbols-outlined text-sm!"
+                                        >
+                                            {{
+                                                copied
+                                                    ? 'check'
+                                                    : 'content_copy'
+                                            }}
                                         </span>
-                                        <span>{{ copied ? 'Copied' : 'Copy' }}</span>
+                                        <span>{{
+                                            copied ? 'Copied' : 'Copy'
+                                        }}</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Right: Referral Stats -->
-                        <div class="grid grid-cols-2 gap-4 rounded-2xl bg-background border border-outline-variant/40 p-5">
-                            <div class="flex flex-col justify-center border-r border-outline-variant/20 pr-4">
-                                <span class="text-xs font-semibold text-on-surface-variant">Referred Friends</span>
-                                <span class="mt-2 text-3xl font-black text-on-surface tracking-tight">{{ referral.count }}</span>
+                        <div
+                            class="grid grid-cols-2 gap-4 rounded-2xl border border-outline-variant/40 bg-background p-5"
+                        >
+                            <div
+                                class="flex flex-col justify-center border-r border-outline-variant/20 pr-4"
+                            >
+                                <span
+                                    class="text-xs font-semibold text-on-surface-variant"
+                                    >Referred Friends</span
+                                >
+                                <span
+                                    class="mt-2 text-3xl font-black tracking-tight text-on-surface"
+                                    >{{ referral.count }}</span
+                                >
                             </div>
                             <div class="flex flex-col justify-center pl-2">
-                                <span class="text-xs font-semibold text-on-surface-variant">Points Earned</span>
-                                <span class="mt-2 text-3xl font-black text-secondary tracking-tight">{{ referral.points_earned }} <span class="text-xs font-bold text-on-surface-variant">pts</span></span>
+                                <span
+                                    class="text-xs font-semibold text-on-surface-variant"
+                                    >Points Earned</span
+                                >
+                                <span
+                                    class="mt-2 text-3xl font-black tracking-tight text-secondary"
+                                    >{{ referral.points_earned }}
+                                    <span
+                                        class="text-xs font-bold text-on-surface-variant"
+                                        >pts</span
+                                    ></span
+                                >
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-6 flex flex-wrap gap-3">
-                        <div class="flex items-center gap-2 rounded-xl bg-background px-4 py-2 text-sm border border-outline-variant/40">
-                            <span class="h-2 w-2 rounded-full bg-primary"></span>
-                            <span class="text-on-surface-variant">Friend registers:</span>
-                            <span class="font-bold text-on-surface">10 pts</span>
+                        <div
+                            class="flex items-center gap-2 rounded-xl border border-outline-variant/40 bg-background px-4 py-2 text-sm"
+                        >
+                            <span
+                                class="h-2 w-2 rounded-full bg-primary"
+                            ></span>
+                            <span class="text-on-surface-variant"
+                                >Friend registers:</span
+                            >
+                            <span class="font-bold text-on-surface"
+                                >10 pts</span
+                            >
                         </div>
-                        <div class="flex items-center gap-2 rounded-xl bg-background px-4 py-2 text-sm border border-outline-variant/40">
-                            <span class="h-2 w-2 rounded-full bg-secondary"></span>
-                            <span class="text-on-surface-variant">Friend buys points:</span>
-                            <span class="font-bold text-on-surface">20 pts</span>
+                        <div
+                            class="flex items-center gap-2 rounded-xl border border-outline-variant/40 bg-background px-4 py-2 text-sm"
+                        >
+                            <span
+                                class="h-2 w-2 rounded-full bg-secondary"
+                            ></span>
+                            <span class="text-on-surface-variant"
+                                >Friend buys points:</span
+                            >
+                            <span class="font-bold text-on-surface"
+                                >20 pts</span
+                            >
                         </div>
                     </div>
                 </div>
@@ -237,7 +312,9 @@ function onSpun(pointsWon: number) {
                     :href="home.url()"
                     class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
                 >
-                    <span class="material-symbols-outlined text-lg!">arrow_back</span>
+                    <span class="material-symbols-outlined text-lg!"
+                        >arrow_back</span
+                    >
                     Back to Bidding
                 </Link>
             </div>
@@ -264,7 +341,7 @@ function onSpun(pointsWon: number) {
             <span class="material-symbols-outlined shrink-0 text-xl!">
                 {{ toast.type === 'success' ? 'check_circle' : 'error' }}
             </span>
-            <p class="text-sm font-medium leading-snug">{{ toast.message }}</p>
+            <p class="text-sm leading-snug font-medium">{{ toast.message }}</p>
         </div>
     </Transition>
 </template>

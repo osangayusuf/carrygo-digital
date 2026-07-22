@@ -33,11 +33,11 @@ function visit(extra: Record<string, string | number> = {}): void {
         ...extra,
     };
 
-    router.get(
-        '/recommended',
-        query,
-        { preserveState: true, preserveScroll: true, replace: true },
-    );
+    router.get('/recommended', query, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
 }
 
 function removeFilter(key: string): void {
@@ -62,22 +62,37 @@ function goToPage(page: number): void {
 
     <section class="mx-auto max-w-[1300px] px-4 pt-8 pb-20">
         <header class="mb-10">
-            <div class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div
+                class="flex flex-col justify-between gap-6 md:flex-row md:items-end"
+            >
                 <div class="space-y-2">
-                    <span class="text-xs font-bold uppercase tracking-widest text-muted-green">Personalized Picks</span>
-                    <h1 class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl">
+                    <span
+                        class="text-xs font-bold tracking-widest text-muted-green uppercase"
+                        >Personalized Picks</span
+                    >
+                    <h1
+                        class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl"
+                    >
                         Recommended for You
                     </h1>
                 </div>
 
-                <div v-if="activeFilters.length > 0 || bids.total > 0" class="flex items-center gap-3">
+                <div
+                    v-if="activeFilters.length > 0 || bids.total > 0"
+                    class="flex items-center gap-3"
+                >
                     <span class="text-xs font-bold text-muted-green">
-                        {{ bids.total }} recommended item{{ bids.total !== 1 ? 's' : '' }}
+                        {{ bids.total }} recommended item{{
+                            bids.total !== 1 ? 's' : ''
+                        }}
                     </span>
                 </div>
             </div>
 
-            <div v-if="activeFilters.length > 0" class="mt-5 flex flex-wrap items-center gap-3">
+            <div
+                v-if="activeFilters.length > 0"
+                class="mt-5 flex flex-wrap items-center gap-3"
+            >
                 <div
                     v-for="filter in activeFilters"
                     :key="filter.key"
@@ -95,13 +110,26 @@ function goToPage(page: number): void {
             </div>
         </header>
 
-        <div v-if="bids.data.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
-            <span class="material-symbols-outlined mb-4 text-5xl text-muted-green">recommend</span>
-            <p class="font-condensed text-xl font-extrabold text-ink">No recommendations found</p>
-            <p class="mt-2 text-sm text-muted-green">Please check back later or browse other active auctions.</p>
+        <div
+            v-if="bids.data.length === 0"
+            class="flex flex-col items-center justify-center py-24 text-center"
+        >
+            <span
+                class="material-symbols-outlined mb-4 text-5xl text-muted-green"
+                >recommend</span
+            >
+            <p class="font-condensed text-xl font-extrabold text-ink">
+                No recommendations found
+            </p>
+            <p class="mt-2 text-sm text-muted-green">
+                Please check back later or browse other active auctions.
+            </p>
         </div>
 
-        <div v-else class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+        <div
+            v-else
+            class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5"
+        >
             <BidCard
                 v-for="bid in bids.data"
                 :key="bid.id"

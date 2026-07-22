@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { home, trending, profile, tasks } from '@/routes/index';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { home, trending, profile, tasks } from '@/routes/index';
 
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user ?? null);
@@ -12,6 +12,7 @@ function isActive(href: string): boolean {
     if (href.split('?')[0] === home.url()) {
         return isCurrentUrl(home.url());
     }
+
     return isCurrentUrl(href, undefined, true);
 }
 
@@ -28,7 +29,9 @@ const navItems = computed(() => [
 </script>
 
 <template>
-    <nav class="fixed inset-x-0 bottom-0 z-40 border-t-2 border-lemon bg-navy md:hidden">
+    <nav
+        class="fixed inset-x-0 bottom-0 z-40 border-t-2 border-lemon bg-navy md:hidden"
+    >
         <div class="flex items-stretch justify-around">
             <Link
                 v-for="item in navItems"
@@ -45,11 +48,18 @@ const navItems = computed(() => [
                         isActive(item.href) ? 'bg-lemon/20' : '',
                     ]"
                 >
-                    <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+                    <span class="material-symbols-outlined text-xl">{{
+                        item.icon
+                    }}</span>
                 </span>
-                <span :class="['text-[10px] tracking-wide', isActive(item.href) ? 'font-black' : 'font-bold']">{{ item.label }}</span>
+                <span
+                    :class="[
+                        'text-[10px] tracking-wide',
+                        isActive(item.href) ? 'font-black' : 'font-bold',
+                    ]"
+                    >{{ item.label }}</span
+                >
             </Link>
         </div>
     </nav>
 </template>
-

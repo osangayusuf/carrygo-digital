@@ -37,7 +37,9 @@ const http = useHttp();
 const notificationsOpen = ref(false);
 const currentPath = computed(() => page.url.split('?')[0]);
 
-const notifications = ref<Notification[]>([...((page.props.notifications as Notification[]) ?? [])]);
+const notifications = ref<Notification[]>([
+    ...((page.props.notifications as Notification[]) ?? []),
+]);
 const isRefreshingNotifications = ref(false);
 
 watch(
@@ -55,7 +57,9 @@ async function refreshNotifications(): Promise<void> {
     isRefreshingNotifications.value = true;
 
     try {
-        const data = (await http.submit(notificationsRoutes.feed.get())) as Notification[];
+        const data = (await http.submit(
+            notificationsRoutes.feed.get(),
+        )) as Notification[];
         notifications.value = data;
     } catch {
         // Keep existing list if refresh fails.
@@ -64,7 +68,9 @@ async function refreshNotifications(): Promise<void> {
     }
 }
 
-const unreadCount = computed(() => notifications.value.filter((n) => isUnread(n)).length);
+const unreadCount = computed(
+    () => notifications.value.filter((n) => isUnread(n)).length,
+);
 
 function isUnread(notification: Notification): boolean {
     return notification.read_at === null;
@@ -124,7 +130,12 @@ function closeNotifications(event: MouseEvent): void {
     const panel = document.getElementById('notification-panel');
     const button = document.getElementById('notification-btn');
 
-    if (panel && !panel.contains(event.target as Node) && button && !button.contains(event.target as Node)) {
+    if (
+        panel &&
+        !panel.contains(event.target as Node) &&
+        button &&
+        !button.contains(event.target as Node)
+    ) {
         notificationsOpen.value = false;
     }
 }
@@ -134,18 +145,26 @@ onMounted(() => {
 
     router.on('success', () => {
         if (currentUser.value) {
-            console.log(currentUser.value)
+            console.log(currentUser.value);
             refreshNotifications();
         }
     });
 });
 
-onBeforeUnmount(() => document.removeEventListener('click', closeNotifications));
+onBeforeUnmount(() =>
+    document.removeEventListener('click', closeNotifications),
+);
 
-const search = ref(new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('search') ?? '');
+const search = ref(
+    new URLSearchParams(
+        typeof window !== 'undefined' ? window.location.search : '',
+    ).get('search') ?? '',
+);
 
 function visit(extra: Record<string, string | number> = {}) {
-    const currentParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const currentParams = new URLSearchParams(
+        typeof window !== 'undefined' ? window.location.search : '',
+    );
     const existing: Record<string, string> = {};
     currentParams.forEach((value, key) => {
         existing[key] = value;
@@ -155,7 +174,9 @@ function visit(extra: Record<string, string | number> = {}) {
         currentPath.value,
         {
             ...existing,
-            ...(search.value ? { search: search.value } : { search: undefined }),
+            ...(search.value
+                ? { search: search.value }
+                : { search: undefined }),
             ...extra,
         },
         { preserveState: true, preserveScroll: true, replace: true },
@@ -172,8 +193,16 @@ const navLinks = [
     { label: 'Event Items', href: eventItems.url(), icon: 'pi pi-calendar' },
     { label: 'Winners', href: winners.url(), icon: 'pi pi-history' },
     { label: 'Leaderboard', href: leaderboard.url(), icon: 'pi pi-chart-bar' },
-    { label: 'Earn Free Points', href: tasks.url(), icon: 'pi pi-check-square' },
-    { label: 'How to play', href: howToPlay.url(), icon: 'pi pi-question-circle' },
+    {
+        label: 'Earn Free Points',
+        href: tasks.url(),
+        icon: 'pi pi-check-square',
+    },
+    {
+        label: 'How to play',
+        href: howToPlay.url(),
+        icon: 'pi pi-question-circle',
+    },
 ];
 
 const firstLineLinks = computed(() => navLinks.slice(0, 4));
@@ -203,57 +232,61 @@ function navItemClass(href: string): string {
     return `${base} font-bold text-secondary hover:text-primary`;
 }
 
-const marqueeItems = computed(() => {
-    const items = page.props.marquee_items;
-    if (Array.isArray(items) && items.length > 0) {
-        return items as { text: string; icon?: string }[];
-    }
-    return [
-        { text: 'Bid on premium luxury items with points!', icon: 'pi pi-gift' },
-        { text: 'Complete tasks in the Task Center to earn free points!', icon: 'pi pi-check-square' },
-        { text: 'Check the leaderboard to see top bidders of the week!', icon: 'pi pi-chart-bar' },
-        { text: 'New auction drops every Monday!', icon: 'pi pi-send' }
-    ];
-});
-
-const triggeredAuctions = computed(() => (page.props.triggeredAuctions as any[]) ?? []);
-const activeTriggeredAuction = computed(() => triggeredAuctions.value[0] ?? null);
+const triggeredAuctions = computed(
+    () => (page.props.triggeredAuctions as any[]) ?? [],
+);
+const activeTriggeredAuction = computed(
+    () => triggeredAuctions.value[0] ?? null,
+);
 const bannerTimeLeft = ref('');
 const isExpired = ref(false);
 let bannerInterval: ReturnType<typeof setInterval> | null = null;
 
 function updateBannerTimer() {
     const auction = activeTriggeredAuction.value;
+
     if (!auction || !auction.expires_at) {
         bannerTimeLeft.value = '';
         isExpired.value = true;
+
         return;
     }
-    const diff = Math.floor((new Date(auction.expires_at).getTime() - Date.now()) / 1000);
+
+    const diff = Math.floor(
+        (new Date(auction.expires_at).getTime() - Date.now()) / 1000,
+    );
+
     if (diff <= 0) {
         bannerTimeLeft.value = '';
         isExpired.value = true;
+
         return;
     }
+
     isExpired.value = false;
     const mins = Math.floor(diff / 60);
     const secs = diff % 60;
     bannerTimeLeft.value = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-watch(activeTriggeredAuction, (newVal) => {
-    if (newVal) {
-        updateBannerTimer();
-        if (!bannerInterval) {
-            bannerInterval = setInterval(updateBannerTimer, 1000);
+watch(
+    activeTriggeredAuction,
+    (newVal) => {
+        if (newVal) {
+            updateBannerTimer();
+
+            if (!bannerInterval) {
+                bannerInterval = setInterval(updateBannerTimer, 1000);
+            }
+        } else {
+            if (bannerInterval) {
+                clearInterval(bannerInterval);
+                bannerInterval = null;
+            }
         }
-    } else {
-        if (bannerInterval) {
-            clearInterval(bannerInterval);
-            bannerInterval = null;
-        }
-    }
-}, { immediate: true });
+    },
+    { immediate: true },
+);
 
 onBeforeUnmount(() => {
     if (bannerInterval) {
@@ -265,115 +298,218 @@ onBeforeUnmount(() => {
 <template>
     <nav class="glass-nav sticky top-0 z-50 shadow-sm dark:shadow-none">
         <!-- Persistent Countdown Banner -->
-        <div v-if="activeTriggeredAuction && !isExpired" class="bg-red-600 text-white text-center py-2 px-4 text-xs font-bold flex flex-wrap items-center justify-center gap-x-3 gap-y-1 transition-all duration-300">
-            <div class="flex items-center gap-1.5 justify-center">
+        <div
+            v-if="activeTriggeredAuction && !isExpired"
+            class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-red-600 px-4 py-2 text-center text-xs font-bold text-white transition-all duration-300"
+        >
+            <div class="flex items-center justify-center gap-1.5">
                 <span>
-                    Closing Soon: <strong class="text-lemon">{{ activeTriggeredAuction.name }}</strong> is ending soon!
+                    Closing Soon:
+                    <strong class="text-lemon">{{
+                        activeTriggeredAuction.name
+                    }}</strong>
+                    is ending soon!
                 </span>
             </div>
-            <div class="flex items-center gap-3 justify-center">
-                <span class="font-mono bg-black/35 px-2 py-0.5 rounded text-[11px] font-black tracking-wide border border-white/15 shadow-inner flex items-center gap-1">
+            <div class="flex items-center justify-center gap-3">
+                <span
+                    class="flex items-center gap-1 rounded border border-white/15 bg-black/35 px-2 py-0.5 font-mono text-[11px] font-black tracking-wide shadow-inner"
+                >
                     <i class="pi pi-hourglass text-sm"></i>
                     <span>{{ bannerTimeLeft }}</span>
                 </span>
-                <Link :href="`/auctions/${activeTriggeredAuction.id}`" class="underline hover:text-lemon transition-colors font-extrabold flex items-center gap-0.5 focus:ring-2 focus:ring-white focus:outline-none rounded px-1" :aria-label="`Bid Now on ${activeTriggeredAuction.name}`" :title="`Bid Now on ${activeTriggeredAuction.name}`">
+                <Link
+                    :href="`/auctions/${activeTriggeredAuction.id}`"
+                    class="flex items-center gap-0.5 rounded px-1 font-extrabold underline transition-colors hover:text-lemon focus:ring-2 focus:ring-white focus:outline-none"
+                    :aria-label="`Bid Now on ${activeTriggeredAuction.name}`"
+                    :title="`Bid Now on ${activeTriggeredAuction.name}`"
+                >
                     Bid Now <i class="pi pi-arrow-right text-[10px]"></i>
                 </Link>
             </div>
         </div>
 
         <!-- NAVBAR -->
-        <nav class="bg-white border-b-2 border-lemon shadow-md">
-            <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-x-3 md:gap-x-10 gap-y-2 py-2 sm:py-1.5 px-4">
-                <Link :href="home.url()" class="flex items-center no-underline shrink-0 order-1 focus:ring-2 focus:ring-primary focus:outline-none rounded-lg" aria-label="Bidora Home" title="Go to Bidora Home">
-                    <img class="h-7 sm:h-10 w-auto block" :src="`${$page.props.asset_url}logo.png`" alt="Bidora" />
+        <nav class="border-b-2 border-lemon bg-white shadow-md">
+            <div
+                class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:py-1.5 md:gap-x-10"
+            >
+                <Link
+                    :href="home.url()"
+                    class="order-1 flex shrink-0 items-center rounded-lg no-underline focus:ring-2 focus:ring-primary focus:outline-none"
+                    aria-label="Bidora Home"
+                    title="Go to Bidora Home"
+                >
+                    <img
+                        class="block h-7 w-auto sm:h-10"
+                        :src="`${$page.props.asset_url}logo.png`"
+                        alt="Bidora"
+                    />
                 </Link>
                 <!-- Search: full-width second row on mobile, inline flex-1 on md+ -->
-                <div class="flex w-full md:flex-1 md:w-auto order-3 md:order-2 min-w-0">
-                    <input v-model="search" type="text" placeholder="Search luxury items, brands, auctions..."
-                        class="flex-1 border-2 border-forest border-r-0 py-1.5 sm:py-2 px-3.5 text-xs sm:text-sm font-sans rounded-l-xl outline-none focus:ring-2 focus:ring-primary focus:outline-none min-w-0"
+                <div
+                    class="order-3 flex w-full min-w-0 md:order-2 md:w-auto md:flex-1"
+                >
+                    <input
+                        v-model="search"
+                        type="text"
+                        placeholder="Search luxury items, brands, auctions..."
+                        class="min-w-0 flex-1 rounded-l-xl border-2 border-r-0 border-forest px-3.5 py-1.5 font-sans text-xs outline-none focus:ring-2 focus:ring-primary focus:outline-none sm:py-2 sm:text-sm"
                         title="Search luxury items, brands, auctions"
                         aria-label="Search luxury items, brands, auctions"
-                        @input="onSearch" />
-                    <button type="button"
-                        class="bg-forest text-lemon border-none py-2 px-4.5 text-sm font-bold cursor-pointer rounded-r-xl whitespace-nowrap hover:bg-forest-dark focus:ring-2 focus:ring-primary focus:outline-none"
+                        @input="onSearch"
+                    />
+                    <button
+                        type="button"
+                        class="cursor-pointer rounded-r-xl border-none bg-forest px-4.5 py-2 text-sm font-bold whitespace-nowrap text-lemon hover:bg-forest-dark focus:ring-2 focus:ring-primary focus:outline-none"
                         aria-label="Submit search"
                         title="Submit search"
-                        @click="onSearch">
+                        @click="onSearch"
+                    >
                         <i class="pi pi-search"></i>
                     </button>
                 </div>
-                <div class="flex items-center gap-2 md:gap-5 relative ml-auto md:ml-0 order-2 md:order-3">
-                    <button id="notification-btn" class="bg-transparent border-none cursor-pointer relative p-1.5 focus:ring-2 focus:ring-primary focus:outline-none rounded-lg"
+                <div
+                    class="relative order-2 ml-auto flex items-center gap-2 md:order-3 md:ml-0 md:gap-5"
+                >
+                    <button
+                        id="notification-btn"
+                        class="relative cursor-pointer rounded-lg border-none bg-transparent p-1.5 focus:ring-2 focus:ring-primary focus:outline-none"
                         aria-label="Notifications"
                         title="Toggle notifications panel"
-                        @click="toggleNotifications">
+                        @click="toggleNotifications"
+                    >
                         <i
-                            class="pi pi-bell text-base sm:text-xl text-muted-green hover:text-navy transition-colors"></i>
-                        <div v-if="unreadCount > 0"
-                            class="absolute top-0 right-0 bg-ink text-lemon rounded-full w-4 h-4 text-[10px] font-extrabold flex items-center justify-center">
+                            class="pi pi-bell text-base text-muted-green transition-colors hover:text-navy sm:text-xl"
+                        ></i>
+                        <div
+                            v-if="unreadCount > 0"
+                            class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-ink text-[10px] font-extrabold text-lemon"
+                        >
                             {{ unreadCount > 9 ? '9+' : unreadCount }}
                         </div>
                     </button>
 
                     <!-- Notification Panel -->
-                    <div v-if="notificationsOpen" id="notification-panel"
-                        class="absolute top-full mt-2 right-0 md:-right-2 w-80 sm:w-96 bg-white border-2 border-lemon shadow-xl rounded-2xl z-50 overflow-hidden flex flex-col max-h-[80vh]">
-                        <div class="flex items-center justify-between px-4 py-3 border-b-2 border-lemon bg-gray-50/50">
-                            <h3 class="font-extrabold text-navy m-0 text-sm font-headline">Notifications</h3>
-                            <button v-if="unreadCount > 0"
-                                class="text-xs text-primary font-bold bg-transparent border-none cursor-pointer hover:text-forest transition-colors p-0 focus:ring-2 focus:ring-primary focus:outline-none rounded"
+                    <div
+                        v-if="notificationsOpen"
+                        id="notification-panel"
+                        class="absolute top-full right-0 z-50 mt-2 flex max-h-[80vh] w-80 flex-col overflow-hidden rounded-2xl border-2 border-lemon bg-white shadow-xl sm:w-96 md:-right-2"
+                    >
+                        <div
+                            class="flex items-center justify-between border-b-2 border-lemon bg-gray-50/50 px-4 py-3"
+                        >
+                            <h3
+                                class="m-0 font-headline text-sm font-extrabold text-navy"
+                            >
+                                Notifications
+                            </h3>
+                            <button
+                                v-if="unreadCount > 0"
+                                class="cursor-pointer rounded border-none bg-transparent p-0 text-xs font-bold text-primary transition-colors hover:text-forest focus:ring-2 focus:ring-primary focus:outline-none"
                                 aria-label="Mark all notifications as read"
                                 title="Mark all notifications as read"
-                                @click="markAllRead">
+                                @click="markAllRead"
+                            >
                                 Mark all read
                             </button>
                         </div>
-                        <div class="overflow-y-auto overflow-x-hidden hide-scrollbar flex-1 bg-white">
-                            <div v-if="notifications.length === 0"
-                                class="p-8 text-center text-secondary text-sm font-bold flex flex-col items-center justify-center h-full gap-2">
-                                <i class="pi pi-check-circle text-3xl text-gray-300"></i>
+                        <div
+                            class="hide-scrollbar flex-1 overflow-x-hidden overflow-y-auto bg-white"
+                        >
+                            <div
+                                v-if="notifications.length === 0"
+                                class="flex h-full flex-col items-center justify-center gap-2 p-8 text-center text-sm font-bold text-secondary"
+                            >
+                                <i
+                                    class="pi pi-check-circle text-3xl text-gray-300"
+                                ></i>
                                 You're all caught up!
                             </div>
-                            <div v-for="notification in notifications" :key="notification.id" :class="[
-                                'px-4 py-4 border-b border-gray-100 last:border-b-0 flex gap-3.5 transition-colors',
-                                isUnread(notification) ? 'bg-forest/5' : 'bg-white hover:bg-gray-50',
-                            ]">
+                            <div
+                                v-for="notification in notifications"
+                                :key="notification.id"
+                                :class="[
+                                    'flex gap-3.5 border-b border-gray-100 px-4 py-4 transition-colors last:border-b-0',
+                                    isUnread(notification)
+                                        ? 'bg-forest/5'
+                                        : 'bg-white hover:bg-gray-50',
+                                ]"
+                            >
                                 <div class="mt-0.5 shrink-0">
-                                    <span class="material-symbols-outlined text-2xl"
-                                        :class="isUnread(notification) ? 'text-forest' : 'text-gray-400'">
-                                        {{ notification.icon || 'notifications' }}
+                                    <span
+                                        class="material-symbols-outlined text-2xl"
+                                        :class="
+                                            isUnread(notification)
+                                                ? 'text-forest'
+                                                : 'text-gray-400'
+                                        "
+                                    >
+                                        {{
+                                            notification.icon || 'notifications'
+                                        }}
                                     </span>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between gap-2 mb-1.5">
-                                        <h4 :class="[
-                                            'm-0 text-sm leading-tight font-sans',
-                                            isUnread(notification) ? 'font-extrabold text-navy' : 'font-bold text-secondary',
-                                        ]">
+                                <div class="min-w-0 flex-1">
+                                    <div
+                                        class="mb-1.5 flex items-start justify-between gap-2"
+                                    >
+                                        <h4
+                                            :class="[
+                                                'm-0 font-sans text-sm leading-tight',
+                                                isUnread(notification)
+                                                    ? 'font-extrabold text-navy'
+                                                    : 'font-bold text-secondary',
+                                            ]"
+                                        >
                                             {{ notification.title }}
                                         </h4>
                                         <span
-                                            class="text-[10px] text-gray-400 whitespace-nowrap font-bold shrink-0 mt-0.5">{{
-                                                formatDate(notification.created_at)
-                                            }}</span>
+                                            class="mt-0.5 shrink-0 text-[10px] font-bold whitespace-nowrap text-gray-400"
+                                            >{{
+                                                formatDate(
+                                                    notification.created_at,
+                                                )
+                                            }}</span
+                                        >
                                     </div>
                                     <p
-                                        :class="['m-0 text-xs leading-relaxed', isUnread(notification) ? 'text-navy' : 'text-secondary']">
-                                        {{ notification.body }}</p>
-                                    <div class="mt-2.5 flex flex-wrap items-center gap-3">
-                                        <Link v-if="notification.url" :href="notification.url"
-                                            class="inline-flex items-center gap-1 text-xs font-bold text-forest hover:text-forest-dark transition-colors focus:ring-2 focus:ring-primary focus:outline-none rounded"
+                                        :class="[
+                                            'm-0 text-xs leading-relaxed',
+                                            isUnread(notification)
+                                                ? 'text-navy'
+                                                : 'text-secondary',
+                                        ]"
+                                    >
+                                        {{ notification.body }}
+                                    </p>
+                                    <div
+                                        class="mt-2.5 flex flex-wrap items-center gap-3"
+                                    >
+                                        <Link
+                                            v-if="notification.url"
+                                            :href="notification.url"
+                                            class="inline-flex items-center gap-1 rounded text-xs font-bold text-forest transition-colors hover:text-forest-dark focus:ring-2 focus:ring-primary focus:outline-none"
                                             title="View notification details"
-                                            @click="onNotificationNavigate(notification)">
+                                            @click="
+                                                onNotificationNavigate(
+                                                    notification,
+                                                )
+                                            "
+                                        >
                                             View details
-                                            <i class="pi pi-arrow-right text-[10px]"></i>
+                                            <i
+                                                class="pi pi-arrow-right text-[10px]"
+                                            ></i>
                                         </Link>
-                                        <button v-if="isUnread(notification)" type="button"
-                                            class="text-xs font-bold text-secondary hover:text-navy bg-transparent border-none cursor-pointer p-0 transition-colors focus:ring-2 focus:ring-primary focus:outline-none rounded"
+                                        <button
+                                            v-if="isUnread(notification)"
+                                            type="button"
+                                            class="cursor-pointer rounded border-none bg-transparent p-0 text-xs font-bold text-secondary transition-colors hover:text-navy focus:ring-2 focus:ring-primary focus:outline-none"
                                             aria-label="Mark notification as read"
                                             title="Mark notification as read"
-                                            @click="markRead(notification.id)">
+                                            @click="markRead(notification.id)"
+                                        >
                                             Mark read
                                         </button>
                                     </div>
@@ -383,45 +519,70 @@ onBeforeUnmount(() => {
                     </div>
 
                     <template v-if="!currentUser">
-                        <Link :href="loginShow.url()" as="button"
-                            class="bg-lemon text-navy border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                        <Link
+                            :href="loginShow.url()"
+                            as="button"
+                            class="h-10 cursor-pointer rounded-xl border-none bg-lemon px-3 font-sans text-sm font-extrabold whitespace-nowrap text-navy transition-colors hover:bg-amber focus:ring-2 focus:ring-primary focus:outline-none md:h-12 md:px-4.5"
                             aria-label="Log In"
-                            title="Log In to your account">
+                            title="Log In to your account"
+                        >
                             Log In
                         </Link>
-                        <Link :href="register.url()" as="button"
-                            class="bg-navy text-lemon border-none md:h-12 h-10 md:px-4.5 px-3 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-forest transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                        <Link
+                            :href="register.url()"
+                            as="button"
+                            class="h-10 cursor-pointer rounded-xl border-none bg-navy px-3 font-sans text-sm font-extrabold whitespace-nowrap text-lemon transition-colors hover:bg-forest focus:ring-2 focus:ring-primary focus:outline-none md:h-12 md:px-4.5"
                             aria-label="Register"
-                            title="Register a new account">
+                            title="Register a new account"
+                        >
                             Register
                         </Link>
                     </template>
                     <template v-else>
-                        <Link v-if="isAdmin" :href="adminDashboard.url()" as="button"
-                            class="bg-amber text-navy border-none md:h-12 h-10 px-3 md:px-4 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-lemon flex items-center gap-1.5 transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                        <Link
+                            v-if="isAdmin"
+                            :href="adminDashboard.url()"
+                            as="button"
+                            class="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border-none bg-amber px-3 font-sans text-xs font-extrabold whitespace-nowrap text-navy transition-colors hover:bg-lemon focus:ring-2 focus:ring-primary focus:outline-none sm:text-sm md:h-12 md:px-4"
                             aria-label="Admin Dashboard"
-                            title="Go to Admin Dashboard">
+                            title="Go to Admin Dashboard"
+                        >
                             <i class="pi pi-shield text-sm"></i>
                             <span class="hidden sm:inline">Admin</span>
                         </Link>
-                        <Link :href="profile.url()" as="button"
-                            class="bg-lemon text-navy border-none md:h-12 h-10 px-3.5 md:px-4.5 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer whitespace-nowrap font-sans hover:bg-amber flex items-center gap-1.5 transition-colors focus:ring-2 focus:ring-primary focus:outline-none"
+                        <Link
+                            :href="profile.url()"
+                            as="button"
+                            class="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border-none bg-lemon px-3.5 font-sans text-xs font-extrabold whitespace-nowrap text-navy transition-colors hover:bg-amber focus:ring-2 focus:ring-primary focus:outline-none sm:text-sm md:h-12 md:px-4.5"
                             :aria-label="`Wallet: ${currentUser.points_balance ?? 0} points`"
-                            title="View profile and wallet balance">
+                            title="View profile and wallet balance"
+                        >
                             <i class="pi pi-wallet text-sm text-forest"></i>
-                            <span class="hidden sm:inline">{{ currentUser.points_balance ?? 0 }} pts</span>
-                            <span class="sm:hidden">{{ currentUser.points_balance ?? 0 }}</span>
+                            <span class="hidden sm:inline"
+                                >{{ currentUser.points_balance ?? 0 }} pts</span
+                            >
+                            <span class="sm:hidden">{{
+                                currentUser.points_balance ?? 0
+                            }}</span>
                         </Link>
-                        <Link :href="logoutRoute.url()" method="post" as="button"
-                            class="bg-transparent border-2 border-gray-200 text-gray-500 hover:text-navy hover:border-gray-300 md:h-12 h-10 px-3 md:px-4 rounded-xl text-sm font-extrabold cursor-pointer whitespace-nowrap transition-colors hidden sm:block focus:ring-2 focus:ring-primary focus:outline-none"
+                        <Link
+                            :href="logoutRoute.url()"
+                            method="post"
+                            as="button"
+                            class="hidden h-10 cursor-pointer rounded-xl border-2 border-gray-200 bg-transparent px-3 text-sm font-extrabold whitespace-nowrap text-gray-500 transition-colors hover:border-gray-300 hover:text-navy focus:ring-2 focus:ring-primary focus:outline-none sm:block md:h-12 md:px-4"
                             aria-label="Log Out"
-                            title="Log Out of your account">
+                            title="Log Out of your account"
+                        >
                             Log Out
                         </Link>
-                        <Link :href="logoutRoute.url()" method="post" as="button"
-                            class="bg-transparent border-none text-gray-500 hover:text-navy md:h-12 h-10 px-3 md:px-4 rounded-xl cursor-pointer sm:hidden focus:ring-2 focus:ring-primary focus:outline-none"
+                        <Link
+                            :href="logoutRoute.url()"
+                            method="post"
+                            as="button"
+                            class="h-10 cursor-pointer rounded-xl border-none bg-transparent px-3 text-gray-500 hover:text-navy focus:ring-2 focus:ring-primary focus:outline-none sm:hidden md:h-12 md:px-4"
                             aria-label="Log Out"
-                            title="Log Out of your account">
+                            title="Log Out of your account"
+                        >
                             <i class="pi pi-sign-out text-sm sm:text-xl"></i>
                         </Link>
                     </template>
@@ -430,42 +591,65 @@ onBeforeUnmount(() => {
         </nav>
 
         <!-- SUB NAV -->
-        <div class="bg-navy relative">
+        <div class="relative bg-navy">
             <!-- Desktop View -->
             <div
-                class="hidden md:flex max-w-7xl mx-auto items-center min-w-full gap-1 justify-between overflow-x-auto hide-scrollbar">
-                <a v-for="link in navLinks" :key="link.label" :href="link.href"
-                    :class="['text-white no-underline py-2 px-4 text-sm whitespace-nowrap block mx-auto hover:bg-lemon/18 hover:text-white cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none rounded', navItemClass(link.href)]"
+                class="hide-scrollbar mx-auto hidden max-w-7xl min-w-full items-center justify-between gap-1 overflow-x-auto md:flex"
+            >
+                <a
+                    v-for="link in navLinks"
+                    :key="link.label"
+                    :href="link.href"
+                    :class="[
+                        'mx-auto block cursor-pointer rounded px-4 py-2 text-sm whitespace-nowrap text-white no-underline hover:bg-lemon/18 hover:text-white focus:ring-2 focus:ring-primary focus:outline-none',
+                        navItemClass(link.href),
+                    ]"
                     :aria-label="link.label"
-                    :title="link.label">
-                    <i v-if="link.icon" :class="[link.icon, 'mr-1']"></i> {{ link.label }}
+                    :title="link.label"
+                >
+                    <i v-if="link.icon" :class="[link.icon, 'mr-1']"></i>
+                    {{ link.label }}
                 </a>
             </div>
 
             <!-- Mobile View -->
-            <div class="md:hidden w-full flex flex-col">
-                <div class="flex items-center w-full justify-between px-1">
-                    <a v-for="link in firstLineLinks" :key="link.label" :href="link.href" :class="[
-                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none rounded',
-                        navItemClass(link.href),
-                    ]"
+            <div class="flex w-full flex-col md:hidden">
+                <div class="flex w-full items-center justify-between px-1">
+                    <a
+                        v-for="link in firstLineLinks"
+                        :key="link.label"
+                        :href="link.href"
+                        :class="[
+                            'flex-1 cursor-pointer rounded px-1 py-2 text-center text-[11px] whitespace-nowrap text-white no-underline hover:bg-lemon/18 hover:text-white focus:ring-2 focus:ring-primary focus:outline-none sm:text-xs',
+                            navItemClass(link.href),
+                        ]"
                         :aria-label="link.label"
-                        :title="link.label">
+                        :title="link.label"
+                    >
                         {{ link.label }}
                     </a>
                 </div>
-                <div class="flex items-center w-full justify-between px-1 bg-navy/90 border-t border-white/10">
-                    <a v-for="link in secondLineLinks" :key="link.label" :href="link.href" :class="[
-                        'text-white no-underline py-2 px-1 text-[11px] sm:text-xs whitespace-nowrap text-center flex-1 hover:bg-lemon/18 hover:text-white cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none rounded',
-                        navItemClass(link.href),
-                    ]"
+                <div
+                    class="flex w-full items-center justify-between border-t border-white/10 bg-navy/90 px-1"
+                >
+                    <a
+                        v-for="link in secondLineLinks"
+                        :key="link.label"
+                        :href="link.href"
+                        :class="[
+                            'flex-1 cursor-pointer rounded px-1 py-2 text-center text-[11px] whitespace-nowrap text-white no-underline hover:bg-lemon/18 hover:text-white focus:ring-2 focus:ring-primary focus:outline-none sm:text-xs',
+                            navItemClass(link.href),
+                        ]"
                         :aria-label="link.label"
-                        :title="link.label">
+                        :title="link.label"
+                    >
                         {{ link.label }}
                     </a>
                 </div>
             </div>
         </div>
-        <div class="absolute bottom-0 h-px w-full bg-linear-to-r from-transparent via-primary/20 to-transparent" />
+        <div
+            class="absolute bottom-0 h-px w-full bg-linear-to-r from-transparent via-primary/20 to-transparent"
+        />
     </nav>
 </template>

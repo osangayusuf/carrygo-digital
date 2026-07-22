@@ -2,10 +2,10 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { configureEcho, echo } from '@laravel/echo-vue';
 import Pusher from 'pusher-js';
 import { initializeTheme } from '@/composables/useAppearance';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import AdminLayout from '@/layouts/AdminLayout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 
 if (typeof window !== 'undefined') {
@@ -13,8 +13,12 @@ if (typeof window !== 'undefined') {
         broadcaster: 'reverb',
         key: import.meta.env.VITE_REVERB_APP_KEY,
         wsHost: import.meta.env.VITE_REVERB_HOST,
-        wsPort: import.meta.env.VITE_REVERB_PORT ? parseInt(import.meta.env.VITE_REVERB_PORT) : 80,
-        wssPort: import.meta.env.VITE_REVERB_PORT ? parseInt(import.meta.env.VITE_REVERB_PORT) : 443,
+        wsPort: import.meta.env.VITE_REVERB_PORT
+            ? parseInt(import.meta.env.VITE_REVERB_PORT)
+            : 80,
+        wssPort: import.meta.env.VITE_REVERB_PORT
+            ? parseInt(import.meta.env.VITE_REVERB_PORT)
+            : 443,
         forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
         enabledTransports: ['ws', 'wss'],
     });

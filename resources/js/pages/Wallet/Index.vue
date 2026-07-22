@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { wallet as walletRoute } from '@/routes/index';
 import { onMounted, watch } from 'vue';
 import SettingsPanel from '@/components/settings/SettingsPanel.vue';
 import SettingsShell from '@/components/settings/SettingsShell.vue';
@@ -8,9 +7,14 @@ import WalletBalanceCards from '@/components/wallet/WalletBalanceCards.vue';
 import WalletClaimBonus from '@/components/wallet/WalletClaimBonus.vue';
 import WalletDepositForm from '@/components/wallet/WalletDepositForm.vue';
 import WalletTransactionsSection from '@/components/wallet/WalletTransactionsSection.vue';
-import { appToast } from '@/lib/appToast';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import type { WalletBalances, WalletConfig, WalletTransactionsPaginator } from '@/types/wallet';
+import { appToast } from '@/lib/appToast';
+import { wallet as walletRoute } from '@/routes/index';
+import type {
+    WalletBalances,
+    WalletConfig,
+    WalletTransactionsPaginator,
+} from '@/types/wallet';
 
 defineOptions({ layout: PublicLayout });
 
@@ -31,12 +35,17 @@ function showPaymentToast(): void {
     } else if (props.paymentStatus === 'failed') {
         appToast.show({
             type: 'error',
-            message: 'Payment could not be verified. Please try again or contact support.',
+            message:
+                'Payment could not be verified. Please try again or contact support.',
         });
     }
 
     if (props.paymentStatus) {
-        router.get(walletRoute.url(), {}, { replace: true, preserveScroll: true });
+        router.get(
+            walletRoute.url(),
+            {},
+            { replace: true, preserveScroll: true },
+        );
     }
 }
 
@@ -57,7 +66,10 @@ watch(
             description="View your points balance, buy points, and review transaction history."
         >
             <div class="space-y-6">
-                <WalletBalanceCards :balances="balances" :wallet-config="walletConfig" />
+                <WalletBalanceCards
+                    :balances="balances"
+                    :wallet-config="walletConfig"
+                />
                 <WalletDepositForm :wallet-config="walletConfig" />
                 <WalletClaimBonus :bonus-points="balances.bonus_points" />
                 <WalletTransactionsSection :transactions="transactions" />

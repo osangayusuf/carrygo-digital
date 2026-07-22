@@ -2,11 +2,11 @@
 import { Form, Head } from '@inertiajs/vue3';
 import { onUnmounted, ref } from 'vue';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
-import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
-import TwoFactorSetupModal from '@/components/TwoFactorSetupModal.vue';
 import SettingsPanel from '@/components/settings/SettingsPanel.vue';
 import SettingsPasswordField from '@/components/settings/SettingsPasswordField.vue';
 import SettingsShell from '@/components/settings/SettingsShell.vue';
+import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
+import TwoFactorSetupModal from '@/components/TwoFactorSetupModal.vue';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { disable, enable } from '@/routes/two-factor';
@@ -44,15 +44,22 @@ onUnmounted(() => clearTwoFactorAuthData());
                     v-bind="SecurityController.update.form()"
                     :options="{ preserveScroll: true }"
                     reset-on-success
-                    :reset-on-error="['password', 'password_confirmation', 'current_password']"
+                    :reset-on-error="[
+                        'password',
+                        'password_confirmation',
+                        'current_password',
+                    ]"
                     class="space-y-6"
                     v-slot="{ errors, processing }"
                 >
                     <div class="space-y-6">
                         <div>
-                            <h3 class="text-lg font-semibold text-on-surface">Update password</h3>
+                            <h3 class="text-lg font-semibold text-on-surface">
+                                Update password
+                            </h3>
                             <p class="text-sm text-on-surface-variant">
-                                Ensure your account is using a long, random password to stay secure
+                                Ensure your account is using a long, random
+                                password to stay secure
                             </p>
                         </div>
 
@@ -109,9 +116,10 @@ onUnmounted(() => clearTwoFactorAuthData());
 
                     <div v-if="!twoFactorEnabled" class="space-y-4">
                         <p class="text-sm text-on-surface-variant">
-                            When you enable two-factor authentication, you will be prompted for a
-                            secure pin during login. This pin can be retrieved from a
-                            TOTP-supported application on your phone.
+                            When you enable two-factor authentication, you will
+                            be prompted for a secure pin during login. This pin
+                            can be retrieved from a TOTP-supported application
+                            on your phone.
                         </p>
 
                         <button
@@ -140,8 +148,9 @@ onUnmounted(() => clearTwoFactorAuthData());
 
                     <div v-else class="space-y-4">
                         <p class="text-sm text-on-surface-variant">
-                            You will be prompted for a secure, random pin during login, which you
-                            can retrieve from the TOTP-supported application on your phone.
+                            You will be prompted for a secure, random pin during
+                            login, which you can retrieve from the
+                            TOTP-supported application on your phone.
                         </p>
 
                         <Form v-bind="disable.form()" #default="{ processing }">

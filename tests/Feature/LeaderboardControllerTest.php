@@ -82,3 +82,30 @@ test('leaderboard shows auctions without bids with empty top bidders', function 
             ->where('auctions.data.0.name', 'No Bids Yet')
             ->where('auctions.data.0.top_bidders', []));
 });
+
+test('leaderboard resolves tie of top bidders by who reached the total first', function () {
+    $user = User::factory()->create();
+    $auction = Auction::factory()->active()->create(['name' => 'Tied Item']);
+    $userA = User::factory()->create(['phone' => '08011111111']);
+    $userB = User::factory()->create(['phone' => '08022222222']);
+
+    // 1. User A bids 100 first
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $userA->id, 'amount' => 100]);
+    // 2. User B bids 50
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $userB->id, 'amount' => 50]);
+    // 3. User B bids another 50 to tie User A
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $userB->id, 'amount' => 50]);
+
+    // Both are at 100, but User A reached 100 first.
+    // So User A should be listed before User B in top_bidders.
+    $this->actingAs($user)
+        ->get(route('leaderboard'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('auctions.data.0.top_bidders', 2)
+            ->where('auctions.data.0.top_bidders.0.msisdn', '08011111111')
+            ->where('auctions.data.0.top_bidders.0.total_points', 100)
+            ->where('auctions.data.0.top_bidders.1.msisdn', '08022222222')
+            ->where('auctions.data.0.top_bidders.1.total_points', 100)
+        );
+});

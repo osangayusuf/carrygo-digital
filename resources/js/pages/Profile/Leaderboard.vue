@@ -37,15 +37,23 @@ const rankMedals: Record<number, string> = {
                 v-if="topBidders.length === 0"
                 class="flex flex-col items-center gap-3 py-16 text-center"
             >
-                <span class="material-symbols-outlined text-5xl text-on-surface-variant">leaderboard</span>
-                <p class="font-semibold text-on-surface">No bids this week yet.</p>
+                <span
+                    class="material-symbols-outlined text-5xl text-on-surface-variant"
+                    >leaderboard</span
+                >
+                <p class="font-semibold text-on-surface">
+                    No bids this week yet.
+                </p>
                 <p class="text-sm text-on-surface-variant">
                     Be the first to bid and claim the top spot!
                 </p>
             </div>
 
             <!-- Leaderboard table -->
-            <div v-else class="overflow-hidden rounded-xl border border-outline-variant">
+            <div
+                v-else
+                class="overflow-hidden rounded-xl border border-outline-variant"
+            >
                 <!-- Top 3 podium cards -->
                 <div
                     v-if="topBidders.length >= 1"
@@ -55,11 +63,19 @@ const rankMedals: Record<number, string> = {
                         v-for="bidder in topBidders.slice(0, 3)"
                         :key="bidder.rank"
                         class="flex flex-col items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-lowest p-4 text-center"
-                        :class="bidder.rank === 1 ? 'ring-2 ring-secondary' : ''"
+                        :class="
+                            bidder.rank === 1 ? 'ring-2 ring-secondary' : ''
+                        "
                     >
-                        <span class="text-3xl">{{ rankMedals[bidder.rank] ?? `#${bidder.rank}` }}</span>
-                        <p class="mt-1 font-bold text-on-surface">{{ bidder.name }}</p>
-                        <p class="text-xs text-on-surface-variant">{{ bidder.msisdn }}</p>
+                        <span class="text-3xl">{{
+                            rankMedals[bidder.rank] ?? `#${bidder.rank}`
+                        }}</span>
+                        <p class="mt-1 font-bold text-on-surface">
+                            {{ bidder.name }}
+                        </p>
+                        <p class="text-xs text-on-surface-variant">
+                            {{ bidder.msisdn }}
+                        </p>
                         <p class="mt-1 text-sm font-black text-secondary">
                             {{ bidder.total_bid_pts.toLocaleString() }} pts
                         </p>
@@ -69,7 +85,9 @@ const rankMedals: Record<number, string> = {
                 <!-- Ranks 4–10 table -->
                 <table v-if="topBidders.length > 3" class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-outline-variant bg-surface-container-low text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        <tr
+                            class="border-b border-outline-variant bg-surface-container-low text-left text-xs font-bold tracking-wider text-on-surface-variant uppercase"
+                        >
                             <th class="px-4 py-3">Rank</th>
                             <th class="px-4 py-3">Bidder</th>
                             <th class="px-4 py-3 text-right">Points Bid</th>
@@ -81,12 +99,22 @@ const rankMedals: Record<number, string> = {
                             :key="bidder.rank"
                             class="border-b border-outline-variant transition-colors last:border-0 hover:bg-surface-container"
                         >
-                            <td class="px-4 py-3 font-bold text-on-surface-variant">#{{ bidder.rank }}</td>
-                            <td class="px-4 py-3">
-                                <p class="font-semibold text-on-surface">{{ bidder.name }}</p>
-                                <p class="text-xs text-on-surface-variant">{{ bidder.msisdn }}</p>
+                            <td
+                                class="px-4 py-3 font-bold text-on-surface-variant"
+                            >
+                                #{{ bidder.rank }}
                             </td>
-                            <td class="px-4 py-3 text-right font-bold text-on-surface">
+                            <td class="px-4 py-3">
+                                <p class="font-semibold text-on-surface">
+                                    {{ bidder.name }}
+                                </p>
+                                <p class="text-xs text-on-surface-variant">
+                                    {{ bidder.msisdn }}
+                                </p>
+                            </td>
+                            <td
+                                class="px-4 py-3 text-right font-bold text-on-surface"
+                            >
                                 {{ bidder.total_bid_pts.toLocaleString() }}
                             </td>
                         </tr>
@@ -95,7 +123,8 @@ const rankMedals: Record<number, string> = {
             </div>
 
             <p class="mt-4 text-xs text-on-surface-variant">
-                ℹ️ Rankings reset every Monday. Bonus points are credited automatically to top finishers.
+                ℹ️ Rankings reset every Monday. Bonus points are credited
+                automatically to top finishers.
             </p>
         </SettingsPanel>
     </SettingsShell>

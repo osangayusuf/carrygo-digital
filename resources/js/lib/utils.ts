@@ -20,7 +20,8 @@ export function formatPrice(price: string | number): string {
         return '₦ 0';
     }
 
-    const cleanPrice = typeof price === 'string' ? price.replace(/,/g, '') : price;
+    const cleanPrice =
+        typeof price === 'string' ? price.replace(/,/g, '') : price;
     const num = parseFloat(cleanPrice.toString());
 
     return isNaN(num) ? price.toString() : `₦ ${num.toLocaleString()}`;
@@ -60,7 +61,10 @@ export function getRemainingTime(expiresAt: string | null | undefined): string {
     return `${hours} hour(s), ${minutes} minute(s)`;
 }
 
-export function maskedMsisdnParts(msisdn: string): { prefix: string; suffix: string } {
+export function maskedMsisdnParts(msisdn: string): {
+    prefix: string;
+    suffix: string;
+} {
     const digits = msisdn.replace(/\D/g, '');
 
     if (digits.length < 7) {

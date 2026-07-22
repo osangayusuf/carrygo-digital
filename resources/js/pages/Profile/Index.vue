@@ -30,7 +30,11 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 
 const claimSteps = [
-    { key: 'verification', label: 'Winner Verification', icon: 'verified_user' },
+    {
+        key: 'verification',
+        label: 'Winner Verification',
+        icon: 'verified_user',
+    },
     { key: 'processing', label: 'Processing', icon: 'inventory_2' },
     { key: 'shipped', label: 'Shipped', icon: 'local_shipping' },
     { key: 'delivered', label: 'Delivered', icon: 'check_circle' },
@@ -47,7 +51,9 @@ const claimSteps = [
             class="mb-8 rounded-xl border border-secondary/30 bg-secondary-container/20 p-5"
         >
             <div class="mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-secondary">emoji_events</span>
+                <span class="material-symbols-outlined text-secondary"
+                    >emoji_events</span
+                >
                 <h3 class="font-semibold text-on-surface">Your Won Auctions</h3>
             </div>
 
@@ -65,17 +71,26 @@ const claimSteps = [
                             class="h-12 w-12 rounded-lg object-cover"
                         />
                         <div class="min-w-0 flex-1">
-                            <p class="truncate font-semibold text-on-surface">{{ auction.name }}</p>
+                            <p class="truncate font-semibold text-on-surface">
+                                {{ auction.name }}
+                            </p>
                             <p class="text-xs text-on-surface-variant">
-                                Market value: ₦{{ Number(auction.price).toLocaleString() }}
+                                Market value: ₦{{
+                                    Number(auction.price).toLocaleString()
+                                }}
                             </p>
                         </div>
                     </div>
 
                     <!-- Tracking pipeline -->
                     <div class="flex items-center justify-between gap-1">
-                        <template v-for="(step, idx) in claimSteps" :key="step.key">
-                            <div class="flex flex-col items-center gap-1 text-center">
+                        <template
+                            v-for="(step, idx) in claimSteps"
+                            :key="step.key"
+                        >
+                            <div
+                                class="flex flex-col items-center gap-1 text-center"
+                            >
                                 <div
                                     class="flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors"
                                     :class="
@@ -84,9 +99,14 @@ const claimSteps = [
                                             : 'border-outline-variant bg-surface-container text-on-surface-variant'
                                     "
                                 >
-                                    <span class="material-symbols-outlined text-[18px]">{{ step.icon }}</span>
+                                    <span
+                                        class="material-symbols-outlined text-[18px]"
+                                        >{{ step.icon }}</span
+                                    >
                                 </div>
-                                <span class="max-w-[64px] text-[10px] leading-tight text-on-surface-variant">
+                                <span
+                                    class="max-w-[64px] text-[10px] leading-tight text-on-surface-variant"
+                                >
                                     {{ step.label }}
                                 </span>
                             </div>
@@ -98,7 +118,8 @@ const claimSteps = [
                     </div>
 
                     <p class="mt-3 text-xs text-on-surface-variant">
-                        Contact support with your registered phone number to track your prize delivery.
+                        Contact support with your registered phone number to
+                        track your prize delivery.
                     </p>
                 </div>
             </div>
@@ -154,7 +175,10 @@ const claimSteps = [
                     hint="Winners are contacted through this number. Keep it up to date."
                 />
 
-                <div v-if="mustVerifyEmail && !user?.email_verified_at" class="rounded-lg border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface-variant">
+                <div
+                    v-if="mustVerifyEmail && !user?.email_verified_at"
+                    class="rounded-lg border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface-variant"
+                >
                     <p>
                         Your email address is unverified.
                         <Link
@@ -169,18 +193,23 @@ const claimSteps = [
                         v-if="status === 'verification-link-sent'"
                         class="mt-2 font-medium text-forest"
                     >
-                        A new verification link has been sent to your email address.
+                        A new verification link has been sent to your email
+                        address.
                     </p>
                 </div>
 
-                <div class="mt-6 flex justify-end border-t border-outline-variant pt-6">
+                <div
+                    class="mt-6 flex justify-end border-t border-outline-variant pt-6"
+                >
                     <button
                         type="submit"
                         :disabled="processing"
                         data-test="update-profile-button"
                         class="flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
                     >
-                        <span class="material-symbols-outlined text-sm">save</span>
+                        <span class="material-symbols-outlined text-sm"
+                            >save</span
+                        >
                         Save Changes
                     </button>
                 </div>

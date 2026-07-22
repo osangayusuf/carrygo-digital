@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
-import { ChevronDown, Circle } from 'lucide-vue-next';
 import { echo } from '@laravel/echo-vue';
+import { ChevronDown, Circle } from 'lucide-vue-next';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
 type StatusType = 'online' | 'away' | 'offline';
 
@@ -10,16 +10,36 @@ const page = usePage();
 const isOpen = ref(false);
 
 const user = computed(() => page.props.auth?.user as any);
-const currentStatus = computed<StatusType>(() => user.value?.agent_status?.status || 'offline');
+const currentStatus = computed<StatusType>(
+    () => user.value?.agent_status?.status || 'offline',
+);
 
 const statusOptions = [
-    { value: 'online', label: 'Online', colorClass: 'bg-emerald-500 text-emerald-500', dotClass: 'bg-emerald-500' },
-    { value: 'away', label: 'Away', colorClass: 'bg-amber-500 text-amber-500', dotClass: 'bg-amber-500' },
-    { value: 'offline', label: 'Offline', colorClass: 'bg-rose-500 text-rose-500', dotClass: 'bg-rose-500' }
+    {
+        value: 'online',
+        label: 'Online',
+        colorClass: 'bg-emerald-500 text-emerald-500',
+        dotClass: 'bg-emerald-500',
+    },
+    {
+        value: 'away',
+        label: 'Away',
+        colorClass: 'bg-amber-500 text-amber-500',
+        dotClass: 'bg-amber-500',
+    },
+    {
+        value: 'offline',
+        label: 'Offline',
+        colorClass: 'bg-rose-500 text-rose-500',
+        dotClass: 'bg-rose-500',
+    },
 ];
 
 const currentOption = computed(() => {
-    return statusOptions.find(o => o.value === currentStatus.value) || statusOptions[2];
+    return (
+        statusOptions.find((o) => o.value === currentStatus.value) ||
+        statusOptions[2]
+    );
 });
 
 const toggleDropdown = () => {
@@ -33,6 +53,7 @@ const closeDropdown = () => {
 // Close when clicking outside
 const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
+
     if (!target.closest('#status-dropdown')) {
         closeDropdown();
     }
@@ -40,7 +61,7 @@ const handleClickOutside = (event: MouseEvent) => {
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
-    
+
     // Subscribe to support.agents channel to keep presence synchronized
     if (typeof window !== 'undefined') {
         echo()
@@ -65,6 +86,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
+
     if (typeof window !== 'undefined') {
         echo().leave('support.agents');
     }
@@ -72,38 +94,53 @@ onBeforeUnmount(() => {
 
 const changeStatus = (status: StatusType) => {
     closeDropdown();
-    if (status === currentStatus.value) return;
 
-    router.post('/support/chat/status', {
-        status: status
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            // Updated successfully
-        }
-    });
+    if (status === currentStatus.value) {
+        return;
+    }
+
+    router.post(
+        '/support/chat/status',
+        {
+            status: status,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                // Updated successfully
+            },
+        },
+    );
 };
 </script>
 
 <template>
     <div class="relative font-sans text-xs" id="status-dropdown">
         <!-- Toggle button -->
-        <button 
+        <button
             @click="toggleDropdown"
-            class="w-full flex items-center justify-between gap-2.5 px-3 py-2 border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container-lowest/80 text-on-surface hover:text-primary rounded-lg font-bold transition-all cursor-pointer shadow-sm"
+            class="flex w-full cursor-pointer items-center justify-between gap-2.5 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-3 py-2 font-bold text-on-surface shadow-sm transition-all hover:bg-surface-container-lowest/80 hover:text-primary"
         >
             <div class="flex items-center gap-2">
                 <span class="relative flex h-2 w-2">
-                    <span 
+                    <span
                         v-if="currentStatus === 'online'"
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                        class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
                     ></span>
-                    <span :class="['relative inline-flex rounded-full h-2 w-2', currentOption.dotClass]"></span>
+                    <span
+                        :class="[
+                            'relative inline-flex h-2 w-2 rounded-full',
+                            currentOption.dotClass,
+                        ]"
+                    ></span>
                 </span>
                 <span>{{ currentOption.label }}</span>
             </div>
-            <ChevronDown class="w-3.5 h-3.5 transition-transform duration-200" :class="{ 'rotate-180': isOpen }" />
+            <ChevronDown
+                class="h-3.5 w-3.5 transition-transform duration-200"
+                :class="{ 'rotate-180': isOpen }"
+            />
         </button>
 
         <!-- Dropdown menu -->
@@ -115,17 +152,19 @@ const changeStatus = (status: StatusType) => {
             leave-from-class="transform opacity-100 scale-100"
             leave-to-class="transform opacity-0 scale-95"
         >
-            <div 
-                v-if="isOpen" 
-                class="absolute bottom-full left-0 z-50 mb-1 w-full min-w-[120px] rounded-lg border border-outline-variant bg-surface-container-lowest shadow-lg py-1 divide-y divide-outline-variant/30"
+            <div
+                v-if="isOpen"
+                class="absolute bottom-full left-0 z-50 mb-1 w-full min-w-[120px] divide-y divide-outline-variant/30 rounded-lg border border-outline-variant bg-surface-container-lowest py-1 shadow-lg"
             >
                 <button
                     v-for="option in statusOptions"
                     :key="option.value"
                     @click="changeStatus(option.value as StatusType)"
-                    class="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-surface-variant/40 font-bold transition-all cursor-pointer text-on-surface hover:text-primary"
+                    class="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left font-bold text-on-surface transition-all hover:bg-surface-variant/40 hover:text-primary"
                 >
-                    <span :class="['w-2 h-2 rounded-full', option.dotClass]"></span>
+                    <span
+                        :class="['h-2 w-2 rounded-full', option.dotClass]"
+                    ></span>
                     <span>{{ option.label }}</span>
                 </button>
             </div>

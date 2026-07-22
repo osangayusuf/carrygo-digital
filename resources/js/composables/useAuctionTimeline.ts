@@ -1,8 +1,12 @@
 import { useHttp } from '@inertiajs/vue3';
 import { echo } from '@laravel/echo-vue';
-import { nextTick, onUnmounted, ref, watch, type Ref } from 'vue';
+import { nextTick, onUnmounted, ref, watch } from 'vue';
+import type { Ref } from 'vue';
 import { timeline as timelineRoute } from '@/routes/auctions';
-import type { AuctionTimelineEntry, AuctionTimelineResponse } from '@/types/auction-timeline';
+import type {
+    AuctionTimelineEntry,
+    AuctionTimelineResponse,
+} from '@/types/auction-timeline';
 
 export function useAuctionTimeline(auctionId: Ref<number | null>) {
     const entries = ref<AuctionTimelineEntry[]>([]);
@@ -58,6 +62,7 @@ export function useAuctionTimeline(auctionId: Ref<number | null>) {
         if (typeof window === 'undefined') {
             return;
         }
+
         if (subscribedAuctionId !== null) {
             echo().leave(`auction.${subscribedAuctionId}`);
             subscribedAuctionId = null;
@@ -68,16 +73,20 @@ export function useAuctionTimeline(auctionId: Ref<number | null>) {
         if (typeof window === 'undefined') {
             return;
         }
+
         unsubscribe();
         subscribedAuctionId = id;
 
         echo()
             .channel(`auction.${id}`)
-            .listen('.TimelineUpdated', (payload: { entry: AuctionTimelineEntry }) => {
-                if (payload?.entry) {
-                    appendEntry(payload.entry);
-                }
-            });
+            .listen(
+                '.TimelineUpdated',
+                (payload: { entry: AuctionTimelineEntry }) => {
+                    if (payload?.entry) {
+                        appendEntry(payload.entry);
+                    }
+                },
+            );
     }
 
     watch(

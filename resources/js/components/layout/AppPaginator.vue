@@ -55,7 +55,10 @@ function goToPage(page: number | null): void {
 </script>
 
 <template>
-    <div v-if="lastPage > 1" class="mt-12 flex items-center justify-center gap-3">
+    <div
+        v-if="lastPage > 1"
+        class="mt-12 flex items-center justify-center gap-3"
+    >
         <button
             type="button"
             :disabled="currentPage === 1"
@@ -67,7 +70,10 @@ function goToPage(page: number | null): void {
 
         <div class="flex gap-2">
             <template v-for="page in visiblePages" :key="page">
-                <span v-if="page === '...'" class="flex h-10 w-10 items-center justify-center text-sm font-bold text-muted-green">
+                <span
+                    v-if="page === '...'"
+                    class="flex h-10 w-10 items-center justify-center text-sm font-bold text-muted-green"
+                >
                     ...
                 </span>
                 <button

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Bell } from 'lucide-vue-next';
 import { Link, useHttp } from '@inertiajs/vue3';
+import { Bell } from 'lucide-vue-next';
+import { ref, onMounted } from 'vue';
 import notifications from '@/routes/notifications/index';
 
 const unreadCount = ref(0);
@@ -14,7 +14,7 @@ const fetchUnread = () => {
                 unreadCount.value = response.count || 0;
             }
         },
-        onError: () => { }
+        onError: () => {},
     });
 };
 
@@ -25,11 +25,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <Link :href="notifications.index.url()"
-        class="text-white hover:text-lemon relative inline-flex items-center justify-center">
+    <Link
+        :href="notifications.index.url()"
+        class="relative inline-flex items-center justify-center text-white hover:text-lemon"
+    >
         <Bell class="h-6 w-6" />
-        <span v-if="unreadCount > 0"
-            class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-forest">
+        <span
+            v-if="unreadCount > 0"
+            class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-forest"
+        >
             {{ unreadCount > 99 ? '99+' : unreadCount }}
         </span>
     </Link>

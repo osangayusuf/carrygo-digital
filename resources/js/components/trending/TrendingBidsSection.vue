@@ -28,7 +28,9 @@ const sortOptions: { value: string; label: string }[] = [
 ];
 
 const sortLabel = computed(
-    () => sortOptions.find((option) => option.value === sort.value)?.label ?? 'Sort By',
+    () =>
+        sortOptions.find((option) => option.value === sort.value)?.label ??
+        'Sort By',
 );
 
 function toggleClosingSoon(): void {
@@ -37,6 +39,7 @@ function toggleClosingSoon(): void {
     } else {
         sort.value = 'closing_soon';
     }
+
     visit({ page: 1 });
 }
 
@@ -108,10 +111,17 @@ function goToPage(page: number): void {
 <template>
     <section class="mx-auto max-w-[1300px] px-4 pt-8 pb-20">
         <header class="mb-10">
-            <div class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div
+                class="flex flex-col justify-between gap-6 md:flex-row md:items-end"
+            >
                 <div class="space-y-2">
-                    <span class="text-xs font-bold uppercase tracking-widest text-muted-green">Curated Selection</span>
-                    <h1 class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl">
+                    <span
+                        class="text-xs font-bold tracking-widest text-muted-green uppercase"
+                        >Curated Selection</span
+                    >
+                    <h1
+                        class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl"
+                    >
                         Trending Bids
                     </h1>
                 </div>
@@ -121,15 +131,24 @@ function goToPage(page: number): void {
                         <div
                             class="flex cursor-pointer items-center justify-between rounded-xl border-2 border-sage-border bg-white px-5 py-3 transition-colors hover:border-lemon"
                         >
-                            <span class="mr-4 text-sm font-bold text-ink">{{ sortLabel }}</span>
-                            <span class="material-symbols-outlined text-sm text-muted-green">expand_more</span>
+                            <span class="mr-4 text-sm font-bold text-ink">{{
+                                sortLabel
+                            }}</span>
+                            <span
+                                class="material-symbols-outlined text-sm text-muted-green"
+                                >expand_more</span
+                            >
                         </div>
                         <select
                             v-model="sort"
                             class="absolute inset-0 w-full cursor-pointer appearance-none opacity-0"
                             @change="onSortChange"
                         >
-                            <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+                            <option
+                                v-for="option in sortOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
                                 {{ option.label }}
                             </option>
                         </select>
@@ -137,11 +156,11 @@ function goToPage(page: number): void {
 
                     <button
                         type="button"
-                        class="flex w-full cursor-pointer items-center justify-center rounded-xl border-2 px-5 py-3 transition-colors sm:w-auto whitespace-nowrap"
+                        class="flex w-full cursor-pointer items-center justify-center rounded-xl border-2 px-5 py-3 whitespace-nowrap transition-colors sm:w-auto"
                         :class="
                             sort === 'closing_soon'
-                                ? 'border-navy bg-navy text-lemon font-extrabold shadow-sm animate-pulse-subtle'
-                                : 'border-sage-border bg-white text-ink hover:border-lemon font-bold'
+                                ? 'animate-pulse-subtle border-navy bg-navy font-extrabold text-lemon shadow-sm'
+                                : 'border-sage-border bg-white font-bold text-ink hover:border-lemon'
                         "
                         @click="toggleClosingSoon"
                     >
@@ -153,13 +172,17 @@ function goToPage(page: number): void {
                             type="button"
                             class="flex w-full cursor-pointer items-center rounded-xl border-2 px-5 py-3 transition-colors sm:w-auto"
                             :class="
-                                activeFilters.some((filter) => filter.key === 'category')
+                                activeFilters.some(
+                                    (filter) => filter.key === 'category',
+                                )
                                     ? 'border-navy bg-navy text-lemon'
                                     : 'border-sage-border bg-white text-ink hover:border-lemon'
                             "
                             @click="showFilters = !showFilters"
                         >
-                            <span class="material-symbols-outlined mr-2 text-sm">tune</span>
+                            <span class="material-symbols-outlined mr-2 text-sm"
+                                >tune</span
+                            >
                             <span class="text-sm font-bold">Filters</span>
                             <span
                                 v-if="category"
@@ -174,7 +197,9 @@ function goToPage(page: number): void {
                             class="absolute top-full right-0 z-20 mt-2 w-64 overflow-hidden rounded-xl border-2 border-sage-border bg-white shadow-xl"
                         >
                             <div class="p-3">
-                                <p class="mb-2 px-2 text-[10px] font-black uppercase tracking-widest text-muted-green">
+                                <p
+                                    class="mb-2 px-2 text-[10px] font-black tracking-widest text-muted-green uppercase"
+                                >
                                     Category
                                 </p>
                                 <div class="max-h-48 overflow-y-auto">
@@ -188,8 +213,14 @@ function goToPage(page: number): void {
                                         "
                                         @click="setCategory('')"
                                     >
-                                        <span class="material-symbols-outlined text-base">
-                                            {{ category === '' ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                                        <span
+                                            class="material-symbols-outlined text-base"
+                                        >
+                                            {{
+                                                category === ''
+                                                    ? 'radio_button_checked'
+                                                    : 'radio_button_unchecked'
+                                            }}
                                         </span>
                                         All Categories
                                     </button>
@@ -205,7 +236,9 @@ function goToPage(page: number): void {
                                         "
                                         @click="setCategory(itemCategory)"
                                     >
-                                        <span class="material-symbols-outlined text-base">
+                                        <span
+                                            class="material-symbols-outlined text-base"
+                                        >
                                             {{
                                                 category === itemCategory
                                                     ? 'radio_button_checked'
@@ -221,7 +254,10 @@ function goToPage(page: number): void {
                 </div>
             </div>
 
-            <div v-if="activeFilters.length > 0 || bids.total > 0" class="mt-5 flex flex-wrap items-center gap-3">
+            <div
+                v-if="activeFilters.length > 0 || bids.total > 0"
+                class="mt-5 flex flex-wrap items-center gap-3"
+            >
                 <div
                     v-for="filter in activeFilters"
                     :key="filter.key"
@@ -243,13 +279,26 @@ function goToPage(page: number): void {
             </div>
         </header>
 
-        <div v-if="bids.data.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
-            <span class="material-symbols-outlined mb-4 text-5xl text-muted-green">search_off</span>
-            <p class="font-condensed text-xl font-extrabold text-ink">No trending bids found</p>
-            <p class="mt-2 text-sm text-muted-green">Try adjusting your search or filters.</p>
+        <div
+            v-if="bids.data.length === 0"
+            class="flex flex-col items-center justify-center py-24 text-center"
+        >
+            <span
+                class="material-symbols-outlined mb-4 text-5xl text-muted-green"
+                >search_off</span
+            >
+            <p class="font-condensed text-xl font-extrabold text-ink">
+                No trending bids found
+            </p>
+            <p class="mt-2 text-sm text-muted-green">
+                Try adjusting your search or filters.
+            </p>
         </div>
 
-        <div v-else class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+        <div
+            v-else
+            class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5"
+        >
             <BidCard
                 v-for="bid in bids.data"
                 :key="bid.id"

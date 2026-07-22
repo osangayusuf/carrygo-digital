@@ -33,7 +33,7 @@ class HomeController extends Controller
 
             'bids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('created_at', 'desc')
-                ->limit(8)
+                ->limit(6)
                 ->get()
                 ->map(fn (Auction $auction) => $this->mapAuction($auction))),
 
@@ -201,6 +201,7 @@ class HomeController extends Controller
             'expires_at' => $auction->expires_at?->toISOString(),
             'bid_count' => $auction->bid_count,
             'winner_id' => $auction->winner_id,
+            'external_url' => $auction->external_url,
         ];
     }
 

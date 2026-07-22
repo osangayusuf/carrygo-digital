@@ -41,8 +41,12 @@ function show({ type, message }: FlashToast, duration?: number): void {
 
 export const appToast = {
     show,
-    success: (message: string, duration?: number) => show({ type: 'success', message }, duration),
-    error: (message: string, duration?: number) => show({ type: 'error', message }, duration),
-    warning: (message: string, duration?: number) => show({ type: 'warning', message }, duration),
-    info: (message: string, duration?: number) => show({ type: 'info', message }, duration),
+    success: (message: string, duration?: number) =>
+        show({ type: 'success', message }, duration),
+    error: (message: string, duration?: number) =>
+        show({ type: 'error', message }, duration),
+    warning: (message: string, duration?: number) =>
+        show({ type: 'warning', message }, duration),
+    info: (message: string, duration?: number) =>
+        show({ type: 'info', message }, duration),
 };

@@ -16,12 +16,16 @@ const { isCurrentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 md:grid-cols-12 md:px-6">
+    <div
+        class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 md:grid-cols-12 md:px-6"
+    >
         <aside class="md:col-span-3">
             <div
                 class="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm"
             >
-                <div class="border-b border-outline-variant bg-surface-container-low p-4">
+                <div
+                    class="border-b border-outline-variant bg-surface-container-low p-4"
+                >
                     <h2 class="text-lg font-bold text-on-surface">Settings</h2>
                 </div>
                 <nav class="flex flex-col gap-1 p-2">
@@ -36,7 +40,9 @@ const { isCurrentUrl } = useCurrentUrl();
                                 : 'text-on-surface-variant hover:bg-surface-container'
                         "
                     >
-                        <span class="material-symbols-outlined">{{ item.icon }}</span>
+                        <span class="material-symbols-outlined">{{
+                            item.icon
+                        }}</span>
                         <span>{{ item.label }}</span>
                     </Link>
                 </nav>

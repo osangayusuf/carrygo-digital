@@ -18,7 +18,6 @@ const { getInitials } = useInitials();
 const showAvatar = computed(
     () => props.user.avatar && props.user.avatar !== '',
 );
-
 </script>
 
 <template>

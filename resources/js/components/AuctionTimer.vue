@@ -12,9 +12,11 @@ function computeRemaining(): number {
     if (!store.auction?.expires_at) {
         return 0;
     }
+
     const diff = Math.floor(
         (new Date(store.auction.expires_at).getTime() - Date.now()) / 1000,
     );
+
     return Math.max(0, diff);
 }
 
@@ -22,9 +24,11 @@ function startTimer(): void {
     if (intervalId !== null) {
         clearInterval(intervalId);
     }
+
     secondsRemaining.value = computeRemaining();
     intervalId = setInterval(() => {
         secondsRemaining.value = computeRemaining();
+
         if (secondsRemaining.value === 0 && intervalId !== null) {
             clearInterval(intervalId);
             intervalId = null;
@@ -43,6 +47,7 @@ watch(
                 clearInterval(intervalId);
                 intervalId = null;
             }
+
             secondsRemaining.value = 0;
         }
     },
@@ -56,19 +61,31 @@ onUnmounted(() => {
 });
 
 const isTriggered = computed(
-    () => store.auction?.status === 'triggered' || store.auction?.status === 'closed',
+    () =>
+        store.auction?.status === 'triggered' ||
+        store.auction?.status === 'closed',
 );
 
 const isClosed = computed(() => store.auction?.status === 'closed');
 
-const displayMinutes = computed(() => String(Math.floor(secondsRemaining.value / 60)).padStart(2, '0'));
-const displaySeconds = computed(() => String(secondsRemaining.value % 60).padStart(2, '0'));
+const displayMinutes = computed(() =>
+    String(Math.floor(secondsRemaining.value / 60)).padStart(2, '0'),
+);
+const displaySeconds = computed(() =>
+    String(secondsRemaining.value % 60).padStart(2, '0'),
+);
 
-const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.value <= 30);
+const isUrgent = computed(
+    () => secondsRemaining.value > 0 && secondsRemaining.value <= 30,
+);
 </script>
 
 <template>
-    <div v-if="isTriggered" class="auction-timer" :class="{ 'is-urgent': isUrgent, 'is-closed': isClosed }">
+    <div
+        v-if="isTriggered"
+        class="auction-timer"
+        :class="{ 'is-urgent': isUrgent, 'is-closed': isClosed }"
+    >
         <!-- Closed state -->
         <div v-if="isClosed" class="timer-closed">
             <span class="timer-label">Auction Ended</span>
@@ -208,7 +225,16 @@ const isUrgent = computed(() => secondsRemaining.value > 0 && secondsRemaining.v
 }
 
 @keyframes pulse-amber {
-    0%, 100% { border-color: var(--color-amber); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-amber) 40%, transparent); }
-    50% { border-color: var(--color-amber); box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-amber) 0%, transparent); }
+    0%,
+    100% {
+        border-color: var(--color-amber);
+        box-shadow: 0 0 0 0
+            color-mix(in srgb, var(--color-amber) 40%, transparent);
+    }
+    50% {
+        border-color: var(--color-amber);
+        box-shadow: 0 0 0 6px
+            color-mix(in srgb, var(--color-amber) 0%, transparent);
+    }
 }
 </style>

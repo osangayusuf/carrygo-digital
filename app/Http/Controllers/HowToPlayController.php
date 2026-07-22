@@ -33,8 +33,13 @@ class HowToPlayController extends Controller
                 ],
                 [
                     'title' => 'Win, Confirm, and Receive',
-                    'description' => 'When the timer closes, the top bidder wins. Keep your phone/profile details accurate for winner confirmation and delivery.',
+                    'description' => 'When the timer closes, the bidder with the highest cumulative total wins. In case of a tie, the bidder who reached that total first is the winner.',
                     'icon' => 'emoji_events',
+                ],
+                [
+                    'title' => 'Enjoy 100% Free Delivery',
+                    'description' => 'Every single product you win is delivered directly to your doorstep at absolutely zero extra shipping cost.',
+                    'icon' => 'local_shipping',
                 ],
             ],
             'sections' => [
@@ -93,6 +98,10 @@ class HowToPlayController extends Controller
                 [
                     'question' => 'How are winners contacted?',
                     'answer' => 'Bidora reaches winners through registered profile details, so keep your phone and account information updated.',
+                ],
+                [
+                    'question' => 'How are ties resolved when the countdown ends?',
+                    'answer' => 'If multiple bidders share the same highest cumulative point total when the timer expires, the bidder who reached that total first is declared the winner.',
                 ],
             ],
             'support' => [

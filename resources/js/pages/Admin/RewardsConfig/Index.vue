@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { computed } from 'vue';
-import { 
-    Settings, 
-    Check, 
-    Coins, 
+import {
+    Settings,
+    Check,
+    Coins,
     Gift,
     Dices,
     AlertTriangle,
     Trash2,
-    Plus
+    Plus,
 } from 'lucide-vue-next';
+import { computed } from 'vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { update as rewardsConfigUpdate } from '@/routes/admin/rewards-config';
 
 type SpinSegment = {
@@ -35,10 +35,12 @@ const props = defineProps<{
 
 // Map milestones dictionary to array of objects for easier form binding
 const milestoneList = computed(() => {
-    return Object.entries(props.config.checkin_milestones).map(([day, points]) => ({
-        day: parseInt(day),
-        points: points
-    })).sort((a, b) => a.day - b.day);
+    return Object.entries(props.config.checkin_milestones)
+        .map(([day, points]) => ({
+            day: parseInt(day),
+            points: points,
+        }))
+        .sort((a, b) => a.day - b.day);
 });
 
 const form = useForm({
@@ -47,17 +49,19 @@ const form = useForm({
     min_bid_increment: props.config.min_bid_increment,
     min_deposit_naira: props.config.min_deposit_naira,
     max_deposit_naira: props.config.max_deposit_naira,
-    
+
     checkin_base_points: props.config.checkin_base_points,
     checkin_milestones: props.config.checkin_milestones, // Will be updated on submit
-    
+
     spin_wheel_daily_grant: props.config.spin_wheel_daily_grant,
-    spin_wheel_segments: JSON.parse(JSON.stringify(props.config.spin_wheel_segments)) as SpinSegment[],
+    spin_wheel_segments: JSON.parse(
+        JSON.stringify(props.config.spin_wheel_segments),
+    ) as SpinSegment[],
 });
 
 // Helper form arrays for dynamic bindings
 const milestonesModel = useForm({
-    items: milestoneList.value
+    items: milestoneList.value,
 });
 
 const addMilestone = () => {
@@ -78,7 +82,10 @@ const removeSegment = (index: number) => {
 };
 
 const totalProbability = computed(() => {
-    return form.spin_wheel_segments.reduce((sum, item) => sum + (item.probability || 0), 0);
+    return form.spin_wheel_segments.reduce(
+        (sum, item) => sum + (item.probability || 0),
+        0,
+    );
 });
 
 const isProbabilityValid = computed(() => {
@@ -88,7 +95,7 @@ const isProbabilityValid = computed(() => {
 const submitConfig = () => {
     // Reconstruct milestones object
     const milestonesObj: Record<string, number> = {};
-    milestonesModel.items.forEach(item => {
+    milestonesModel.items.forEach((item) => {
         if (item.day > 0) {
             milestonesObj[item.day.toString()] = item.points;
         }
@@ -105,87 +112,116 @@ const submitConfig = () => {
     <AdminLayout :breadcrumbs="[{ title: 'Rewards Config' }]">
         <div class="flex flex-col gap-6 font-sans text-xs">
             <!-- Header bar -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div
+                class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+            >
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-primary uppercase flex items-center gap-2">
-                        <Settings class="w-6 h-6 text-primary" />
+                    <h1
+                        class="flex items-center gap-2 text-2xl font-black tracking-tight text-primary uppercase"
+                    >
+                        <Settings class="h-6 w-6 text-primary" />
                         <span>Rewards & Points Configuration</span>
                     </h1>
-                    <p class="text-xs text-on-surface-variant mt-1">Manage points ratios, daily check-in rewards, and spin-to-win wheel odds.</p>
+                    <p class="mt-1 text-xs text-on-surface-variant">
+                        Manage points ratios, daily check-in rewards, and
+                        spin-to-win wheel odds.
+                    </p>
                 </div>
             </div>
 
             <!-- Error message if validation failed -->
-            <div v-if="$page.props.errors?.spin_wheel_segments" class="p-4 bg-error-container/30 border-l-4 border-error text-on-error-container rounded-lg shadow-sm">
-                <p class="font-bold flex items-center gap-2">
-                    <AlertTriangle class="w-5 h-5 text-error" />
+            <div
+                v-if="$page.props.errors?.spin_wheel_segments"
+                class="rounded-lg border-l-4 border-error bg-error-container/30 p-4 text-on-error-container shadow-sm"
+            >
+                <p class="flex items-center gap-2 font-bold">
+                    <AlertTriangle class="h-5 w-5 text-error" />
                     <span>{{ $page.props.errors.spin_wheel_segments }}</span>
                 </p>
             </div>
 
             <form @submit.prevent="submitConfig" class="space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <!-- Column 1: Points & Conversion Settings -->
-                    <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col gap-6">
-                        <h2 class="text-sm font-black text-primary uppercase tracking-widest pb-3 border-b border-outline-variant flex items-center gap-2">
-                            <Coins class="w-5 h-5 text-primary" />
+                    <div
+                        class="flex flex-col gap-6 rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm"
+                    >
+                        <h2
+                            class="flex items-center gap-2 border-b border-outline-variant pb-3 text-sm font-black tracking-widest text-primary uppercase"
+                        >
+                            <Coins class="h-5 w-5 text-primary" />
                             <span>Naira to Points & Limits</span>
                         </h2>
 
                         <div class="space-y-4">
                             <div class="flex flex-col gap-2 font-bold">
-                                <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Points per Naira (₦1 = X Points)</label>
-                                <input 
-                                    v-model="form.points_per_naira" 
-                                    type="number" 
+                                <label
+                                    class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                    >Points per Naira (₦1 = X Points)</label
+                                >
+                                <input
+                                    v-model="form.points_per_naira"
+                                    type="number"
                                     required
                                     min="1"
-                                    class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-on-surface focus:border-secondary focus:outline-none"
                                 />
                             </div>
 
                             <div class="flex flex-col gap-2 font-bold">
-                                <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Bonus conversion rate (Multiplier)</label>
-                                <input 
-                                    v-model="form.bonus_conversion_rate" 
-                                    type="number" 
+                                <label
+                                    class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                    >Bonus conversion rate (Multiplier)</label
+                                >
+                                <input
+                                    v-model="form.bonus_conversion_rate"
+                                    type="number"
                                     step="0.1"
                                     required
                                     min="0.1"
-                                    class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-on-surface focus:border-secondary focus:outline-none"
                                 />
                             </div>
 
                             <div class="flex flex-col gap-2 font-bold">
-                                <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Minimum Bid Increment (Points)</label>
-                                <input 
-                                    v-model="form.min_bid_increment" 
-                                    type="number" 
+                                <label
+                                    class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                    >Minimum Bid Increment (Points)</label
+                                >
+                                <input
+                                    v-model="form.min_bid_increment"
+                                    type="number"
                                     required
                                     min="1"
-                                    class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-on-surface focus:border-secondary focus:outline-none"
                                 />
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-2 font-bold">
-                                    <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Min Deposit (₦)</label>
-                                    <input 
-                                        v-model="form.min_deposit_naira" 
-                                        type="number" 
+                                    <label
+                                        class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                        >Min Deposit (₦)</label
+                                    >
+                                    <input
+                                        v-model="form.min_deposit_naira"
+                                        type="number"
                                         required
                                         min="1"
-                                        class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                        class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-on-surface focus:border-secondary focus:outline-none"
                                     />
                                 </div>
                                 <div class="flex flex-col gap-2 font-bold">
-                                    <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Max Deposit (₦)</label>
-                                    <input 
-                                        v-model="form.max_deposit_naira" 
-                                        type="number" 
+                                    <label
+                                        class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                        >Max Deposit (₦)</label
+                                    >
+                                    <input
+                                        v-model="form.max_deposit_naira"
+                                        type="number"
                                         required
                                         min="1000"
-                                        class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                        class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-on-surface focus:border-secondary focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -193,67 +229,92 @@ const submitConfig = () => {
                     </div>
 
                     <!-- Column 2: Daily Check-in Milestones -->
-                    <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col gap-6">
-                        <div class="flex items-center justify-between border-b border-outline-variant pb-3">
-                            <h2 class="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                                <Gift class="w-5 h-5 text-primary" />
+                    <div
+                        class="flex flex-col gap-6 rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm"
+                    >
+                        <div
+                            class="flex items-center justify-between border-b border-outline-variant pb-3"
+                        >
+                            <h2
+                                class="flex items-center gap-2 text-sm font-black tracking-widest text-primary uppercase"
+                            >
+                                <Gift class="h-5 w-5 text-primary" />
                                 <span>Check-in Milestones</span>
                             </h2>
-                            <button 
-                                type="button" 
-                                @click="addMilestone" 
-                                class="px-2.5 py-1 border border-outline-variant hover:bg-surface-container-low rounded-lg text-primary text-[10px] font-black uppercase flex items-center gap-1.5 transition-colors"
+                            <button
+                                type="button"
+                                @click="addMilestone"
+                                class="flex items-center gap-1.5 rounded-lg border border-outline-variant px-2.5 py-1 text-[10px] font-black text-primary uppercase transition-colors hover:bg-surface-container-low"
                             >
-                                <Plus class="w-3.5 h-3.5" />
+                                <Plus class="h-3.5 w-3.5" />
                                 <span>Add</span>
                             </button>
                         </div>
 
                         <div class="space-y-4">
                             <div class="flex flex-col gap-2 font-bold">
-                                <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Base check-in Points (Day 1)</label>
-                                <input 
-                                    v-model="form.checkin_base_points" 
-                                    type="number" 
+                                <label
+                                    class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                    >Base check-in Points (Day 1)</label
+                                >
+                                <input
+                                    v-model="form.checkin_base_points"
+                                    type="number"
                                     required
                                     min="0"
-                                    class="bg-surface-container-low border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary w-full"
+                                    class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-3 text-on-surface focus:border-secondary focus:outline-none"
                                 />
                             </div>
 
-                            <label class="text-on-surface-variant uppercase tracking-wider text-[10px] block mt-4 font-bold">Consecutive Milestones</label>
-                            
-                            <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                                <div 
-                                    v-for="(item, index) in milestonesModel.items" 
+                            <label
+                                class="mt-4 block text-[10px] font-bold tracking-wider text-on-surface-variant uppercase"
+                                >Consecutive Milestones</label
+                            >
+
+                            <div
+                                class="max-h-[220px] space-y-2 overflow-y-auto pr-1"
+                            >
+                                <div
+                                    v-for="(
+                                        item, index
+                                    ) in milestonesModel.items"
                                     :key="index"
-                                    class="flex items-center gap-2 bg-surface-container-low border border-outline-variant p-2 rounded-lg"
+                                    class="flex items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-low p-2"
                                 >
-                                    <span class="text-on-surface-variant uppercase text-[9px] font-bold w-12">Day:</span>
-                                    <input 
-                                        v-model="item.day" 
-                                        type="number" 
+                                    <span
+                                        class="w-12 text-[9px] font-bold text-on-surface-variant uppercase"
+                                        >Day:</span
+                                    >
+                                    <input
+                                        v-model="item.day"
+                                        type="number"
                                         required
                                         min="2"
-                                        class="bg-surface-container-lowest border border-outline-variant text-on-surface px-2 py-1.5 rounded-lg focus:outline-none focus:border-secondary w-16 text-center text-xs font-bold"
+                                        class="w-16 rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-center text-xs font-bold text-on-surface focus:border-secondary focus:outline-none"
                                     />
-                                    <span class="text-on-surface-variant uppercase text-[9px] font-bold w-16 text-right">Points:</span>
-                                    <input 
-                                        v-model="item.points" 
-                                        type="number" 
+                                    <span
+                                        class="w-16 text-right text-[9px] font-bold text-on-surface-variant uppercase"
+                                        >Points:</span
+                                    >
+                                    <input
+                                        v-model="item.points"
+                                        type="number"
                                         required
                                         min="1"
-                                        class="bg-surface-container-lowest border border-outline-variant text-on-surface px-2 py-1.5 rounded-lg focus:outline-none focus:border-secondary w-20 text-center flex-1 text-xs font-bold"
+                                        class="w-20 flex-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-center text-xs font-bold text-on-surface focus:border-secondary focus:outline-none"
                                     />
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         @click="removeMilestone(index)"
-                                        class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 border border-outline-variant rounded-lg transition-colors bg-surface-container-lowest"
+                                        class="rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-on-surface-variant transition-colors hover:bg-error-container/20 hover:text-error"
                                     >
-                                        <Trash2 class="w-3.5 h-3.5" />
+                                        <Trash2 class="h-3.5 w-3.5" />
                                     </button>
                                 </div>
-                                <div v-if="milestonesModel.items.length === 0" class="text-center text-on-surface-variant uppercase tracking-widest text-[9px] py-6 font-bold">
+                                <div
+                                    v-if="milestonesModel.items.length === 0"
+                                    class="py-6 text-center text-[9px] font-bold tracking-widest text-on-surface-variant uppercase"
+                                >
                                     No milestone multipliers.
                                 </div>
                             </div>
@@ -262,90 +323,127 @@ const submitConfig = () => {
                 </div>
 
                 <!-- Spin Wheel Segment Odds Configurations -->
-                <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col gap-6">
-                    <div class="flex items-center justify-between border-b border-outline-variant pb-3">
-                        <h2 class="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                            <Dices class="w-5 h-5 text-primary" />
+                <div
+                    class="flex flex-col gap-6 rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm"
+                >
+                    <div
+                        class="flex items-center justify-between border-b border-outline-variant pb-3"
+                    >
+                        <h2
+                            class="flex items-center gap-2 text-sm font-black tracking-widest text-primary uppercase"
+                        >
+                            <Dices class="h-5 w-5 text-primary" />
                             <span>Spin Wheel Segment Odds</span>
                         </h2>
-                        <button 
-                            type="button" 
-                            @click="addSegment" 
-                            class="px-2.5 py-1 border border-outline-variant hover:bg-surface-container-low rounded-lg text-primary text-[10px] font-black uppercase flex items-center gap-1.5 transition-colors"
+                        <button
+                            type="button"
+                            @click="addSegment"
+                            class="flex items-center gap-1.5 rounded-lg border border-outline-variant px-2.5 py-1 text-[10px] font-black text-primary uppercase transition-colors hover:bg-surface-container-low"
                         >
-                            <Plus class="w-3.5 h-3.5" />
+                            <Plus class="h-3.5 w-3.5" />
                             <span>Add segment</span>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="flex flex-col gap-2 bg-surface-container-low border border-outline-variant p-4 rounded-xl font-bold">
-                            <label class="text-on-surface-variant uppercase tracking-wider text-[10px]">Daily Spin Grant</label>
-                            <input 
-                                v-model="form.spin_wheel_daily_grant" 
-                                type="number" 
+                    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div
+                            class="flex flex-col gap-2 rounded-xl border border-outline-variant bg-surface-container-low p-4 font-bold"
+                        >
+                            <label
+                                class="text-[10px] tracking-wider text-on-surface-variant uppercase"
+                                >Daily Spin Grant</label
+                            >
+                            <input
+                                v-model="form.spin_wheel_daily_grant"
+                                type="number"
                                 required
                                 min="0"
-                                class="bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-3 rounded-lg focus:outline-none focus:border-secondary text-xs"
+                                class="rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 text-xs text-on-surface focus:border-secondary focus:outline-none"
                             />
                         </div>
 
-                        <div class="col-span-1 md:col-span-3 flex items-center justify-end">
-                            <div 
+                        <div
+                            class="col-span-1 flex items-center justify-end md:col-span-3"
+                        >
+                            <div
                                 :class="[
-                                    'border px-6 py-4 flex flex-col gap-1 items-end w-56 rounded-xl font-sans',
-                                    isProbabilityValid 
-                                        ? 'bg-secondary-container/40 border-secondary/30 text-on-secondary-container' 
-                                        : 'bg-error-container/20 border-error/20 text-error animate-pulse'
+                                    'flex w-56 flex-col items-end gap-1 rounded-xl border px-6 py-4 font-sans',
+                                    isProbabilityValid
+                                        ? 'border-secondary/30 bg-secondary-container/40 text-on-secondary-container'
+                                        : 'animate-pulse border-error/20 bg-error-container/20 text-error',
                                 ]"
                             >
-                                <span class="text-[9px] uppercase font-bold text-on-surface-variant">Total Probability</span>
-                                <span class="text-2xl font-black">{{ totalProbability }}%</span>
-                                <span class="text-[9px] font-semibold italic uppercase tracking-wider mt-0.5">
-                                    {{ isProbabilityValid ? 'VALID (SUM = 100%)' : 'INVALID (MUST BE 100%)' }}
+                                <span
+                                    class="text-[9px] font-bold text-on-surface-variant uppercase"
+                                    >Total Probability</span
+                                >
+                                <span class="text-2xl font-black"
+                                    >{{ totalProbability }}%</span
+                                >
+                                <span
+                                    class="mt-0.5 text-[9px] font-semibold tracking-wider uppercase italic"
+                                >
+                                    {{
+                                        isProbabilityValid
+                                            ? 'VALID (SUM = 100%)'
+                                            : 'INVALID (MUST BE 100%)'
+                                    }}
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Segments Grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mt-2">
-                        <div 
-                            v-for="(item, index) in form.spin_wheel_segments" 
+                    <div
+                        class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+                    >
+                        <div
+                            v-for="(item, index) in form.spin_wheel_segments"
                             :key="index"
-                            class="bg-surface-container-low border border-outline-variant p-4 rounded-xl flex flex-col gap-3 relative font-bold"
+                            class="relative flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface-container-low p-4 font-bold"
                         >
-                            <div class="flex justify-between items-center pb-2 border-b border-outline-variant mb-1">
-                                <span class="text-[10px] font-black text-primary uppercase tracking-widest">Segment #{{ index + 1 }}</span>
-                                <button 
-                                    type="button" 
-                                    @click="removeSegment(index)"
-                                    class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/20 border border-outline-variant rounded-lg transition-colors bg-surface-container-lowest"
+                            <div
+                                class="mb-1 flex items-center justify-between border-b border-outline-variant pb-2"
+                            >
+                                <span
+                                    class="text-[10px] font-black tracking-widest text-primary uppercase"
+                                    >Segment #{{ index + 1 }}</span
                                 >
-                                    <Trash2 class="w-3.5 h-3.5" />
+                                <button
+                                    type="button"
+                                    @click="removeSegment(index)"
+                                    class="rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-on-surface-variant transition-colors hover:bg-error-container/20 hover:text-error"
+                                >
+                                    <Trash2 class="h-3.5 w-3.5" />
                                 </button>
                             </div>
 
                             <div class="flex flex-col gap-1">
-                                <span class="text-on-surface-variant uppercase text-[9px] font-bold">Reward points:</span>
-                                <input 
-                                    v-model="item.points" 
-                                    type="number" 
+                                <span
+                                    class="text-[9px] font-bold text-on-surface-variant uppercase"
+                                    >Reward points:</span
+                                >
+                                <input
+                                    v-model="item.points"
+                                    type="number"
                                     required
                                     min="0"
-                                    class="bg-surface-container-lowest border border-outline-variant text-on-surface px-3 py-2 rounded-lg focus:outline-none focus:border-secondary text-xs"
+                                    class="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-xs text-on-surface focus:border-secondary focus:outline-none"
                                 />
                             </div>
 
                             <div class="flex flex-col gap-1">
-                                <span class="text-on-surface-variant uppercase text-[9px] font-bold">Odds probability (%):</span>
-                                <input 
-                                    v-model="item.probability" 
-                                    type="number" 
+                                <span
+                                    class="text-[9px] font-bold text-on-surface-variant uppercase"
+                                    >Odds probability (%):</span
+                                >
+                                <input
+                                    v-model="item.probability"
+                                    type="number"
                                     required
                                     min="0"
                                     max="100"
-                                    class="bg-surface-container-lowest border border-outline-variant text-on-surface px-3 py-2 rounded-lg focus:outline-none focus:border-secondary text-xs"
+                                    class="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-xs text-on-surface focus:border-secondary focus:outline-none"
                                 />
                             </div>
                         </div>
@@ -353,13 +451,15 @@ const submitConfig = () => {
                 </div>
 
                 <!-- Submit Action Block -->
-                <div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl flex justify-end gap-3 shadow-sm">
-                    <button 
+                <div
+                    class="flex justify-end gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm"
+                >
+                    <button
                         type="submit"
                         :disabled="form.processing || !isProbabilityValid"
-                        class="px-8 py-3.5 bg-secondary text-on-secondary-fixed disabled:opacity-50 disabled:cursor-not-allowed font-black text-xs uppercase tracking-widest rounded-lg hover:scale-[1.01] active:scale-95 transition-all flex items-center gap-2 border border-secondary"
+                        class="flex items-center gap-2 rounded-lg border border-secondary bg-secondary px-8 py-3.5 text-xs font-black tracking-widest text-on-secondary-fixed uppercase transition-all hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <Check class="w-4 h-4" />
+                        <Check class="h-4 w-4" />
                         <span>Save Config</span>
                     </button>
                 </div>

@@ -24,6 +24,8 @@ class StoreAuctionRequest extends FormRequest
             'opening_points' => ['required', 'integer', 'min:1'],
             'countdown_duration_seconds' => ['required', 'integer', 'min:1'],
             'image' => ['required', 'image', 'max:2048'],
+            'external_url' => ['nullable', 'url', 'max:2048'],
+            'publish' => ['nullable', 'boolean'],
         ];
     }
 }

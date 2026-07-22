@@ -17,6 +17,7 @@ test('auction show page renders auction details', function () {
             ->component('Auction/Show')
             ->where('auction.id', $auction->id)
             ->where('auction.name', $auction->name)
+            ->where('auction.description', $auction->description)
         );
 });
 
@@ -67,4 +68,29 @@ test('auction show page returns at most ten top bidders', function () {
     $this->get(route('auctions.show', $auction))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page->has('topBidders', 10));
+});
+
+test('auction show page resolves tie of top bidders by who reached the total first', function () {
+    $auction = Auction::factory()->active()->create();
+    $userA = User::factory()->create(['phone' => '08011111111']);
+    $userB = User::factory()->create(['phone' => '08022222222']);
+
+    // 1. User A bids 100 first
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $userA->id, 'amount' => 100]);
+    // 2. User B bids 50
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $userB->id, 'amount' => 50]);
+    // 3. User B bids another 50 to tie User A
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $userB->id, 'amount' => 50]);
+
+    // Both are at 100, but User A reached 100 first.
+    // So User A should be listed before User B in topBidders.
+    $this->get(route('auctions.show', $auction))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('topBidders', 2)
+            ->where('topBidders.0.msisdn', '08011111111')
+            ->where('topBidders.0.total_points', 100)
+            ->where('topBidders.1.msisdn', '08022222222')
+            ->where('topBidders.1.total_points', 100)
+        );
 });

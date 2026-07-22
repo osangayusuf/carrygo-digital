@@ -11,16 +11,21 @@ defineProps<{
 <template>
     <section class="mx-auto max-w-screen-2xl px-8 py-6">
         <div class="mb-4 flex items-center justify-between">
-            <h2 class="font-headline text-2xl md:text-4xl font-extrabold tracking-tighter py-2">
+            <h2
+                class="py-2 font-headline text-2xl font-extrabold tracking-tighter md:text-4xl"
+            >
                 {{ title }}
             </h2>
             <Link
                 v-if="viewMoreRoute"
                 :href="viewMoreRoute"
-                class="group flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                class="group flex items-center gap-1 text-sm font-bold text-primary transition-colors hover:text-primary/80"
             >
                 {{ viewMoreText ?? 'View More' }}
-                <span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">chevron_right</span>
+                <span
+                    class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1"
+                    >chevron_right</span
+                >
             </Link>
         </div>
 

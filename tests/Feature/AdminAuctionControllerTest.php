@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AuctionStatus;
 use App\Models\Auction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -78,4 +79,82 @@ test('admin can update draft auction price', function () {
     $response->assertRedirect(route('admin.auctions.index'));
 
     expect($auction->refresh()->price)->toBe('2000.00');
+});
+
+test('admin can update draft auction when image is null', function () {
+    $auction = Auction::factory()->draft()->create([
+        'name' => 'Original Name',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->put(route('admin.auctions.update', $auction), [
+            'name' => 'Updated Name',
+            'image' => null,
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->name)->toBe('Updated Name');
+});
+
+test('admin can create draft auction with external url', function () {
+    $response = $this->actingAs($this->admin)
+        ->post(route('admin.auctions.store'), [
+            'category' => 'Electronics',
+            'name' => 'Brand New Laptop',
+            'price' => 75000.50,
+            'description' => 'A top tier high performance laptop.',
+            'opening_points' => 100,
+            'countdown_duration_seconds' => 60,
+            'image' => UploadedFile::fake()->image('laptop.jpg'),
+            'external_url' => 'https://example.com/laptop',
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    $this->assertDatabaseHas('auctions', [
+        'name' => 'Brand New Laptop',
+        'external_url' => 'https://example.com/laptop',
+    ]);
+});
+
+test('admin can create and immediately publish an auction', function () {
+    $response = $this->actingAs($this->admin)
+        ->post(route('admin.auctions.store'), [
+            'category' => 'Electronics',
+            'name' => 'Published Laptop',
+            'price' => 75000.50,
+            'description' => 'A published laptop.',
+            'opening_points' => 100,
+            'countdown_duration_seconds' => 60,
+            'image' => UploadedFile::fake()->image('laptop.jpg'),
+            'publish' => true,
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    $this->assertDatabaseHas('auctions', [
+        'name' => 'Published Laptop',
+        'status' => AuctionStatus::ACTIVE->value,
+    ]);
+});
+
+test('admin can update and publish an auction', function () {
+    $auction = Auction::factory()->draft()->create([
+        'name' => 'Draft Laptop',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->put(route('admin.auctions.update', $auction), [
+            'name' => 'Updated Published Laptop',
+            'publish' => true,
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    $this->assertDatabaseHas('auctions', [
+        'id' => $auction->id,
+        'name' => 'Updated Published Laptop',
+        'status' => AuctionStatus::ACTIVE->value,
+    ]);
 });

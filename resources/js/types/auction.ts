@@ -7,6 +7,7 @@ export type Bid = {
     id: number;
     name: string;
     image: string | null;
+    description: string | null;
     url: string;
     price: string;
     opening_points: number;
@@ -17,6 +18,7 @@ export type Bid = {
     current_points: number | null;
     expires_at: string | null;
     bid_count: number;
+    external_url?: string | null;
     top_bidders?: Bidder[];
 };
 

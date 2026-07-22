@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import ChatWidget from '@/components/support/ChatWidget.vue';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import ChatWidget from '@/components/support/ChatWidget.vue';
 
 const { breadcrumbs = [] } = defineProps<{
     breadcrumbs?: BreadcrumbItem[];

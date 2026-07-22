@@ -4,8 +4,8 @@ import { computed } from 'vue';
 const props = defineProps({
     points: {
         type: Number,
-        required: true
-    }
+        required: true,
+    },
 });
 
 const formatted = computed(() => {

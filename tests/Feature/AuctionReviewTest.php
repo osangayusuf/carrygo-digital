@@ -45,6 +45,7 @@ test('only participants of a closed auction can submit a review', function () {
         'user_id' => $participant->id,
         'rating' => 5,
         'comment' => 'Great product!',
+        'is_visible' => false,
     ]);
 });
 
@@ -118,6 +119,7 @@ test('winner can upload photos and videos', function () {
 
     $review = Review::where('auction_id', $auction->id)->where('user_id', $winner->id)->first();
     expect($review)->not->toBeNull();
+    expect($review->is_visible)->toBeFalse();
     expect($review->photos)->toHaveCount(1);
     expect($review->video)->not->toBeNull();
 
@@ -143,6 +145,7 @@ test('validates social platform and handle', function () {
         'user_id' => $participant->id,
         'social_platform' => 'Instagram',
         'social_handle' => '@john_doe',
+        'is_visible' => false,
     ]);
 });
 

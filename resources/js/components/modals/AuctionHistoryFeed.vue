@@ -20,7 +20,11 @@ function formatTime(iso: string): string {
 
 <template>
     <div class="mb-4">
-        <p class="mb-2 text-xs font-bold tracking-widest text-outline uppercase">Live activity</p>
+        <p
+            class="mb-2 text-xs font-bold tracking-widest text-outline uppercase"
+        >
+            Live activity
+        </p>
 
         <div
             ref="feedEl"
@@ -34,7 +38,10 @@ function formatTime(iso: string): string {
                 />
             </div>
 
-            <p v-else-if="error" class="py-6 text-center text-xs font-semibold text-error">
+            <p
+                v-else-if="error"
+                class="py-6 text-center text-xs font-semibold text-error"
+            >
                 {{ error }}
             </p>
 
@@ -49,7 +56,13 @@ function formatTime(iso: string): string {
                 <li
                     v-for="entry in entries"
                     :key="entry.id"
-                    :class="entry.is_system ? 'flex justify-center' : entry.is_mine ? 'flex justify-end' : 'flex justify-start'"
+                    :class="
+                        entry.is_system
+                            ? 'flex justify-center'
+                            : entry.is_mine
+                              ? 'flex justify-end'
+                              : 'flex justify-start'
+                    "
                 >
                     <div
                         class="max-w-[85%] rounded-2xl px-3 py-2"
@@ -63,11 +76,17 @@ function formatTime(iso: string): string {
                     >
                         <p
                             class="text-xs leading-snug font-semibold"
-                            :class="entry.is_system ? 'text-on-surface-variant' : 'text-on-surface'"
+                            :class="
+                                entry.is_system
+                                    ? 'text-on-surface-variant'
+                                    : 'text-on-surface'
+                            "
                         >
                             {{ entry.message }}
                         </p>
-                        <p class="mt-1 text-[10px] text-outline">{{ formatTime(entry.occurred_at) }}</p>
+                        <p class="mt-1 text-[10px] text-outline">
+                            {{ formatTime(entry.occurred_at) }}
+                        </p>
                     </div>
                 </li>
             </ul>

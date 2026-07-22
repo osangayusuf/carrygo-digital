@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { approve, reject as rejectRoute } from '@/actions/App/Http/Controllers/Admin/AgentController';
-import {
-    UserCheck,
-    Check,
-    UserMinus,
-    Clock,
-} from 'lucide-vue-next';
+import { UserCheck, Check, UserMinus, Clock } from 'lucide-vue-next';
 import { ref } from 'vue';
+import {
+    approve,
+    reject as rejectRoute,
+} from '@/actions/App/Http/Controllers/Admin/AgentController';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 
 type Agent = {
@@ -31,18 +29,34 @@ const props = defineProps<{
 const activeTab = ref<'pending' | 'approved'>('pending');
 
 const approveAgent = (agent: Agent) => {
-    if (confirm(`Are you sure you want to APPROVE ${agent.name} as a support agent?`)) {
-        router.post(approve.url(agent.id), {}, {
-            preserveScroll: true,
-        });
+    if (
+        confirm(
+            `Are you sure you want to APPROVE ${agent.name} as a support agent?`,
+        )
+    ) {
+        router.post(
+            approve.url(agent.id),
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
     }
 };
 
 const rejectAgent = (agent: Agent) => {
-    if (confirm(`Are you sure you want to DECLINE/REJECT ${agent.name}'s registration? This will delete their account.`)) {
-        router.post(rejectRoute.url(agent.id), {}, {
-            preserveScroll: true,
-        });
+    if (
+        confirm(
+            `Are you sure you want to DECLINE/REJECT ${agent.name}'s registration? This will delete their account.`,
+        )
+    ) {
+        router.post(
+            rejectRoute.url(agent.id),
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
     }
 };
 </script>
@@ -53,13 +67,20 @@ const rejectAgent = (agent: Agent) => {
     <AdminLayout :breadcrumbs="[{ title: 'Agent Approvals' }]">
         <div class="flex flex-col gap-6 font-sans text-xs">
             <!-- Header bar -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div
+                class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+            >
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-primary uppercase flex items-center gap-2">
-                        <UserCheck class="w-6 h-6 text-primary" />
+                    <h1
+                        class="flex items-center gap-2 text-2xl font-black tracking-tight text-primary uppercase"
+                    >
+                        <UserCheck class="h-6 w-6 text-primary" />
                         <span>Agent Management</span>
                     </h1>
-                    <p class="text-xs text-on-surface-variant mt-1">Review agent registrations, approve portal access, or reject registrations.</p>
+                    <p class="mt-1 text-xs text-on-surface-variant">
+                        Review agent registrations, approve portal access, or
+                        reject registrations.
+                    </p>
                 </div>
             </div>
 
@@ -68,10 +89,10 @@ const rejectAgent = (agent: Agent) => {
                 <button
                     @click="activeTab = 'pending'"
                     :class="[
-                        'px-5 py-3 font-bold uppercase tracking-wider transition-all border-b-2',
+                        'border-b-2 px-5 py-3 font-bold tracking-wider uppercase transition-all',
                         activeTab === 'pending'
                             ? 'border-primary text-primary'
-                            : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                            : 'border-transparent text-on-surface-variant hover:text-on-surface',
                     ]"
                 >
                     Pending Approvals ({{ pending.length }})
@@ -79,10 +100,10 @@ const rejectAgent = (agent: Agent) => {
                 <button
                     @click="activeTab = 'approved'"
                     :class="[
-                        'px-5 py-3 font-bold uppercase tracking-wider transition-all border-b-2',
+                        'border-b-2 px-5 py-3 font-bold tracking-wider uppercase transition-all',
                         activeTab === 'approved'
                             ? 'border-primary text-primary'
-                            : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                            : 'border-transparent text-on-surface-variant hover:text-on-surface',
                     ]"
                 >
                     Approved Agents ({{ approved.length }})
@@ -90,11 +111,20 @@ const rejectAgent = (agent: Agent) => {
             </div>
 
             <!-- Pending Registrations Tab -->
-            <div v-if="activeTab === 'pending'" class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
+            <div
+                v-if="activeTab === 'pending'"
+                class="flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm"
+            >
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[900px]">
-                        <thead class="bg-surface-container-low border-b border-outline-variant">
-                            <tr class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                    <table
+                        class="w-full min-w-[900px] border-collapse text-left"
+                    >
+                        <thead
+                            class="border-b border-outline-variant bg-surface-container-low"
+                        >
+                            <tr
+                                class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase"
+                            >
                                 <th class="px-6 py-4">Agent Name / Email</th>
                                 <th class="px-6 py-4">Phone</th>
                                 <th class="px-6 py-4">Department</th>
@@ -104,23 +134,44 @@ const rejectAgent = (agent: Agent) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline-variant">
-                            <tr v-for="agent in pending" :key="agent.id" class="hover:bg-surface-container-low/20 transition-colors">
+                            <tr
+                                v-for="agent in pending"
+                                :key="agent.id"
+                                class="transition-colors hover:bg-surface-container-low/20"
+                            >
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
-                                        <span class="font-bold text-primary">{{ agent.name }}</span>
-                                        <span class="text-[10px] text-on-surface-variant mt-0.5">{{ agent.email }}</span>
+                                        <span class="font-bold text-primary">{{
+                                            agent.name
+                                        }}</span>
+                                        <span
+                                            class="mt-0.5 text-[10px] text-on-surface-variant"
+                                            >{{ agent.email }}</span
+                                        >
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-on-surface font-semibold">{{ agent.phone }}</td>
+                                <td
+                                    class="px-6 py-4 font-semibold text-on-surface"
+                                >
+                                    {{ agent.phone }}
+                                </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-[10px] font-bold uppercase text-on-secondary-container tracking-widest bg-secondary-container/40 border border-secondary/20 px-2 py-0.5 rounded">
+                                    <span
+                                        class="rounded border border-secondary/20 bg-secondary-container/40 px-2 py-0.5 text-[10px] font-bold tracking-widest text-on-secondary-container uppercase"
+                                    >
                                         {{ agent.department }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 font-mono font-bold text-on-surface">{{ agent.employee_id }}</td>
+                                <td
+                                    class="px-6 py-4 font-mono font-bold text-on-surface"
+                                >
+                                    {{ agent.employee_id }}
+                                </td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center gap-1 bg-amber/15 border border-amber/30 text-primary text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full animate-pulse">
-                                        <Clock class="w-3 h-3 text-primary" />
+                                    <span
+                                        class="inline-flex animate-pulse items-center gap-1 rounded-full border border-amber/30 bg-amber/15 px-2.5 py-1 text-[9px] font-black tracking-widest text-primary uppercase"
+                                    >
+                                        <Clock class="h-3 w-3 text-primary" />
                                         <span>Pending Review</span>
                                     </span>
                                 </td>
@@ -128,24 +179,27 @@ const rejectAgent = (agent: Agent) => {
                                     <div class="flex items-center gap-2">
                                         <button
                                             @click="approveAgent(agent)"
-                                            class="px-3 py-1.5 border border-secondary/25 bg-secondary-container/40 hover:bg-secondary-container/85 text-on-secondary-container hover:text-primary rounded-lg transition-colors font-bold text-[10px] flex items-center gap-1.5 cursor-pointer"
+                                            class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-secondary/25 bg-secondary-container/40 px-3 py-1.5 text-[10px] font-bold text-on-secondary-container transition-colors hover:bg-secondary-container/85 hover:text-primary"
                                         >
-                                            <Check class="w-3.5 h-3.5" />
+                                            <Check class="h-3.5 w-3.5" />
                                             <span>Approve</span>
                                         </button>
 
                                         <button
                                             @click="rejectAgent(agent)"
-                                            class="px-3 py-1.5 border border-error/20 bg-error-container/15 hover:bg-error-container/30 text-error rounded-lg transition-colors font-bold text-[10px] flex items-center gap-1.5 cursor-pointer"
+                                            class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-error/20 bg-error-container/15 px-3 py-1.5 text-[10px] font-bold text-error transition-colors hover:bg-error-container/30"
                                         >
-                                            <UserMinus class="w-3.5 h-3.5" />
+                                            <UserMinus class="h-3.5 w-3.5" />
                                             <span>Decline</span>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr v-if="pending.length === 0">
-                                <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant uppercase tracking-widest font-bold">
+                                <td
+                                    colspan="6"
+                                    class="px-6 py-12 text-center font-bold tracking-widest text-on-surface-variant uppercase"
+                                >
                                     No pending agent registrations.
                                 </td>
                             </tr>
@@ -155,11 +209,20 @@ const rejectAgent = (agent: Agent) => {
             </div>
 
             <!-- Approved Agents Tab -->
-            <div v-if="activeTab === 'approved'" class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
+            <div
+                v-if="activeTab === 'approved'"
+                class="flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm"
+            >
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[900px]">
-                        <thead class="bg-surface-container-low border-b border-outline-variant">
-                            <tr class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                    <table
+                        class="w-full min-w-[900px] border-collapse text-left"
+                    >
+                        <thead
+                            class="border-b border-outline-variant bg-surface-container-low"
+                        >
+                            <tr
+                                class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase"
+                            >
                                 <th class="px-6 py-4">Agent Name / Email</th>
                                 <th class="px-6 py-4">Phone</th>
                                 <th class="px-6 py-4">Department</th>
@@ -169,31 +232,66 @@ const rejectAgent = (agent: Agent) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline-variant">
-                            <tr v-for="agent in approved" :key="agent.id" class="hover:bg-surface-container-low/20 transition-colors">
+                            <tr
+                                v-for="agent in approved"
+                                :key="agent.id"
+                                class="transition-colors hover:bg-surface-container-low/20"
+                            >
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
-                                        <span class="font-bold text-primary">{{ agent.name }}</span>
-                                        <span class="text-[10px] text-on-surface-variant mt-0.5">{{ agent.email }}</span>
+                                        <span class="font-bold text-primary">{{
+                                            agent.name
+                                        }}</span>
+                                        <span
+                                            class="mt-0.5 text-[10px] text-on-surface-variant"
+                                            >{{ agent.email }}</span
+                                        >
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-on-surface font-semibold">{{ agent.phone }}</td>
+                                <td
+                                    class="px-6 py-4 font-semibold text-on-surface"
+                                >
+                                    {{ agent.phone }}
+                                </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-[10px] font-bold uppercase text-on-secondary-container tracking-widest bg-secondary-container/40 border border-secondary/20 px-2 py-0.5 rounded">
+                                    <span
+                                        class="rounded border border-secondary/20 bg-secondary-container/40 px-2 py-0.5 text-[10px] font-bold tracking-widest text-on-secondary-container uppercase"
+                                    >
                                         {{ agent.department }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 font-mono font-bold text-on-surface">{{ agent.employee_id }}</td>
-                                <td class="px-6 py-4 text-on-surface-variant font-medium">
-                                    {{ agent.agent_approved_at ? new Date(agent.agent_approved_at).toLocaleString() : 'N/A' }}
+                                <td
+                                    class="px-6 py-4 font-mono font-bold text-on-surface"
+                                >
+                                    {{ agent.employee_id }}
+                                </td>
+                                <td
+                                    class="px-6 py-4 font-medium text-on-surface-variant"
+                                >
+                                    {{
+                                        agent.agent_approved_at
+                                            ? new Date(
+                                                  agent.agent_approved_at,
+                                              ).toLocaleString()
+                                            : 'N/A'
+                                    }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-[10px] font-black uppercase text-secondary tracking-widest bg-secondary/10 px-2 py-0.5 rounded">
-                                        {{ agent.approved_by_user?.name || 'System / Admin' }}
+                                    <span
+                                        class="rounded bg-secondary/10 px-2 py-0.5 text-[10px] font-black tracking-widest text-secondary uppercase"
+                                    >
+                                        {{
+                                            agent.approved_by_user?.name ||
+                                            'System / Admin'
+                                        }}
                                     </span>
                                 </td>
                             </tr>
                             <tr v-if="approved.length === 0">
-                                <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant uppercase tracking-widest font-bold">
+                                <td
+                                    colspan="6"
+                                    class="px-6 py-12 text-center font-bold tracking-widest text-on-surface-variant uppercase"
+                                >
                                     No approved agents found.
                                 </td>
                             </tr>

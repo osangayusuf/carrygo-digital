@@ -22,7 +22,8 @@ class AuctionService
      *     description: string,
      *     opening_points: int,
      *     countdown_duration_seconds: int,
-     *     image: UploadedFile
+     *     image: UploadedFile,
+     *     external_url?: string|null
      * } $data
      */
     public function create(array $data): Auction
@@ -37,6 +38,7 @@ class AuctionService
             'opening_points' => $data['opening_points'],
             'countdown_duration_seconds' => $data['countdown_duration_seconds'],
             'image' => $imagePath,
+            'external_url' => $data['external_url'] ?? null,
             'status' => AuctionStatus::DRAFT,
             'current_points' => 0,
             'bid_count' => 0,

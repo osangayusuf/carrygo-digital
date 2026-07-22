@@ -10,7 +10,8 @@ import { Toaster } from '@/components/ui/sonner';
 const showScrollTop = ref(false);
 
 function handleScroll(): void {
-    showScrollTop.value = (window.scrollY || document.documentElement.scrollTop) > 300;
+    showScrollTop.value =
+        (window.scrollY || document.documentElement.scrollTop) > 300;
 }
 
 function scrollToTop(): void {
@@ -27,7 +28,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="flex min-h-screen h-100vh flex-col bg-background pb-14 font-body text-on-surface antialiased md:pb-0">
+    <div
+        class="h-100vh flex min-h-screen flex-col bg-background pb-14 font-body text-on-surface antialiased md:pb-0"
+    >
         <Toaster />
         <PlaceBidModal />
         <AppNavbar />
@@ -42,16 +45,17 @@ onBeforeUnmount(() => {
         <button
             type="button"
             :class="[
-                'fixed left-4 z-50 flex h-9 w-9 items-center justify-center rounded-xl bg-lemon text-navy shadow-lg transition-all duration-300 hover:bg-amber md:left-auto md:right-8',
+                'fixed left-4 z-50 flex h-9 w-9 items-center justify-center rounded-xl bg-lemon text-navy shadow-lg transition-all duration-300 hover:bg-amber md:right-8 md:left-auto',
                 showScrollTop
                     ? 'bottom-20 opacity-100 md:bottom-30'
-                    : 'bottom-16 pointer-events-none opacity-0 md:bottom-4',
+                    : 'pointer-events-none bottom-16 opacity-0 md:bottom-4',
             ]"
             @click="scrollToTop"
             aria-label="Scroll to top"
         >
-            <span class="material-symbols-outlined text-lg font-bold">arrow_upward</span>
+            <span class="material-symbols-outlined text-lg font-bold"
+                >arrow_upward</span
+            >
         </button>
     </div>
 </template>
-

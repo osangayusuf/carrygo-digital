@@ -12,7 +12,9 @@ const props = defineProps<{
 
 const { openPayment } = usePaystackInline();
 
-const amount = ref<string>(String(props.walletConfig.deposit_presets[0] ?? 1000));
+const amount = ref<string>(
+    String(props.walletConfig.deposit_presets[0] ?? 1000),
+);
 const isProcessing = ref(false);
 
 const amountNumber = computed(() => {
@@ -59,7 +61,8 @@ async function initiateDeposit(): Promise<void> {
                 } catch {
                     appToast.show({
                         type: 'error',
-                        message: 'Paystack could not be loaded. Please try again.',
+                        message:
+                            'Paystack could not be loaded. Please try again.',
                     });
                 }
             },
@@ -78,11 +81,14 @@ async function initiateDeposit(): Promise<void> {
 </script>
 
 <template>
-    <div class="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+    <div
+        class="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6"
+    >
         <h3 class="text-lg font-semibold text-on-surface">Buy points</h3>
         <p class="mt-1 text-sm text-on-surface-variant">
-            Pay with Paystack. Min ₦{{ walletConfig.min_deposit_naira.toLocaleString() }}, max
-            ₦{{ walletConfig.max_deposit_naira.toLocaleString() }}.
+            Pay with Paystack. Min ₦{{
+                walletConfig.min_deposit_naira.toLocaleString()
+            }}, max ₦{{ walletConfig.max_deposit_naira.toLocaleString() }}.
         </p>
 
         <div class="mt-4 flex flex-wrap gap-2">
@@ -103,7 +109,11 @@ async function initiateDeposit(): Promise<void> {
         </div>
 
         <div class="mt-4 flex flex-col gap-2">
-            <label class="text-xs font-semibold text-on-surface" for="deposit-amount">Amount (₦)</label>
+            <label
+                class="text-xs font-semibold text-on-surface"
+                for="deposit-amount"
+                >Amount (₦)</label
+            >
             <input
                 id="deposit-amount"
                 v-model="amount"
@@ -115,10 +125,15 @@ async function initiateDeposit(): Promise<void> {
             />
             <p class="text-sm text-on-surface-variant" v-if="isValidAmount">
                 You will receive
-                <span class="font-bold text-on-surface">{{ pointsPreview.toLocaleString() }} pts</span>
+                <span class="font-bold text-on-surface"
+                    >{{ pointsPreview.toLocaleString() }} pts</span
+                >
             </p>
-            <p class="text-xs italic text-error" v-if="!isValidAmount">
-                Invalid deposit amount. Please enter an amount between ₦{{ walletConfig.min_deposit_naira.toLocaleString() }} and ₦{{ walletConfig.max_deposit_naira.toLocaleString() }}.
+            <p class="text-xs text-error italic" v-if="!isValidAmount">
+                Invalid deposit amount. Please enter an amount between ₦{{
+                    walletConfig.min_deposit_naira.toLocaleString()
+                }}
+                and ₦{{ walletConfig.max_deposit_naira.toLocaleString() }}.
             </p>
         </div>
 
@@ -134,9 +149,11 @@ async function initiateDeposit(): Promise<void> {
         </button>
 
         <p class="mt-4 text-xs text-on-surface-variant">
-            <span class="material-symbols-outlined align-middle text-[14px]">info</span>
-            Points bidden cannot be refunded and wallet credits are non-withdrawable.
+            <span class="material-symbols-outlined align-middle text-[14px]"
+                >info</span
+            >
+            Points bidden cannot be refunded and wallet credits are
+            non-withdrawable.
         </p>
     </div>
 </template>
-

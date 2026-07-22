@@ -156,27 +156,20 @@ class BiddingService
 
     private function recalculateIsWinning(int $auctionId): void
     {
-        $totals = DB::table('bids')
-            ->where('auction_id', $auctionId)
-            ->selectRaw('user_id, SUM(amount) as total')
-            ->groupBy('user_id')
-            ->orderByDesc('total')
-            ->get();
-
         Bid::where('auction_id', $auctionId)->update(['is_winning' => false]);
 
-        if ($totals->isEmpty()) {
-            return;
-        }
+        $leader = DB::table('bids')
+            ->where('auction_id', $auctionId)
+            ->selectRaw('user_id, SUM(amount) as total, MAX(created_at) as last_bid_at, MAX(id) as last_bid_id')
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->orderBy('last_bid_at', 'asc')
+            ->orderBy('last_bid_id', 'asc')
+            ->first();
 
-        $maxTotal = $totals->first()->total;
-        $topUsers = $totals->filter(fn ($row) => $row->total == $maxTotal);
-
-        if ($topUsers->count() === 1) {
-            $winnerId = $topUsers->first()->user_id;
-
+        if ($leader !== null) {
             Bid::where('auction_id', $auctionId)
-                ->where('user_id', $winnerId)
+                ->where('user_id', $leader->user_id)
                 ->orderByDesc('created_at')
                 ->first()
                 ?->update(['is_winning' => true]);

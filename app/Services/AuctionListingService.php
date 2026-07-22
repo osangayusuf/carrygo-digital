@@ -115,6 +115,7 @@ class AuctionListingService
             'expires_at' => $auction->expires_at?->toISOString(),
             'bid_count' => $auction->bid_count,
             'winner_id' => $auction->winner_id,
+            'external_url' => $auction->external_url,
         ];
     }
 

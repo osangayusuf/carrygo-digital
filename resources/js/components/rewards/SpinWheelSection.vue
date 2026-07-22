@@ -73,13 +73,22 @@ async function doSpin() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+                'X-CSRF-TOKEN':
+                    (
+                        document.querySelector(
+                            'meta[name="csrf-token"]',
+                        ) as HTMLMetaElement
+                    )?.content ?? '',
                 'X-Requested-With': 'XMLHttpRequest',
                 Accept: 'application/json',
             },
         });
 
-        const data: { points_won: number; segment_index: number; error?: string } = await response.json();
+        const data: {
+            points_won: number;
+            segment_index: number;
+            error?: string;
+        } = await response.json();
 
         if (!response.ok || data.error) {
             localSpins.value++;
@@ -89,12 +98,15 @@ async function doSpin() {
         }
 
         const segAngle = 360 / segmentCount.value;
-        const targetAngle = 360 - (data.segment_index * segAngle + segAngle / 2);
+        const targetAngle =
+            360 - (data.segment_index * segAngle + segAngle / 2);
 
         const currentMod = rotationDeg.value % 360;
         let advance = targetAngle - currentMod;
-        
-        if (advance < 0) advance += 360;
+
+        if (advance < 0) {
+            advance += 360;
+        }
 
         rotationDeg.value += 5 * 360 + advance;
         resultPoints.value = data.points_won;
@@ -116,11 +128,17 @@ function dismissResult() {
 </script>
 
 <template>
-    <div class="rounded-3xl border border-outline-variant/30 bg-surface p-6 shadow-sm sm:p-8">
+    <div
+        class="rounded-3xl border border-outline-variant/30 bg-surface p-6 shadow-sm sm:p-8"
+    >
         <!-- Header -->
         <div class="mb-2 text-center">
-            <h2 class="font-headline text-xl font-bold text-on-surface">Spin &amp; Win</h2>
-            <p class="mt-1 text-sm text-on-surface-variant">Use your spins to win up to 50 points!</p>
+            <h2 class="font-headline text-xl font-bold text-on-surface">
+                Spin &amp; Win
+            </h2>
+            <p class="mt-1 text-sm text-on-surface-variant">
+                Use your spins to win up to 50 points!
+            </p>
         </div>
 
         <!-- Wheel -->
@@ -129,14 +147,20 @@ function dismissResult() {
             style="width: 240px; height: 240px"
         >
             <!-- Pointer arrow at top -->
-            <div class="absolute -top-3 left-1/2 z-10 -translate-x-1/2 text-2xl">▼</div>
+            <div
+                class="absolute -top-3 left-1/2 z-10 -translate-x-1/2 text-2xl"
+            >
+                ▼
+            </div>
 
             <svg
                 viewBox="-110 -110 220 220"
                 class="h-full w-full drop-shadow-xl"
                 :style="{
                     transform: `rotate(${rotationDeg}deg)`,
-                    transition: isSpinning ? 'transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                    transition: isSpinning
+                        ? 'transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+                        : 'none',
                 }"
             >
                 <g v-for="(label, i) in spin.segment_labels" :key="i">
@@ -155,18 +179,30 @@ function dismissResult() {
                         font-size="11"
                         font-weight="bold"
                         font-family="Inter, sans-serif"
-                    >{{ label }}</text>
+                    >
+                        {{ label }}
+                    </text>
                 </g>
                 <!-- Center hub -->
                 <circle cx="0" cy="0" r="18" fill="white" />
-                <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" font-size="14">⭐</text>
+                <text
+                    x="0"
+                    y="0"
+                    text-anchor="middle"
+                    dominant-baseline="middle"
+                    font-size="14"
+                >
+                    ⭐
+                </text>
             </svg>
         </div>
 
         <!-- Spin count -->
         <p class="mb-4 text-center text-sm font-medium text-on-surface-variant">
             Available Spins:
-            <span class="ml-1 font-black text-on-surface">{{ localSpins }}</span>
+            <span class="ml-1 font-black text-on-surface">{{
+                localSpins
+            }}</span>
         </p>
 
         <!-- Spin button -->
@@ -174,16 +210,27 @@ function dismissResult() {
             @click="doSpin"
             :disabled="localSpins < 1 || isSpinning"
             :class="[
-                'flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black uppercase tracking-wide transition-all active:scale-[0.98]',
+                'flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black tracking-wide uppercase transition-all active:scale-[0.98]',
                 localSpins > 0 && !isSpinning
                     ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:opacity-90'
                     : 'cursor-not-allowed bg-surface-container text-on-surface-variant',
             ]"
         >
-            <span :class="['material-symbols-outlined', isSpinning ? 'animate-spin' : '']">
+            <span
+                :class="[
+                    'material-symbols-outlined',
+                    isSpinning ? 'animate-spin' : '',
+                ]"
+            >
                 {{ isSpinning ? 'refresh' : 'casino' }}
             </span>
-            {{ isSpinning ? 'Spinning...' : localSpins > 0 ? 'Spin Now' : 'No Spins Left Today' }}
+            {{
+                isSpinning
+                    ? 'Spinning...'
+                    : localSpins > 0
+                      ? 'Spin Now'
+                      : 'No Spins Left Today'
+            }}
         </button>
 
         <!-- Probabilities link -->
@@ -208,8 +255,14 @@ function dismissResult() {
                 class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
                 @click.self="showProbabilities = false"
             >
-                <div class="w-full max-w-sm rounded-3xl bg-surface p-6 shadow-2xl">
-                    <h3 class="mb-4 font-headline text-lg font-bold text-on-surface">Wheel Rewards</h3>
+                <div
+                    class="w-full max-w-sm rounded-3xl bg-surface p-6 shadow-2xl"
+                >
+                    <h3
+                        class="mb-4 font-headline text-lg font-bold text-on-surface"
+                    >
+                        Wheel Rewards
+                    </h3>
                     <div class="space-y-2">
                         <div
                             v-for="(label, i) in spin.segment_labels"
@@ -218,9 +271,14 @@ function dismissResult() {
                         >
                             <div
                                 class="h-3 w-3 shrink-0 rounded-full"
-                                :style="{ backgroundColor: segmentColors[i % segmentColors.length] }"
+                                :style="{
+                                    backgroundColor:
+                                        segmentColors[i % segmentColors.length],
+                                }"
                             />
-                            <span class="text-sm font-medium text-on-surface">{{ label }}</span>
+                            <span class="text-sm font-medium text-on-surface">{{
+                                label
+                            }}</span>
                         </div>
                     </div>
                     <button
@@ -247,11 +305,23 @@ function dismissResult() {
                     class="flex w-full max-w-xs flex-col items-center rounded-3xl bg-surface p-8 text-center shadow-2xl"
                 >
                     <div class="mb-2 text-5xl">🎉</div>
-                    <h3 class="font-headline text-2xl font-black text-on-surface">You Won!</h3>
-                    <p class="mt-2 text-on-surface-variant">Added to your reward wallet</p>
-                    <div class="my-6 rounded-2xl bg-primary px-8 py-4 text-white">
-                        <span class="text-4xl font-black">{{ resultPoints }}</span>
-                        <span class="ml-1 text-lg font-bold opacity-80">pts</span>
+                    <h3
+                        class="font-headline text-2xl font-black text-on-surface"
+                    >
+                        You Won!
+                    </h3>
+                    <p class="mt-2 text-on-surface-variant">
+                        Added to your reward wallet
+                    </p>
+                    <div
+                        class="my-6 rounded-2xl bg-primary px-8 py-4 text-white"
+                    >
+                        <span class="text-4xl font-black">{{
+                            resultPoints
+                        }}</span>
+                        <span class="ml-1 text-lg font-bold opacity-80"
+                            >pts</span
+                        >
                     </div>
                     <button
                         @click="dismissResult"

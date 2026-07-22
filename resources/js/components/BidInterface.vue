@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { useAuctionStore } from '@/stores/useAuctionStore';
 import { usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { useAuctionStore } from '@/stores/useAuctionStore';
 
 const props = defineProps<{
     auctionId: number;
@@ -24,16 +24,20 @@ let cooldownInterval: ReturnType<typeof setInterval> | null = null;
 
 function startCooldown(): void {
     cooldownRemaining.value = 5;
+
     if (cooldownInterval !== null) {
         clearInterval(cooldownInterval);
     }
+
     cooldownInterval = setInterval(() => {
         cooldownRemaining.value -= 1;
+
         if (cooldownRemaining.value <= 0) {
             if (cooldownInterval !== null) {
                 clearInterval(cooldownInterval);
                 cooldownInterval = null;
             }
+
             cooldownRemaining.value = 0;
         }
     }, 1000);
@@ -52,10 +56,14 @@ const canBid = computed(
 );
 
 const userPointsBalance = computed(
-    () => (page.props.auth as { user?: { points_balance?: number } })?.user?.points_balance ?? 0,
+    () =>
+        (page.props.auth as { user?: { points_balance?: number } })?.user
+            ?.points_balance ?? 0,
 );
 
-const hasEnoughPoints = computed(() => userPointsBalance.value >= bidAmount.value);
+const hasEnoughPoints = computed(
+    () => userPointsBalance.value >= bidAmount.value,
+);
 
 function submitBid(): void {
     if (!canBid.value || !hasEnoughPoints.value) {
@@ -91,12 +99,16 @@ function submitBid(): void {
             <!-- Points balance -->
             <div class="bid-balance">
                 <span class="bid-balance-label">Your Balance</span>
-                <span class="bid-balance-value">{{ userPointsBalance.toLocaleString() }} pts</span>
+                <span class="bid-balance-value"
+                    >{{ userPointsBalance.toLocaleString() }} pts</span
+                >
             </div>
 
             <!-- Bid amount input -->
             <div class="bid-amount-group">
-                <label for="bid-amount-input" class="bid-input-label">Bid Amount (points)</label>
+                <label for="bid-amount-input" class="bid-input-label"
+                    >Bid Amount (points)</label
+                >
                 <div class="bid-input-wrapper">
                     <button
                         type="button"
@@ -122,8 +134,12 @@ function submitBid(): void {
                         +
                     </button>
                 </div>
-                <p v-if="form.errors.amount" class="bid-error">{{ form.errors.amount }}</p>
-                <p v-if="!hasEnoughPoints" class="bid-error">Insufficient points balance.</p>
+                <p v-if="form.errors.amount" class="bid-error">
+                    {{ form.errors.amount }}
+                </p>
+                <p v-if="!hasEnoughPoints" class="bid-error">
+                    Insufficient points balance.
+                </p>
             </div>
 
             <!-- Submit button with cooldown UX -->
@@ -146,8 +162,11 @@ function submitBid(): void {
             </button>
 
             <p class="bid-policy-notice">
-                <span class="material-symbols-outlined bid-policy-icon">info</span>
-                Points bidden cannot be refunded and wallet credits are non-withdrawable.
+                <span class="material-symbols-outlined bid-policy-icon"
+                    >info</span
+                >
+                Points bidden cannot be refunded and wallet credits are
+                non-withdrawable.
             </p>
         </div>
 
@@ -294,7 +313,10 @@ function submitBid(): void {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    transition:
+        background 0.15s,
+        transform 0.1s,
+        border-color 0.15s;
     position: relative;
     overflow: hidden;
 }

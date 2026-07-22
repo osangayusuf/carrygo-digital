@@ -81,15 +81,28 @@ class LeaderboardService
                 'bids.auction_id',
                 'users.phone as msisdn',
             ])
-            ->selectRaw('SUM(bids.amount) as total_points')
+            ->selectRaw('SUM(bids.amount) as total_points, MAX(bids.created_at) as last_bid_at, MAX(bids.id) as last_bid_id')
             ->orderByDesc('total_points')
+            ->orderBy('last_bid_at', 'asc')
+            ->orderBy('last_bid_id', 'asc')
             ->get();
 
         return $rows
             ->groupBy('auction_id')
             ->map(function (Collection $auctionRows): Collection {
                 return $auctionRows
-                    ->sortByDesc('total_points')
+                    ->sort(function ($a, $b) {
+                        $totalA = (int) $a->total_points;
+                        $totalB = (int) $b->total_points;
+                        if ($totalA !== $totalB) {
+                            return $totalB <=> $totalA;
+                        }
+                        if ($a->last_bid_at !== $b->last_bid_at) {
+                            return $a->last_bid_at <=> $b->last_bid_at;
+                        }
+
+                        return $a->last_bid_id <=> $b->last_bid_id;
+                    })
                     ->take(self::TOP_BIDDERS_PER_AUCTION)
                     ->values()
                     ->map(fn ($row): array => $this->mapBidderRow($row));
@@ -106,8 +119,10 @@ class LeaderboardService
             ->where('bids.auction_id', $auctionId)
             ->groupBy('bids.user_id', 'users.phone')
             ->select(['users.phone as msisdn'])
-            ->selectRaw('SUM(bids.amount) as total_points')
+            ->selectRaw('SUM(bids.amount) as total_points, MAX(bids.created_at) as last_bid_at, MAX(bids.id) as last_bid_id')
             ->orderByDesc('total_points')
+            ->orderBy('last_bid_at', 'asc')
+            ->orderBy('last_bid_id', 'asc')
             ->limit($limit)
             ->get()
             ->map(fn ($row): array => $this->mapBidderRow($row))

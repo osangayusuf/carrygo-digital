@@ -25,12 +25,20 @@ function visit(extra: Record<string, string | number> = {}): void {
         ...extra,
     };
 
-    router.get(leaderboard.url({ query }), {}, { preserveState: true, preserveScroll: true, replace: true });
+    router.get(
+        leaderboard.url({ query }),
+        {},
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
 }
 
 function removeFilter(key: string): void {
     if (key === 'search') {
-        router.get(leaderboard.url({ query: { page: 1 } }), {}, { preserveState: true, preserveScroll: true, replace: true });
+        router.get(
+            leaderboard.url({ query: { page: 1 } }),
+            {},
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
     }
 }
 
@@ -43,14 +51,25 @@ function goToPage(page: number): void {
     <section class="mx-auto max-w-[1300px] px-4 pt-8 pb-20">
         <header class="mb-10">
             <div class="space-y-2">
-                <span class="text-xs font-bold uppercase tracking-widest text-muted-green">Top Bidders</span>
-                <h1 class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl">Leaderboard</h1>
+                <span
+                    class="text-xs font-bold tracking-widest text-muted-green uppercase"
+                    >Top Bidders</span
+                >
+                <h1
+                    class="font-condensed text-4xl font-extrabold tracking-tight text-ink md:text-5xl"
+                >
+                    Leaderboard
+                </h1>
                 <p class="text-sm text-muted-green">
-                    Top bidders per live auction, ranked by total points bid on each item.
+                    Top bidders per live auction, ranked by total points bid on
+                    each item.
                 </p>
             </div>
 
-            <div v-if="activeFilters.length > 0 || auctions.total > 0" class="mt-5 flex flex-wrap items-center gap-3">
+            <div
+                v-if="activeFilters.length > 0 || auctions.total > 0"
+                class="mt-5 flex flex-wrap items-center gap-3"
+            >
                 <div
                     v-for="filter in activeFilters"
                     :key="filter.key"
@@ -67,21 +86,44 @@ function goToPage(page: number): void {
                 </div>
 
                 <span class="ml-auto text-xs font-bold text-muted-green">
-                    {{ auctions.total }} item{{ auctions.total !== 1 ? 's' : '' }}
+                    {{ auctions.total }} item{{
+                        auctions.total !== 1 ? 's' : ''
+                    }}
                 </span>
             </div>
         </header>
 
-        <div v-if="auctions.data.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
-            <span class="material-symbols-outlined mb-4 text-5xl text-muted-green">leaderboard</span>
-            <p class="font-condensed text-xl font-extrabold text-ink">No live auctions</p>
-            <p class="mt-2 text-sm text-muted-green">Leaderboards appear when auctions are open for bidding.</p>
+        <div
+            v-if="auctions.data.length === 0"
+            class="flex flex-col items-center justify-center py-24 text-center"
+        >
+            <span
+                class="material-symbols-outlined mb-4 text-5xl text-muted-green"
+                >leaderboard</span
+            >
+            <p class="font-condensed text-xl font-extrabold text-ink">
+                No live auctions
+            </p>
+            <p class="mt-2 text-sm text-muted-green">
+                Leaderboards appear when auctions are open for bidding.
+            </p>
         </div>
 
-        <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <LeaderboardBidCard v-for="auction in auctions.data" :key="auction.id" :bid="auction" />
+        <div
+            v-else
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        >
+            <LeaderboardBidCard
+                v-for="auction in auctions.data"
+                :key="auction.id"
+                :bid="auction"
+            />
         </div>
 
-        <AppPaginator :current-page="auctions.current_page" :last-page="auctions.last_page" @page-change="goToPage" />
+        <AppPaginator
+            :current-page="auctions.current_page"
+            :last-page="auctions.last_page"
+            @page-change="goToPage"
+        />
     </section>
 </template>

@@ -8,17 +8,24 @@ defineProps<{
 </script>
 
 <template>
-    <div class="rounded-xl border border-outline-variant bg-surface-container-low p-5">
-        <h3 class="text-lg font-semibold text-on-surface">Claim bonus points</h3>
+    <div
+        class="rounded-xl border border-outline-variant bg-surface-container-low p-5"
+    >
+        <h3 class="text-lg font-semibold text-on-surface">
+            Claim bonus points
+        </h3>
         <p class="mt-1 text-sm text-on-surface-variant">
-            Convert all {{ bonusPoints.toLocaleString() }} bonus points to your spendable balance.
+            Convert all {{ bonusPoints.toLocaleString() }} bonus points to your
+            spendable balance.
         </p>
         <Form
             v-bind="WalletController.claimBonus.form()"
             class="mt-4"
             v-slot="{ processing, errors }"
         >
-            <p v-if="errors.bonus" class="mb-2 text-xs font-medium text-error">{{ errors.bonus }}</p>
+            <p v-if="errors.bonus" class="mb-2 text-xs font-medium text-error">
+                {{ errors.bonus }}
+            </p>
             <button
                 type="submit"
                 :disabled="processing || bonusPoints <= 0"

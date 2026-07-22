@@ -37,4 +37,5 @@ export type PaystackInit = {
     public_key: string;
 };
 
-export type WalletTransactionsPaginator = LengthAwarePaginator<PointTransactionListing>;
+export type WalletTransactionsPaginator =
+    LengthAwarePaginator<PointTransactionListing>;

@@ -11,7 +11,7 @@ const share = async () => {
         try {
             await navigator.share({
                 title: props.title,
-                url: props.url || window.location.href
+                url: props.url || window.location.href,
             });
         } catch (err) {
             console.error('Error sharing:', err);
@@ -25,9 +25,11 @@ const share = async () => {
 </script>
 
 <template>
-    <button @click="share"
-        class="flex items-center text-gray-500 hover:text-forest transition-colors text-sm font-medium">
-        <Share2 class="w-4 h-4 mr-1.5" />
+    <button
+        @click="share"
+        class="flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-forest"
+    >
+        <Share2 class="mr-1.5 h-4 w-4" />
         Share
     </button>
 </template>
