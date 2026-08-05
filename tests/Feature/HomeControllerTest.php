@@ -3,6 +3,7 @@
 use App\Enums\AuctionStatus;
 use App\Http\Controllers\HomeController;
 use App\Models\Auction;
+use App\Services\AuctionListingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -13,10 +14,9 @@ uses(RefreshDatabase::class);
  */
 function mapAuctionForTest(Auction $auction): array
 {
-    $controller = app(HomeController::class);
-    $method = new ReflectionMethod($controller, 'mapAuction');
-
-    return $method->invoke($controller, $auction);
+    // HomeController delegates to AuctionListingService::mapAuction() rather
+    // than duplicating the mapping itself, so that's what this exercises.
+    return app(AuctionListingService::class)->mapAuction($auction);
 }
 
 test('mapAuction returns bid payload with frontend status codes', function (AuctionStatus $status, int $expectedStatus) {
@@ -71,6 +71,37 @@ test('auction search scope filters by name category or description', function ()
         ->pluck('name');
 
     expect($results)->toHaveCount(1)->toContain('Gucci Leather Bag');
+});
+
+test('homepage active auctions query excludes disabled auctions', function () {
+    Auction::factory()->active()->create(['name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->active()->create(['name' => 'Disabled', 'enabled' => false]);
+
+    $controller = app(HomeController::class);
+    $method = new ReflectionMethod($controller, 'activeAuctionsQuery');
+    $results = $method->invoke($controller, null)->pluck('name');
+
+    expect($results)->toHaveCount(1)->toContain('Visible');
+});
+
+test('closed-with-winner query used by the homepage winners block excludes disabled auctions', function () {
+    Auction::factory()->closed()->create([
+        'name' => 'Visible Winner',
+        'winner_id' => \App\Models\User::factory()->create()->id,
+        'enabled' => true,
+    ]);
+    Auction::factory()->closed()->create([
+        'name' => 'Disabled Winner',
+        'winner_id' => \App\Models\User::factory()->create()->id,
+        'enabled' => false,
+    ]);
+
+    $results = Auction::where('status', AuctionStatus::CLOSED)
+        ->whereNotNull('winner_id')
+        ->enabled()
+        ->pluck('name');
+
+    expect($results)->toHaveCount(1)->toContain('Visible Winner');
 });
 
 test('homepage category bids respect search keyword', function () {

@@ -87,6 +87,17 @@ test('trending page excludes draft and closed auctions', function () {
             ->where('bids.data.0.name', 'Visible'));
 });
 
+test('trending page excludes disabled auctions', function () {
+    Auction::factory()->active()->create(['name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->active()->create(['name' => 'Disabled', 'enabled' => false]);
+
+    $this->get(route('trending'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('bids.data', 1)
+            ->where('bids.data.0.name', 'Visible'));
+});
+
 test('trending page sorts by closing_soon ranking triggered first', function () {
     // Create an active auction
     $active = Auction::factory()->active()->create(['name' => 'Active Item', 'expires_at' => now()->addHours(10)]);

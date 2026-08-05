@@ -37,6 +37,7 @@ class AuctionListingService
     {
         $query = Auction::query()
             ->where('status', AuctionStatus::TRIGGERED)
+            ->enabled()
             ->search($filters['search'] ?? null);
 
         $this->applyOpenBidsSort($query, $filters['sort'] ?? 'ending_soon');
@@ -56,6 +57,7 @@ class AuctionListingService
         $query = Auction::query()
             ->where('event', true)
             ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->enabled()
             ->search($filters['search'] ?? null);
 
         if (! empty($filters['status'])) {
@@ -126,6 +128,7 @@ class AuctionListingService
     {
         return Auction::query()
             ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->enabled()
             ->search($search);
     }
 

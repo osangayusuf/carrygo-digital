@@ -60,6 +60,20 @@ test('winners page filters by search keyword', function () {
             ->where('winners.data.0.bid.name', 'Gucci Bag'));
 });
 
+test('winners page excludes disabled auctions', function () {
+    $user = User::factory()->create();
+    $winner = User::factory()->create();
+    Auction::factory()->closed()->create(['winner_id' => $winner->id, 'name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->closed()->create(['winner_id' => $winner->id, 'name' => 'Disabled', 'enabled' => false]);
+
+    $this->actingAs($user)
+        ->get(route('winners'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('winners.data', 1)
+            ->where('winners.data.0.bid.name', 'Visible'));
+});
+
 test('winners page excludes closed auctions without winner_id', function () {
     $user = User::factory()->create();
     $winner = User::factory()->create();

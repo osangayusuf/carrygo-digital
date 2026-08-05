@@ -4,6 +4,7 @@ import AppFooter from '@/components/AppFooter.vue';
 import AppNavbar from '@/components/AppNavbar.vue';
 import MobileBottomNav from '@/components/layout/MobileBottomNav.vue';
 import PlaceBidModal from '@/components/modals/PlaceBidModal.vue';
+import TermsAcceptanceModal from '@/components/modals/TermsAcceptanceModal.vue';
 import ChatWidget from '@/components/support/ChatWidget.vue';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -33,6 +34,7 @@ onBeforeUnmount(() => {
     >
         <Toaster />
         <PlaceBidModal />
+        <TermsAcceptanceModal />
         <AppNavbar />
         <main class="flex-1">
             <slot />

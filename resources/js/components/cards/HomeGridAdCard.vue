@@ -15,7 +15,7 @@ const props = withDefaults(
         title: 'Earn Free Points',
         description:
             'Complete daily tasks to boost your bidding power and win premium items!',
-        image: '/images/banner1.jpeg',
+        image: '/images/trending-ad.png',
         url: '/tasks',
         buttonText: 'Task Center',
         badgeText: 'Sponsored',
@@ -44,7 +44,7 @@ const imageUrl = computed(() => {
 
 <template>
     <div
-        class="group relative flex min-h-[300px] flex-col overflow-hidden rounded-lg border-2 border-sage-border bg-navy transition-all duration-300 hover:-translate-y-0.5 hover:border-lemon"
+        class="group relative flex min-h-75 flex-col overflow-hidden rounded-lg border-2 border-sage-border bg-navy transition-all duration-300 hover:-translate-y-0.5 hover:border-lemon"
     >
         <!-- Background Image with zoom on hover -->
         <div
@@ -53,30 +53,30 @@ const imageUrl = computed(() => {
         ></div>
 
         <!-- Rich Gradient Overlay -->
-        <div
+        <!-- <div
             class="absolute inset-0 bg-linear-to-r from-navy/70 via-navy/45 to-transparent transition-opacity duration-300 group-hover:from-navy/80 group-hover:via-navy/55"
-        ></div>
+        ></div> -->
 
         <!-- Glowing border effect on hover -->
         <div
             class="pointer-events-none absolute inset-0 rounded-lg border border-transparent transition-colors duration-300 group-hover:border-lemon/35"
         ></div>
 
-        <!-- Floating Badge -->
-        <div class="absolute top-3 left-3 z-10">
+        Floating Badge
+        <!-- <div class="absolute top-3 left-3 z-10">
             <span
                 class="rounded-full border border-lemon/20 bg-lemon px-2.5 py-0.5 text-[9px] font-black tracking-widest text-navy uppercase shadow-md select-none"
             >
                 {{ badgeText }}
             </span>
-        </div>
+        </div> -->
 
         <!-- Content Area -->
         <div
             class="relative z-10 flex flex-1 flex-col justify-end p-5 text-left md:p-6"
         >
             <div class="max-w-[90%] sm:max-w-[80%] md:max-w-[70%]">
-                <h3
+                <!-- <h3
                     class="mb-2 font-condensed text-xl font-black tracking-wide text-white uppercase drop-shadow-sm transition-colors duration-200 group-hover:text-lemon md:text-2xl"
                 >
                     {{ title }}
@@ -96,7 +96,7 @@ const imageUrl = computed(() => {
                             class="pi pi-arrow-right text-[9px] transition-transform duration-200 group-hover:translate-x-0.5"
                         ></i>
                     </Link>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>

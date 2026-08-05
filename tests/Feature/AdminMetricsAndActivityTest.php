@@ -103,6 +103,42 @@ test('Admin toggling user status logs activity', function () {
     ]);
 });
 
+test('activity log main table reflects each users real is_active status', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $activeUser = User::factory()->create(['is_active' => true]);
+    $disabledUser = User::factory()->create(['is_active' => false]);
+
+    // Disabled user's activity is the more recent one, so it sorts first
+    // (main table orders by created_at desc) — keeps row order deterministic.
+    UserActivity::create([
+        'user_id' => $activeUser->id,
+        'type' => ActivityType::LOGIN_SUCCESS->value,
+        'ip_address' => '10.0.0.1',
+        'created_at' => now()->subMinute(),
+    ]);
+
+    UserActivity::create([
+        'user_id' => $disabledUser->id,
+        'type' => ActivityType::LOGIN_SUCCESS->value,
+        'ip_address' => '10.0.0.2',
+        'created_at' => now(),
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->get(route('admin.activity-log.index'));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('Admin/ActivityLog/Index')
+        ->where('activities.data.0.user.id', $disabledUser->id)
+        ->where('activities.data.0.user.is_active', false)
+        ->where('activities.data.1.user.id', $activeUser->id)
+        ->where('activities.data.1.user.is_active', true)
+    );
+});
+
 test('Admin changing user role logs activity', function () {
     $admin = User::factory()->create();
     $admin->assignRole('admin');

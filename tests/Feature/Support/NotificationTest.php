@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ChatSessionStatus;
 use App\Enums\TicketCategory;
 use App\Enums\TicketPriority;
 use App\Models\AgentStatus;
@@ -9,6 +10,8 @@ use App\Models\User;
 use App\Notifications\NewChatSessionNotification;
 use App\Notifications\NewTicketCreatedNotification;
 use App\Notifications\TicketMessageReceivedNotification;
+use App\Notifications\TicketConvertedFromChatNotification;
+use App\Notifications\TicketReplyNotification;
 use App\Services\ChatService;
 use App\Services\TicketService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -156,4 +159,149 @@ test('customer reply on ticket sends notification to assigned agent', function (
         $agent,
         TicketMessageReceivedNotification::class
     );
+});
+
+test('staff reply on a ticket emails the customer', function () {
+    Notification::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $customer = User::factory()->create();
+
+    $ticket = Ticket::factory()->inProgress($agent)->create([
+        'customer_id' => $customer->id,
+    ]);
+
+    app(TicketService::class)->addReply($ticket, $agent, 'We are looking into it', false);
+
+    Notification::assertSentTo(
+        $customer,
+        TicketReplyNotification::class
+    );
+});
+
+test('internal notes do not email the customer', function () {
+    Notification::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $customer = User::factory()->create();
+
+    $ticket = Ticket::factory()->inProgress($agent)->create([
+        'customer_id' => $customer->id,
+    ]);
+
+    app(TicketService::class)->addReply($ticket, $agent, 'Internal note, not for customer', true);
+
+    Notification::assertNotSentTo(
+        $customer,
+        TicketReplyNotification::class
+    );
+});
+
+test('a customer replying to their own ticket does not email themselves', function () {
+    Notification::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $customer = User::factory()->create();
+
+    $ticket = Ticket::factory()->inProgress($agent)->create([
+        'customer_id' => $customer->id,
+    ]);
+
+    app(TicketService::class)->addReply($ticket, $customer, 'Any update?', false);
+
+    Notification::assertNotSentTo(
+        $customer,
+        TicketReplyNotification::class
+    );
+});
+
+test('converting a chat session to a ticket does not email either party about replayed history', function () {
+    Notification::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $customer = User::factory()->create();
+
+    $session = ChatSession::factory()->create([
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'customer_email' => $customer->email,
+        'agent_id' => $agent->id,
+        'status' => ChatSessionStatus::ACTIVE,
+    ]);
+
+    app(\App\Services\ChatService::class)->addMessage($session, $customer, 'Hi, I need help', \App\Enums\ChatSenderType::CUSTOMER);
+    app(\App\Services\ChatService::class)->addMessage($session, $agent, 'Sure, what is wrong?', \App\Enums\ChatSenderType::AGENT);
+
+    app(\App\Services\ChatService::class)->convertToTicket($session, [
+        'subject' => 'Chat converted',
+        'category' => TicketCategory::GENERAL->value,
+        'priority' => TicketPriority::NORMAL->value,
+    ]);
+
+    Notification::assertNotSentTo($agent, TicketMessageReceivedNotification::class);
+    Notification::assertNotSentTo($customer, TicketReplyNotification::class);
+
+    // The conversion itself is still communicated, just via a dedicated notification.
+    Notification::assertSentTo($customer, TicketConvertedFromChatNotification::class);
+});
+
+test('converting a chat session to a ticket emails the customer', function () {
+    Notification::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $customer = User::factory()->create();
+
+    $session = ChatSession::factory()->create([
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'customer_email' => $customer->email,
+        'agent_id' => $agent->id,
+        'status' => ChatSessionStatus::ACTIVE,
+    ]);
+
+    $ticket = app(\App\Services\ChatService::class)->convertToTicket($session, [
+        'subject' => 'Chat converted',
+        'category' => TicketCategory::GENERAL->value,
+        'priority' => TicketPriority::NORMAL->value,
+    ]);
+
+    Notification::assertSentTo(
+        $customer,
+        TicketConvertedFromChatNotification::class,
+        fn ($notification) => $notification->ticket->is($ticket)
+    );
+});
+
+test('converting a guest chat session to a ticket emails the newly provisioned customer', function () {
+    Notification::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $session = ChatSession::factory()->guest()->create([
+        'customer_name' => 'Guest User',
+        'customer_email' => 'guest_notify@example.com',
+        'agent_id' => $agent->id,
+        'status' => ChatSessionStatus::ACTIVE,
+    ]);
+
+    app(\App\Services\ChatService::class)->convertToTicket($session, [
+        'subject' => 'Guest chat converted',
+        'category' => TicketCategory::GENERAL->value,
+        'priority' => TicketPriority::NORMAL->value,
+    ]);
+
+    $guestUser = User::where('email', 'guest_notify@example.com')->firstOrFail();
+
+    Notification::assertSentTo($guestUser, TicketConvertedFromChatNotification::class);
 });

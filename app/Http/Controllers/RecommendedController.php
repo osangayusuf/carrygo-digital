@@ -29,7 +29,8 @@ class RecommendedController extends Controller
         }
 
         $query = Auction::query()
-            ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED]);
+            ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->enabled();
 
         if ($user && ! empty($categories)) {
             // Recommendation based on user's bid history

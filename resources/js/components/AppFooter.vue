@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import {
+    about,
     eventItems,
     howToPlay,
     leaderboard,
@@ -10,8 +11,15 @@ import {
     trending,
     winners,
 } from '@/routes/index';
+import { useTermsModal } from '@/composables/useTermsModal';
 
 const year = new Date().getFullYear();
+const { open: openTermsModal } = useTermsModal();
+
+function handleOpenTerms(): void {
+    openTermsModal();
+    window.dispatchEvent(new CustomEvent('open-terms-modal'));
+}
 
 function openSupportChat(): void {
     window.dispatchEvent(new CustomEvent('open-support-chat'));
@@ -38,18 +46,31 @@ function openSupportChat(): void {
                 </div>
                 <div class="flex gap-2.5">
                     <a
-                        href="https://www.instagram.com/bidora_nigeria?igsh=MTdiNHM2ZTJldnp1cA%3D%3D&utm_source=qr"
+                        href="https://www.instagram.com/bidora_ng?igsh=bW16YTZkOGkzaXFo&utm_source=qr"
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-lemon/20 bg-lemon/10 text-[15px] text-lemon transition-colors hover:bg-forest"
+                        aria-label="Instagram"
                     >
                         <span class="pi pi-instagram"></span>
                     </a>
                     <a
-                        href="https://www.facebook.com/share/18TeWUCG19/"
+                        href="https://www.facebook.com/share/1ErFoAzptK/?mibextid=wwXIfr"
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-lemon/20 bg-lemon/10 text-[15px] text-lemon transition-colors hover:bg-forest"
+                        aria-label="Facebook"
                     >
                         <span class="pi pi-facebook"></span>
+                    </a>
+                    <a
+                        href="https://www.tiktok.com/@bidora_ng?_r=1&_t=ZS-98bAPS1OatW"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-lemon/20 bg-lemon/10 text-[15px] text-lemon transition-colors hover:bg-forest"
+                        aria-label="TikTok"
+                    >
+                        <span class="pi pi-tiktok"></span>
                     </a>
                 </div>
             </div>
@@ -92,6 +113,11 @@ function openSupportChat(): void {
                     Account &amp; Support
                 </h4>
                 <Link
+                    :href="about.url()"
+                    class="mb-2 block text-sm text-[#4a6a40] transition-colors hover:text-lemon"
+                    >About Bidora</Link
+                >
+                <Link
                     :href="profile.url()"
                     class="mb-2 block text-sm text-[#4a6a40] transition-colors hover:text-lemon"
                     >My Profile</Link
@@ -107,22 +133,27 @@ function openSupportChat(): void {
                     class="mb-2 block text-sm text-[#4a6a40] transition-colors hover:text-lemon"
                     >Winning History</Link
                 >
-                <a
-                    href="#"
-                    class="mb-2 block text-sm text-[#4a6a40] transition-colors hover:text-lemon"
-                    >Privacy Policy</a
+                <button
+                    type="button"
+                    @click="handleOpenTerms"
+                    class="mb-2 block cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-normal text-[#4a6a40] transition-colors hover:text-lemon"
                 >
-                <a
-                    href="#"
-                    class="mb-2 block text-sm text-[#4a6a40] transition-colors hover:text-lemon"
-                    >Terms of Service</a
+                    Privacy Policy
+                </button>
+                <button
+                    type="button"
+                    @click="handleOpenTerms"
+                    class="mb-2 block cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-normal text-[#4a6a40] transition-colors hover:text-lemon"
                 >
+                    Terms of Service
+                </button>
                 <button
                     type="button"
                     @click="openSupportChat"
-                    class="mb-2 block text-left text-sm text-[#4a6a40] transition-colors hover:text-lemon cursor-pointer border-0 bg-transparent p-0 font-normal"
-                    >Contact Support</button
+                    class="mb-2 block cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-normal text-[#4a6a40] transition-colors hover:text-lemon"
                 >
+                    Contact Support
+                </button>
             </div>
         </div>
         <div
@@ -130,21 +161,25 @@ function openSupportChat(): void {
         >
             <span>© {{ year }} Bidora Executive. All rights reserved.</span>
             <div class="flex gap-4">
-                <a
-                    href="#"
-                    class="text-[#2a4030] transition-colors hover:text-lemon"
-                    >Cookie Settings</a
+                <button
+                    type="button"
+                    @click="handleOpenTerms"
+                    class="cursor-pointer border-0 bg-transparent p-0 text-[#2a4030] transition-colors hover:text-lemon"
                 >
+                    Cookie Settings
+                </button>
                 <a
                     href="#"
                     class="text-[#2a4030] transition-colors hover:text-lemon"
                     >Security</a
                 >
-                <a
-                    href="#"
-                    class="text-[#2a4030] transition-colors hover:text-lemon"
-                    >Privacy</a
+                <button
+                    type="button"
+                    @click="handleOpenTerms"
+                    class="cursor-pointer border-0 bg-transparent p-0 text-[#2a4030] transition-colors hover:text-lemon"
                 >
+                    Privacy
+                </button>
             </div>
         </div>
     </footer>

@@ -16,6 +16,9 @@ class AuctionController extends Controller
         LeaderboardService $leaderboard,
     ) {
         $user = auth()->user();
+
+        abort_if(! $auction->enabled && ! $user?->hasRole('admin'), 404);
+
         $hasBid = $user ? $auction->bids()->where('user_id', $user->id)->exists() : false;
         $hasReviewed = $user ? $auction->reviews()->where('user_id', $user->id)->exists() : false;
         $isWinner = $user ? ($auction->winner_id === $user->id) : false;

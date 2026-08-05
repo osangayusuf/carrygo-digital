@@ -39,6 +39,20 @@ test('recommended page falls back to hybrid sorting for authenticated users with
             ->where('bids.data.0.name', 'High Interest'));
 });
 
+test('recommended page excludes disabled auctions', function () {
+    $user = User::factory()->create();
+
+    Auction::factory()->active()->create(['name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->active()->create(['name' => 'Disabled', 'enabled' => false]);
+
+    $this->actingAs($user)
+        ->get(route('recommended'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('bids.data', 1)
+            ->where('bids.data.0.name', 'Visible'));
+});
+
 test('authenticated user gets personalized recommendations based on past bid categories', function () {
     $user = User::factory()->create();
 

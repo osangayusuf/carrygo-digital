@@ -17,7 +17,7 @@ test('rejects a bid when the user has insufficient points', function () {
         ])
         ->assertRedirect(route('home'))
         ->assertSessionHasErrors([
-            'points' => 'You only have 10.00 points available.',
+            'points' => 'You only have 10 points available.',
         ]);
 });
 
@@ -51,5 +51,5 @@ test('places a bid successfully', function () {
         ])
         ->assertRedirect(route('home'));
 
-    expect($user->refresh()->points_balance)->toBe('50.00');
+    expect($user->refresh()->points_balance)->toBe(50);
 });

@@ -38,6 +38,10 @@ class BiddingService
                 throw new InvalidArgumentException('Bids can only be placed on active or triggered auctions.');
             }
 
+            if (! $auction->enabled) {
+                throw new InvalidArgumentException('This auction is disabled and is not accepting bids.');
+            }
+
             $minBid = (int) config('points.min_bid_increment');
             if ($points < $minBid) {
                 throw new InvalidArgumentException("Bid amount must be at least {$minBid} points.");

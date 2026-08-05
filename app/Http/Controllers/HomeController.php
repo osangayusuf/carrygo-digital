@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AuctionStatus;
 use App\Models\Auction;
 use App\Models\Review;
+use App\Services\AuctionListingService;
 use App\Services\LeaderboardService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Inertia\Inertia;
 
 class HomeController extends Controller
 {
+    public function __construct(private readonly AuctionListingService $auctionListing) {}
+
     public function index(Request $request, LeaderboardService $leaderboard)
     {
         $search = $request->filled('search')
@@ -35,39 +38,40 @@ class HomeController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->limit(6)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'trendingBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('bid_count', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'recentlyAddedBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'openBids' => Inertia::defer(fn () => Auction::query()
                 ->where('status', AuctionStatus::TRIGGERED)
+                ->enabled()
                 ->search($search)
                 ->orderBy('expires_at', 'asc')
                 ->limit(4)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'luxuryBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('price', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'featuredBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('price', 'desc')
                 ->limit(5)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))),
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'categoryBids' => Inertia::defer(fn () => $this->resolveCategoryBids($search)),
 
@@ -76,6 +80,7 @@ class HomeController extends Controller
             'winners' => Inertia::defer(function () {
                 return Auction::where('status', AuctionStatus::CLOSED)
                     ->whereNotNull('winner_id')
+                    ->enabled()
                     ->with('winner')
                     ->withSum('bids as total_points', 'amount')
                     ->orderBy('updated_at', 'desc')
@@ -131,6 +136,7 @@ class HomeController extends Controller
     {
         return Auction::query()
             ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->enabled()
             ->search($search);
     }
 
@@ -170,39 +176,11 @@ class HomeController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(fn (Auction $auction) => $this->mapAuction($auction))
+                ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))
                 ->all();
         }
 
         return $result;
-    }
-
-    private function mapAuction(Auction $auction): array
-    {
-        $status = match ($auction->status) {
-            AuctionStatus::TRIGGERED => 1,
-            AuctionStatus::CLOSED => 2,
-            default => 0,
-        };
-
-        return [
-            'id' => $auction->id,
-            'name' => $auction->name,
-            'image' => $auction->image,
-            'description' => $auction->description,
-            'url' => '/auctions/'.$auction->id,
-            'price' => number_format((float) $auction->price, 2),
-            'opening_points' => $auction->opening_points,
-            'rating' => null,
-            'open_date' => $auction->created_at?->timestamp ?? 0,
-            'status' => $status,
-            'created_at' => $auction->created_at?->toISOString() ?? '',
-            'current_points' => $auction->current_points,
-            'expires_at' => $auction->expires_at?->toISOString(),
-            'bid_count' => $auction->bid_count,
-            'winner_id' => $auction->winner_id,
-            'external_url' => $auction->external_url,
-        ];
     }
 
     private function resolveWinnerPopup(): ?array
@@ -219,6 +197,7 @@ class HomeController extends Controller
 
         $auction = Auction::where('status', AuctionStatus::CLOSED)
             ->whereNotNull('winner_id')
+            ->enabled()
             ->with('winner')
             ->withSum('bids as total_points', 'amount')
             ->find($auctionId);
@@ -256,12 +235,13 @@ class HomeController extends Controller
         }
 
         $auction = Auction::whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->enabled()
             ->find($auctionId);
 
         if (! $auction) {
             return null;
         }
 
-        return $this->mapAuction($auction);
+        return $this->auctionListing->mapAuction($auction);
     }
 }

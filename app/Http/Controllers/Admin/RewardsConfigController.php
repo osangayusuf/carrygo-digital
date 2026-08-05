@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -85,6 +86,9 @@ class RewardsConfigController extends Controller
 
         // Flush settings cache so they reload from the database on the next request
         Cache::forget('settings.all');
+
+        // Restart queue workers so long-running processes pick up the new config
+        Artisan::call('queue:restart');
 
         return back()->with('success', __('System configurations updated successfully.'));
     }

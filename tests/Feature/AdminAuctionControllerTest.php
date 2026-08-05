@@ -1,10 +1,12 @@
 <?php
 
 use App\Enums\AuctionStatus;
+use App\Jobs\CloseAuctionJob;
 use App\Models\Auction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -157,4 +159,161 @@ test('admin can update and publish an auction', function () {
         'name' => 'Updated Published Laptop',
         'status' => AuctionStatus::ACTIVE->value,
     ]);
+});
+
+test('admin can update active auction', function () {
+    $auction = Auction::factory()->active()->create([
+        'name' => 'Active Item',
+        'opening_points' => 500,
+        'current_points' => 100,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->put(route('admin.auctions.update', $auction), [
+            'name' => 'Updated Active Item',
+            'opening_points' => 400,
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->name)->toBe('Updated Active Item');
+    expect($auction->opening_points)->toBe(400);
+    expect($auction->status)->toBe(AuctionStatus::ACTIVE);
+});
+
+test('admin can update triggered auction', function () {
+    $auction = Auction::factory()->triggered()->create([
+        'name' => 'Triggered Item',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->put(route('admin.auctions.update', $auction), [
+            'name' => 'Updated Triggered Item',
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->name)->toBe('Updated Triggered Item');
+    expect($auction->status)->toBe(AuctionStatus::TRIGGERED);
+});
+
+test('admin cannot update closed auction', function () {
+    $auction = Auction::factory()->closed()->create([
+        'name' => 'Closed Item',
+    ]);
+
+    $this->withoutExceptionHandling();
+
+    expect(fn () => $this->actingAs($this->admin)
+        ->put(route('admin.auctions.update', $auction), [
+            'name' => 'Try Update Closed Item',
+        ])
+    )->toThrow(InvalidArgumentException::class, 'Closed auctions cannot be updated.');
+});
+
+test('updating active auction opening_points below current_points triggers countdown', function () {
+    Queue::fake();
+
+    $auction = Auction::factory()->active()->create([
+        'opening_points' => 500,
+        'current_points' => 300,
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->put(route('admin.auctions.update', $auction), [
+            'opening_points' => 250,
+        ]);
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->status)->toBe(AuctionStatus::TRIGGERED);
+    expect($auction->triggered_at)->not->toBeNull();
+    expect($auction->expires_at)->not->toBeNull();
+
+    Queue::assertPushed(CloseAuctionJob::class);
+});
+
+test('admin can disable an active auction', function () {
+    $auction = Auction::factory()->active()->create(['enabled' => true]);
+
+    $response = $this->actingAs($this->admin)
+        ->patch(route('admin.auctions.toggleEnabled', $auction));
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->enabled)->toBeFalse();
+});
+
+test('admin can re-enable a disabled auction', function () {
+    $auction = Auction::factory()->active()->create(['enabled' => false]);
+
+    $response = $this->actingAs($this->admin)
+        ->patch(route('admin.auctions.toggleEnabled', $auction));
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->enabled)->toBeTrue();
+});
+
+test('admin auctions index still lists disabled auctions', function () {
+    $auction = Auction::factory()->active()->create(['enabled' => false, 'name' => 'Disabled Item']);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.auctions.index'));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('Admin/Auctions/Index')
+        ->has('auctions.data', 1)
+        ->where('auctions.data.0.id', $auction->id)
+    );
+});
+
+test('admin can filter auctions by enabled state', function () {
+    Auction::factory()->active()->create(['enabled' => true, 'name' => 'Enabled Item']);
+    $disabled = Auction::factory()->active()->create(['enabled' => false, 'name' => 'Disabled Item']);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.auctions.index', ['enabled' => 'disabled']));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('Admin/Auctions/Index')
+        ->has('auctions.data', 1)
+        ->where('auctions.data.0.id', $disabled->id)
+    );
+});
+
+test('admin can filter auctions by event flag', function () {
+    Auction::factory()->active()->create(['event' => false, 'name' => 'Regular Item']);
+    $event = Auction::factory()->active()->create(['event' => true, 'name' => 'Event Item']);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('admin.auctions.index', ['event' => 'event']));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('Admin/Auctions/Index')
+        ->has('auctions.data', 1)
+        ->where('auctions.data.0.id', $event->id)
+    );
+});
+
+test('admin can mark an auction as an event item', function () {
+    $auction = Auction::factory()->active()->create(['event' => false]);
+
+    $response = $this->actingAs($this->admin)
+        ->patch(route('admin.auctions.toggleEvent', $auction));
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->event)->toBeTrue();
+});
+
+test('admin can unmark an auction as an event item', function () {
+    $auction = Auction::factory()->active()->create(['event' => true]);
+
+    $response = $this->actingAs($this->admin)
+        ->patch(route('admin.auctions.toggleEvent', $auction));
+
+    $response->assertRedirect(route('admin.auctions.index'));
+
+    expect($auction->refresh()->event)->toBeFalse();
 });

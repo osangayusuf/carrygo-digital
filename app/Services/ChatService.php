@@ -14,6 +14,7 @@ use App\Models\ChatSession;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Notifications\NewChatSessionNotification;
+use App\Notifications\TicketConvertedFromChatNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -140,8 +141,12 @@ class ChatService
         }
 
         return DB::transaction(function () use ($session, $ticketData): Ticket {
+            // Tickets always belong to a real user account, but chat sessions allow guests
+            // (no customer_id). Resolve or provision an account before creating the ticket.
+            $customer = $this->resolveCustomerForConversion($session);
+
             // Use the ticket service to create the ticket and import messages
-            $ticket = $this->ticketService->createFromChat($session, $ticketData);
+            $ticket = $this->ticketService->createFromChat($session, $customer, $ticketData);
 
             // Set the ticket ID on the chat session
             $session->update([
@@ -156,7 +161,45 @@ class ChatService
                 ChatSenderType::SYSTEM
             );
 
+            // Email the customer, since the system chat message above is only visible if
+            // they're still watching the live chat widget.
+            $customer->notify(new TicketConvertedFromChatNotification($ticket));
+
             return $ticket;
         });
+    }
+
+    /**
+     * Resolve the user a converted ticket should be attributed to.
+     *
+     * Authenticated sessions already have a customer_id. Guest sessions don't, so we
+     * find-or-create an account by the guest's email — mirroring the guest flow used for
+     * offline ticket submissions (see CustomerChatController::submitOfflineTicket) — and
+     * link it back onto the session so future lookups/replies attribute correctly.
+     *
+     * @throws \Exception if the session is a guest session with no email on file, since
+     *                     there is then no identity to attach the ticket to.
+     */
+    private function resolveCustomerForConversion(ChatSession $session): User
+    {
+        if ($session->customer_id !== null) {
+            return $session->customer ?? User::findOrFail($session->customer_id);
+        }
+
+        if (empty($session->customer_email)) {
+            throw new \Exception('Cannot convert to a ticket: this guest has not provided an email address. Ask for their email in the chat first.');
+        }
+
+        $customer = User::firstOrCreate(
+            ['email' => $session->customer_email],
+            [
+                'name' => $session->customer_name ?: 'Guest',
+                'password' => bcrypt(Str::random(16)),
+            ]
+        );
+
+        $session->update(['customer_id' => $customer->id]);
+
+        return $customer;
     }
 }

@@ -103,8 +103,11 @@ test('admin can reject a pending agent and delete account', function () {
         'id' => $agent->id,
     ]);
 
-    // Send notification is assertable by spying or checking that notification was sent before deletion
-    Notification::assertSentTo($agent, AgentRejectedNotification::class);
+    // Queued and routed on-demand, since the user row is gone by delivery time
+    Notification::assertSentOnDemand(
+        AgentRejectedNotification::class,
+        fn ($notification, $channels, $notifiable) => $notifiable->routes['mail'] === $agent->email,
+    );
 });
 
 test('pending agents count is shared correctly with admin users', function () {

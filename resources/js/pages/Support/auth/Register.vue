@@ -18,7 +18,7 @@ defineOptions({ layout: null });
         <!-- Abstract gradient backgrounds -->
         <div class="pointer-events-none absolute inset-0">
             <div
-                class="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-navy/20 blur-[140px]"
+                class="absolute -top-32 -left-32 h-125 w-125 rounded-full bg-navy/20 blur-[140px]"
             />
             <div
                 class="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-forest/20 blur-[100px]"

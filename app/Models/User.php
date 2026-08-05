@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\AgentStatus as AgentStatusEnum;
+use App\Notifications\QueuedResetPassword;
+use App\Notifications\QueuedVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +19,7 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'phone', 'points_balance', 'bonus_points', 'password', 'is_active', 'department', 'employee_id', 'agent_approved_at', 'agent_rejected_at', 'approved_by', 'referral_code', 'referred_by'])]
+#[Fillable(['name', 'email', 'phone', 'points_balance', 'bonus_points', 'password', 'is_active', 'department', 'employee_id', 'agent_approved_at', 'agent_rejected_at', 'approved_by', 'referral_code', 'referred_by', 'terms_accepted_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -40,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'onboarding_completed_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'points_balance' => 'integer',
@@ -51,6 +54,22 @@ class User extends Authenticatable implements MustVerifyEmail
             'agent_approved_at' => 'datetime',
             'agent_rejected_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Send the email verification notification on the queue.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmail);
+    }
+
+    /**
+     * Send the password reset notification on the queue.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new QueuedResetPassword($token));
     }
 
     public function bids(): HasMany
@@ -86,6 +105,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function leaderboardSnapshots(): HasMany
     {
         return $this->hasMany(LeaderboardSnapshot::class);
+    }
+
+    public function hasAcceptedTerms(): bool
+    {
+        return $this->terms_accepted_at !== null;
     }
 
     public function isAdmin(): bool
@@ -188,7 +212,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         do {
             $code = strtoupper(Str::random(8));
-        } while (static::where('referral_code', $code)->exists());
+            try {
+                $exists = static::where('referral_code', $code)->exists();
+            } catch (\Throwable) {
+                $exists = false;
+            }
+        } while ($exists);
 
         return $code;
     }

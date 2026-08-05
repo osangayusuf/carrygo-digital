@@ -20,12 +20,24 @@ class CloseAuctionJob implements ShouldQueue
 
     public function __construct(public readonly int $auctionId) {}
 
-    public function handle(AuctionTimelineService $timelineService, AchievementService $achievementService): void
+    public function handle(?AuctionTimelineService $timelineService = null, ?AchievementService $achievementService = null): void
     {
+        $timelineService ??= app(AuctionTimelineService::class);
+        $achievementService ??= app(AchievementService::class);
+
         DB::transaction(function () use ($timelineService, $achievementService): void {
             $auction = Auction::lockForUpdate()->find($this->auctionId);
 
             if (! $auction || $auction->status !== AuctionStatus::TRIGGERED) {
+                return;
+            }
+
+            // The countdown may have been extended by an admin after this job was
+            // queued, making this job stale. Never close ahead of the auction's
+            // current expires_at — just drop this run. AuctionService queues a
+            // fresh job for the new deadline whenever the countdown changes, and
+            // ReconcileAuctionsCommand is the backstop.
+            if ($auction->expires_at !== null && $auction->expires_at->isFuture()) {
                 return;
             }
 

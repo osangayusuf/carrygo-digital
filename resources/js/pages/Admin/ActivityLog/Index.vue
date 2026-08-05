@@ -32,7 +32,7 @@ type UserActivity = {
     metadata: any;
     ip_address: string | null;
     created_at: string;
-    user: { id: number; name: string; email: string } | null;
+    user: User | null;
 };
 
 type SharedIpAlert = {
@@ -520,9 +520,7 @@ const getBadgeStyle = (type: string) => {
                                     >
                                         <button
                                             @click="
-                                                toggleUserActive(
-                                                    act.user as any,
-                                                )
+                                                toggleUserActive(act.user)
                                             "
                                             :class="[
                                                 'flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[9px] font-bold uppercase transition-colors',

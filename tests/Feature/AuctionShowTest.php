@@ -21,6 +21,31 @@ test('auction show page renders auction details', function () {
         );
 });
 
+test('disabled auction show page 404s for guests', function () {
+    $auction = Auction::factory()->active()->create(['enabled' => false]);
+
+    $this->get(route('auctions.show', $auction))->assertNotFound();
+});
+
+test('disabled auction show page 404s for regular users', function () {
+    $user = User::factory()->create();
+    $auction = Auction::factory()->active()->create(['enabled' => false]);
+
+    $this->actingAs($user)
+        ->get(route('auctions.show', $auction))
+        ->assertNotFound();
+});
+
+test('disabled auction show page is viewable by admins', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $auction = Auction::factory()->active()->create(['enabled' => false]);
+
+    $this->actingAs($admin)
+        ->get(route('auctions.show', $auction))
+        ->assertSuccessful();
+});
+
 test('authenticated user sees points on auction show page', function () {
     $user = User::factory()->create(['points_balance' => 500]);
     $auction = Auction::factory()->active()->create();

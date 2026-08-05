@@ -112,7 +112,8 @@ function bidNow(): void {
                     <p
                         class="mb-4 text-base font-bold text-forest max-md:mb-2 max-md:text-sm"
                     >
-                        Closes in: {{ getRemainingTime(props.bid.ends_at) }}
+                        Closes in:
+                        {{ getRemainingTime(props.bid.expires_at) }}
                     </p>
                     <button
                         @click="bidNow"

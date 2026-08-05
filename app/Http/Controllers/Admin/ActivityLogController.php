@@ -33,7 +33,7 @@ class ActivityLogController extends Controller
             : null;
 
         $query = UserActivity::query()
-            ->with('user:id,name,email')
+            ->with('user:id,name,email,is_active')
             ->orderBy('created_at', 'desc');
 
         if ($search) {

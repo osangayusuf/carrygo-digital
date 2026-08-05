@@ -12,6 +12,7 @@ use App\Models\TicketMessage;
 use App\Models\User;
 use App\Notifications\NewTicketCreatedNotification;
 use App\Notifications\TicketMessageReceivedNotification;
+use App\Notifications\TicketReplyNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -73,10 +74,15 @@ class TicketService
 
     /**
      * Add a message (reply or internal note) to a ticket.
+     *
+     * $notify controls whether recipients are emailed about this message at all. It defaults
+     * to true for normal replies, but is set to false when replaying chat history into a newly
+     * converted ticket (see createFromChat()) — those messages were already seen live in the
+     * chat widget, so notifying anyone about them again would just be noise.
      */
-    public function addReply(Ticket $ticket, User $sender, string $body, bool $isInternal = false): TicketMessage
+    public function addReply(Ticket $ticket, User $sender, string $body, bool $isInternal = false, bool $notify = true): TicketMessage
     {
-        return DB::transaction(function () use ($ticket, $sender, $body, $isInternal): TicketMessage {
+        return DB::transaction(function () use ($ticket, $sender, $body, $isInternal, $notify): TicketMessage {
             $message = TicketMessage::create([
                 'ticket_id' => $ticket->id,
                 'sender_id' => $sender->id,
@@ -88,13 +94,19 @@ class TicketService
                 $ticket->update(['status' => TicketStatus::IN_PROGRESS]);
             }
 
-            // Send TicketMessageReceivedNotification if customer (or non-assigned agent/admin) replies
-            // and it is not an internal note, and there is an assigned agent, and the sender is not that agent.
-            if (! $isInternal && $ticket->agent_id !== null && (int) $sender->id !== (int) $ticket->agent_id) {
+            // Notify the assigned agent if the customer (or another agent/admin) replies:
+            // not an internal note, there is an assigned agent, and the sender isn't that agent.
+            if ($notify && ! $isInternal && $ticket->agent_id !== null && (int) $sender->id !== (int) $ticket->agent_id) {
                 $assignedAgent = User::find($ticket->agent_id);
                 if ($assignedAgent) {
                     $assignedAgent->notify(new TicketMessageReceivedNotification($message));
                 }
+            }
+
+            // Notify the customer by email if support staff (or anyone other than the
+            // customer) replies and it is not an internal note.
+            if ($notify && ! $isInternal && (int) $sender->id !== (int) $ticket->customer_id) {
+                $ticket->customer?->notify(new TicketReplyNotification($message));
             }
 
             return $message;
@@ -103,13 +115,17 @@ class TicketService
 
     /**
      * Create a ticket from a chat session.
+     *
+     * $customer is the resolved account to attribute the ticket to. Chat sessions allow a
+     * null customer_id for guests, but tickets require a real user, so callers must resolve
+     * (or provision) one first — see ChatService::resolveCustomerForConversion().
      */
-    public function createFromChat(ChatSession $session, array $data): Ticket
+    public function createFromChat(ChatSession $session, User $customer, array $data): Ticket
     {
-        return DB::transaction(function () use ($session, $data): Ticket {
+        return DB::transaction(function () use ($session, $customer, $data): Ticket {
             $ticket = Ticket::create([
                 'uuid' => (string) Str::uuid(),
-                'customer_id' => $session->customer_id,
+                'customer_id' => $customer->id,
                 'agent_id' => $session->agent_id,
                 'status' => TicketStatus::OPEN,
                 'priority' => $data['priority'] ?? TicketPriority::NORMAL,
@@ -119,14 +135,13 @@ class TicketService
 
             $session->update(['ticket_id' => $ticket->id]);
 
-            // Import chat message history
+            // Import chat message history. These were already seen live in the chat widget by
+            // both parties, so replaying them as ticket messages should not send notifications.
             foreach ($session->messages as $chatMessage) {
                 // Ensure sender exists as a user before attributing it to ticket messages.
-                // If it is a guest message, the sender might be null. We use the customer user or fallback.
-                $sender = $chatMessage->sender ?? User::find($session->customer_id);
-                if ($sender) {
-                    $this->addReply($ticket, $sender, $chatMessage->body, false);
-                }
+                // If it is a guest message, the sender might be null. We use the resolved customer as fallback.
+                $sender = $chatMessage->sender ?? $customer;
+                $this->addReply($ticket, $sender, $chatMessage->body, false, notify: false);
             }
 
             // Notify online agents

@@ -9,6 +9,7 @@ use App\Notifications\AgentApprovedNotification;
 use App\Notifications\AgentRejectedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -73,8 +74,10 @@ class AgentController extends Controller
             return redirect()->back()->withErrors(['error' => 'Cannot reject an already approved agent.']);
         }
 
-        // Send email synchronously before deleting database record
-        $user->notify(new AgentRejectedNotification($user->name));
+        // Route on-demand rather than through the model: the notification is
+        // queued and the user record no longer exists by the time it is handled.
+        Notification::route('mail', $user->email)
+            ->notify(new AgentRejectedNotification($user->name));
 
         // Delete account
         $user->delete();

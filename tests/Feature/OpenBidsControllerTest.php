@@ -21,6 +21,17 @@ test('open bids page renders triggered auctions only', function () {
             ->where('bids.data.0.status', 1));
 });
 
+test('open bids page excludes disabled auctions', function () {
+    Auction::factory()->triggered()->create(['name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->triggered()->create(['name' => 'Disabled', 'enabled' => false]);
+
+    $this->get(route('open-bids'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('bids.data', 1)
+            ->where('bids.data.0.name', 'Visible'));
+});
+
 test('open bids page filters by search keyword', function () {
     Auction::factory()->triggered()->create(['name' => 'Gucci Bag']);
     Auction::factory()->triggered()->create(['name' => 'Prada Shoes']);

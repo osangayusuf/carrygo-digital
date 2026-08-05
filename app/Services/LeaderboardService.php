@@ -41,6 +41,7 @@ class LeaderboardService
     {
         $query = Auction::query()
             ->whereIn('status', [AuctionStatus::ACTIVE, AuctionStatus::TRIGGERED])
+            ->enabled()
             ->search($search)
             ->orderByDesc('bid_count')
             ->orderByDesc('created_at');

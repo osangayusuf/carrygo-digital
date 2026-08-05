@@ -7,6 +7,8 @@ use App\Models\Auction;
 use App\Models\User;
 use App\Services\NotificationFeedService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -124,6 +126,26 @@ class HandleInertiaRequests extends Middleware
             );
         }
 
+        $termsPath = public_path('terms');
+        $termsDocuments = [];
+        if (File::isDirectory($termsPath)) {
+            $files = File::files($termsPath);
+            foreach ($files as $file) {
+                if (in_array(strtolower($file->getExtension()), ['docx', 'pdf', 'doc', 'txt', 'md'])) {
+                    $filename = $file->getFilename();
+                    $name = pathinfo($filename, PATHINFO_FILENAME);
+                    $slug = Str::slug($name);
+                    $termsDocuments[] = [
+                        'name' => $name,
+                        'slug' => $slug,
+                        'filename' => $filename,
+                        'url' => route('terms.show', $slug),
+                        'download_url' => asset('terms/'.rawurlencode($filename)),
+                    ];
+                }
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -140,6 +162,7 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'marquee_items' => $marqueeItems,
             'triggeredAuctions' => $triggeredAuctionsData,
+            'terms_documents' => $termsDocuments,
         ];
     }
 

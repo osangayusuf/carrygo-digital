@@ -17,6 +17,7 @@ class WinnerListingService
         $query = Auction::query()
             ->where('status', AuctionStatus::CLOSED)
             ->whereNotNull('winner_id')
+            ->enabled()
             ->with([
                 'winner',
                 'bids' => fn ($query) => $query->where('is_winning', true),

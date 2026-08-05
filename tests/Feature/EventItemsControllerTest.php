@@ -42,6 +42,17 @@ test('event items page excludes closed event auctions', function () {
             ->where('bids.data.0.name', 'Live Event'));
 });
 
+test('event items page excludes disabled auctions', function () {
+    Auction::factory()->event()->active()->create(['name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->event()->active()->create(['name' => 'Disabled', 'enabled' => false]);
+
+    $this->get(route('event-items'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('bids.data', 1)
+            ->where('bids.data.0.name', 'Visible'));
+});
+
 test('event items page filters by live status', function () {
     Auction::factory()->event()->active()->create(['name' => 'Upcoming']);
     Auction::factory()->event()->triggered()->create(['name' => 'Live Now']);

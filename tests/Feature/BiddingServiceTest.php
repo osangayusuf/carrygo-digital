@@ -52,6 +52,20 @@ test('rejects a bid on a draft auction', function () {
         ->toThrow(InvalidArgumentException::class, 'Bids can only be placed on active or triggered auctions.');
 });
 
+test('rejects a bid on a disabled active auction', function () {
+    $auction = Auction::factory()->active()->create(['enabled' => false]);
+
+    expect(fn () => $this->service->placeBid($this->user, $auction, 50))
+        ->toThrow(InvalidArgumentException::class, 'This auction is disabled and is not accepting bids.');
+});
+
+test('rejects a bid on a disabled triggered auction', function () {
+    $auction = Auction::factory()->triggered()->create(['enabled' => false]);
+
+    expect(fn () => $this->service->placeBid($this->user, $auction, 50))
+        ->toThrow(InvalidArgumentException::class, 'This auction is disabled and is not accepting bids.');
+});
+
 test('bid_count increments by 1 after each bid', function () {
     $this->service->placeBid($this->user, $this->auction, 10);
     $this->service->placeBid($this->user, $this->auction, 10);

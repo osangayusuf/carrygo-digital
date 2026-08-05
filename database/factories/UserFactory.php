@@ -29,12 +29,23 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->numerify('080########'),
             'email_verified_at' => now(),
+            'terms_accepted_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    /**
+     * Indicate that the model has not accepted terms and conditions.
+     */
+    public function withoutAcceptedTerms(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'terms_accepted_at' => null,
+        ]);
     }
 
     /**

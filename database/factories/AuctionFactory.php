@@ -23,6 +23,7 @@ class AuctionFactory extends Factory
             'opening_points' => $open_points,
             'current_points' => 0,
             'status' => AuctionStatus::DRAFT,
+            'enabled' => true,
             'price' => $open_points * 10,
             'image' => 'https://images.unsplash.com/photo-1611348586755-53860f7ae57a?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHBsYWNlaG9sZGVyfGVufDB8fDB8fHww',
             'external_url' => fake()->optional()->url(),
@@ -64,6 +65,22 @@ class AuctionFactory extends Factory
         ]);
     }
 
+    /**
+     * A triggered auction whose countdown has already run out — i.e. one that is
+     * due to be closed. CloseAuctionJob refuses to close a triggered auction
+     * whose expires_at is still in the future, so tests that exercise the close
+     * path should use this state rather than triggered().
+     */
+    public function triggeredAndExpired(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => AuctionStatus::TRIGGERED,
+            'triggered_at' => now()->subSeconds(($attributes['countdown_duration_seconds'] ?? 300) + 5),
+            'expires_at' => now()->subSeconds(5),
+            'winner_id' => null,
+        ]);
+    }
+
     public function closed(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -85,6 +102,20 @@ class AuctionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'event' => true,
+        ]);
+    }
+
+    public function disabled(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'enabled' => false,
+        ]);
+    }
+
+    public function enabled(bool $value = true): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'enabled' => $value,
         ]);
     }
 }

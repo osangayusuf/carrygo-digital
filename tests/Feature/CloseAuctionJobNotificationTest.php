@@ -14,7 +14,7 @@ test('CloseAuctionJob sends AuctionWon notification to the winner', function () 
     Notification::fake();
 
     $winner = User::factory()->create(['points_balance' => 10000]);
-    $auction = Auction::factory()->triggered()->create();
+    $auction = Auction::factory()->triggeredAndExpired()->create();
 
     Bid::factory()->create([
         'auction_id' => $auction->id,
@@ -32,7 +32,7 @@ test('AuctionWon notification contains correct auction data', function () {
     Notification::fake();
 
     $winner = User::factory()->create(['points_balance' => 10000]);
-    $auction = Auction::factory()->triggered()->create(['name' => 'Test Item']);
+    $auction = Auction::factory()->triggeredAndExpired()->create(['name' => 'Test Item']);
 
     Bid::factory()->create([
         'auction_id' => $auction->id,
@@ -58,7 +58,7 @@ test('AuctionWon notification contains correct auction data', function () {
 test('CloseAuctionJob sends no AuctionWon notification when there is no winner', function () {
     Notification::fake();
 
-    $auction = Auction::factory()->triggered()->create();
+    $auction = Auction::factory()->triggeredAndExpired()->create();
 
     // No bids → no is_winning = true
     (new CloseAuctionJob($auction->id))->handle();

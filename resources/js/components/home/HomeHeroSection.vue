@@ -11,7 +11,7 @@ defineProps<{ getCategoryIcon: (category: string) => string }>();
 const categories = computed(() => (page.props.categories as string[]) ?? []);
 
 const bannerImages = [
-    '/images/banner1.jpeg',
+    '/images/banner1.png',
     '/images/banner2.png',
     '/images/banner3.png',
 ];

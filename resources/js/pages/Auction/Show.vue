@@ -6,6 +6,7 @@ import { store as storeBid } from '@/actions/App/Http/Controllers/BidController'
 import AuctionLeaderboardSidebar from '@/components/auction/AuctionLeaderboardSidebar.vue';
 import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
 import ShareModal from '@/components/modals/ShareModal.vue';
+import { useAuctionCountdown } from '@/composables/useAuctionCountdown';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { calcProgress, formatPrice, getRemainingTime } from '@/lib/utils';
 import { home, login } from '@/routes/index';
@@ -40,6 +41,11 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
+
+const { expiresAt } = useAuctionCountdown(
+    computed(() => props.auction.id ?? null),
+    computed(() => props.auction.expires_at),
+);
 
 const expandedImage = ref<string | null>(null);
 const isShareOpen = ref(false);
@@ -358,7 +364,7 @@ function submitBid(): void {
                             v-if="
                                 (auction.status === 1 ||
                                     calcProgress(auction) >= 100) &&
-                                auction.expires_at
+                                expiresAt
                             "
                             class="mb-0 text-center text-xs font-bold text-outline"
                         >
@@ -367,10 +373,7 @@ function submitBid(): void {
                                 >schedule</span
                             >
                             <span class="align-middle"
-                                >{{
-                                    getRemainingTime(auction.expires_at)
-                                }}
-                                left</span
+                                >{{ getRemainingTime(expiresAt) }} left</span
                             >
                         </p>
                     </div>

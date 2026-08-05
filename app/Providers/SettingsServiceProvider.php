@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,18 +24,25 @@ class SettingsServiceProvider extends ServiceProvider
     public function boot(): void
     {
         try {
-            // Prevent running if settings table does not exist or database is unavailable
             if (Schema::hasTable('settings')) {
                 $settings = Cache::rememberForever('settings.all', function () {
-                    return Setting::all();
+                    return Setting::all()
+                        ->mapWithKeys(fn (Setting $setting) => [$setting->key => $setting->castValue()])
+                        ->all();
                 });
 
-                foreach ($settings as $setting) {
-                    config([$setting->key => $setting->castValue()]);
+                foreach ($settings as $key => $value) {
+                    config([$key => $value]);
                 }
+
+                Log::info('SettingsServiceProvider loaded DB settings into config.', [
+                    'settings_count' => count($settings),
+                ]);
             }
         } catch (\Exception $e) {
-            // Silence exceptions to avoid blocking initial database migrations/setups
+            Log::error('SettingsServiceProvider failed to load DB settings into config.', [
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 }

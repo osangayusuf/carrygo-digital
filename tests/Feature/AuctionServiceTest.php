@@ -1,11 +1,17 @@
 <?php
 
 use App\Enums\AuctionStatus;
+use App\Enums\AuctionTimelineEntryType;
+use App\Events\AuctionCountdownUpdatedEvent;
+use App\Jobs\CloseAuctionJob;
 use App\Models\Auction;
+use App\Models\AuctionTimelineEntry;
 use App\Models\User;
 use App\Services\AuctionService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
 uses(LazilyRefreshDatabase::class);
@@ -158,4 +164,131 @@ test('cannot manually close an already closed auction', function () {
 
     expect(fn () => $this->service->manualClose($auction))
         ->toThrow(InvalidArgumentException::class, 'Auction is already closed.');
+});
+
+test('disables an auction regardless of status', function (string $state) {
+    $auction = Auction::factory()->{$state}()->create(['enabled' => true]);
+
+    $this->service->disable($auction);
+
+    expect($auction->refresh()->enabled)->toBeFalse();
+})->with(['draft', 'active', 'triggered', 'closed']);
+
+test('enables an auction regardless of status', function (string $state) {
+    $auction = Auction::factory()->{$state}()->create(['enabled' => false]);
+
+    $this->service->enable($auction);
+
+    expect($auction->refresh()->enabled)->toBeTrue();
+})->with(['draft', 'active', 'triggered', 'closed']);
+
+test('toggles event flag on regardless of status', function (string $state) {
+    $auction = Auction::factory()->{$state}()->create(['event' => false]);
+
+    $this->service->toggleEvent($auction);
+
+    expect($auction->refresh()->event)->toBeTrue();
+})->with(['draft', 'active', 'triggered', 'closed']);
+
+test('toggles event flag off regardless of status', function (string $state) {
+    $auction = Auction::factory()->{$state}()->create(['event' => true]);
+
+    $this->service->toggleEvent($auction);
+
+    expect($auction->refresh()->event)->toBeFalse();
+})->with(['draft', 'active', 'triggered', 'closed']);
+
+test('rebases expires_at from triggered_at when countdown is extended on a triggered auction', function () {
+    Queue::fake();
+    Event::fake([AuctionCountdownUpdatedEvent::class]);
+
+    $triggeredAt = now()->subSeconds(40);
+
+    $auction = Auction::factory()->triggered()->create([
+        'countdown_duration_seconds' => 60,
+        'triggered_at' => $triggeredAt,
+        'expires_at' => $triggeredAt->copy()->addSeconds(60),
+    ]);
+
+    $this->service->update($auction, ['countdown_duration_seconds' => 90]);
+
+    // Rebased on triggered_at, not on now(): elapsed time is preserved.
+    expect($auction->refresh()->expires_at->timestamp)
+        ->toBe($triggeredAt->copy()->addSeconds(90)->timestamp);
+
+    Queue::assertPushed(CloseAuctionJob::class);
+    Event::assertDispatched(AuctionCountdownUpdatedEvent::class);
+});
+
+test('rebases expires_at when countdown is shortened on a triggered auction', function () {
+    Queue::fake();
+    Event::fake([AuctionCountdownUpdatedEvent::class]);
+
+    $triggeredAt = now()->subSeconds(20);
+
+    $auction = Auction::factory()->triggered()->create([
+        'countdown_duration_seconds' => 300,
+        'triggered_at' => $triggeredAt,
+        'expires_at' => $triggeredAt->copy()->addSeconds(300),
+    ]);
+
+    $this->service->update($auction, ['countdown_duration_seconds' => 120]);
+
+    expect($auction->refresh()->expires_at->timestamp)
+        ->toBe($triggeredAt->copy()->addSeconds(120)->timestamp);
+});
+
+test('clamps expires_at to now when the new countdown has already elapsed', function () {
+    Queue::fake();
+    Event::fake([AuctionCountdownUpdatedEvent::class]);
+
+    $triggeredAt = now()->subSeconds(200);
+
+    $auction = Auction::factory()->triggered()->create([
+        'countdown_duration_seconds' => 300,
+        'triggered_at' => $triggeredAt,
+        'expires_at' => $triggeredAt->copy()->addSeconds(300),
+    ]);
+
+    $this->service->update($auction, ['countdown_duration_seconds' => 30]);
+
+    expect($auction->refresh()->expires_at->isFuture())->toBeFalse();
+
+    Queue::assertPushed(CloseAuctionJob::class);
+});
+
+test('does not touch expires_at when a triggered auction is updated without a countdown change', function () {
+    Queue::fake();
+
+    $auction = Auction::factory()->triggered()->create([
+        'countdown_duration_seconds' => 60,
+    ]);
+
+    $originalExpiry = $auction->expires_at->timestamp;
+
+    $this->service->update($auction, ['name' => 'Renamed item']);
+
+    expect($auction->refresh())
+        ->name->toBe('Renamed item')
+        ->and($auction->expires_at->timestamp)->toBe($originalExpiry);
+
+    Queue::assertNothingPushed();
+});
+
+test('records a timeline entry when the countdown is adjusted', function () {
+    Queue::fake();
+
+    $auction = Auction::factory()->triggered()->create([
+        'countdown_duration_seconds' => 60,
+    ]);
+
+    $this->service->update($auction, ['countdown_duration_seconds' => 180]);
+
+    $entry = AuctionTimelineEntry::where('auction_id', $auction->id)
+        ->where('type', AuctionTimelineEntryType::CountdownAdjusted)
+        ->first();
+
+    expect($entry)->not->toBeNull()
+        ->and($entry->payload['previous_duration_seconds'])->toBe(60)
+        ->and($entry->payload['duration_seconds'])->toBe(180);
 });

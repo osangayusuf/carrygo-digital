@@ -13,6 +13,8 @@ class AuctionTimelineController extends Controller
 
     public function index(Auction $auction): JsonResponse
     {
+        abort_if(! $auction->enabled && ! auth()->user()?->hasRole('admin'), 404);
+
         $entries = $this->timelineService->timelineForAuction($auction->id);
 
         return response()->json([

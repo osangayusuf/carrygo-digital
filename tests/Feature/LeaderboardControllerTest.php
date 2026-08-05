@@ -39,6 +39,19 @@ test('leaderboard page lists live auctions with top bidders ranked by total bid 
             ->where('auctions.data.0.top_bidders.1.total_points', 150));
 });
 
+test('leaderboard excludes disabled auctions', function () {
+    $user = User::factory()->create();
+    Auction::factory()->active()->create(['name' => 'Visible', 'enabled' => true]);
+    Auction::factory()->active()->create(['name' => 'Disabled', 'enabled' => false]);
+
+    $this->actingAs($user)
+        ->get(route('leaderboard'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('auctions.data', 1)
+            ->where('auctions.data.0.name', 'Visible'));
+});
+
 test('leaderboard limits top bidders to three per auction', function () {
     $user = User::factory()->create();
     $auction = Auction::factory()->active()->create();

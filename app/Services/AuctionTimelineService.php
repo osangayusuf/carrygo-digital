@@ -80,6 +80,26 @@ class AuctionTimelineService
         );
     }
 
+    /**
+     * Record an admin-driven change to a triggered auction's countdown.
+     */
+    public function recordCountdownAdjusted(
+        Auction $auction,
+        ?string $previousExpiresAt,
+        int $previousDurationSeconds,
+    ): AuctionTimelineEntry {
+        return $this->record(
+            auction: $auction,
+            type: AuctionTimelineEntryType::CountdownAdjusted,
+            payload: [
+                'previous_expires_at' => $previousExpiresAt,
+                'expires_at' => $auction->expires_at?->toISOString(),
+                'previous_duration_seconds' => $previousDurationSeconds,
+                'duration_seconds' => $auction->countdown_duration_seconds,
+            ],
+        );
+    }
+
     public function recordLeaderChanged(Auction $auction, ?User $leader): AuctionTimelineEntry
     {
         return $this->record(
@@ -180,6 +200,7 @@ class AuctionTimelineService
                 ? sprintf('You bid %d pts', (int) ($entry->payload['amount'] ?? 0))
                 : sprintf('%s bid %d pts', $this->actorLabel($entry->user), (int) ($entry->payload['amount'] ?? 0)),
             AuctionTimelineEntryType::AuctionTriggered => 'Threshold reached — countdown started!',
+            AuctionTimelineEntryType::CountdownAdjusted => 'Countdown was adjusted by an admin',
             AuctionTimelineEntryType::LeaderChanged => $entry->user_id === null
                 ? 'Leadership is tied'
                 : ($isMine

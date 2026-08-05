@@ -1,6 +1,7 @@
 export type AuctionTimelineEntryType =
     | 'bid_placed'
     | 'auction_triggered'
+    | 'countdown_adjusted'
     | 'leader_changed'
     | 'auction_closed';
 

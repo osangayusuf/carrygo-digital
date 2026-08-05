@@ -2,6 +2,7 @@
 
 use App\Enums\AuctionStatus;
 use App\Events\AuctionClosedEvent;
+use App\Events\AuctionCountdownUpdatedEvent;
 use App\Events\AuctionTriggeredEvent;
 use App\Events\BidPlacedEvent;
 use App\Jobs\CloseAuctionJob;
@@ -160,4 +161,23 @@ it('broadcasts AuctionClosedEvent on the correct public auction channel', functi
         'winner_id' => $winner->id,
         'status' => 'closed',
     ]);
+});
+
+// ---------------------------------------------------------------------------
+// AuctionCountdownUpdatedEvent
+// ---------------------------------------------------------------------------
+
+it('broadcasts AuctionCountdownUpdatedEvent on the correct public auction channel', function () {
+    $auction = Auction::factory()->triggered()->create();
+
+    $event = new AuctionCountdownUpdatedEvent(
+        $auction->id,
+        $auction->expires_at->toISOString(),
+        $auction->status->value,
+    );
+
+    expect($event->broadcastOn())->toHaveCount(1)
+        ->and($event->broadcastOn()[0]->name)->toBe("auction.{$auction->id}")
+        ->and($event->broadcastAs())->toBe('AuctionCountdownUpdated')
+        ->and($event->broadcastWith())->toHaveKey('expires_at');
 });

@@ -26,6 +26,14 @@ class AuctionController extends Controller
             ? $request->string('status')->toString()
             : null;
 
+        $enabledFilter = $request->filled('enabled')
+            ? $request->string('enabled')->toString()
+            : null;
+
+        $eventFilter = $request->filled('event')
+            ? $request->string('event')->toString()
+            : null;
+
         $query = Auction::query()->latest();
 
         if ($search) {
@@ -34,6 +42,18 @@ class AuctionController extends Controller
 
         if ($statusFilter) {
             $query->where('status', $statusFilter);
+        }
+
+        if ($enabledFilter === 'enabled') {
+            $query->where('enabled', true);
+        } elseif ($enabledFilter === 'disabled') {
+            $query->where('enabled', false);
+        }
+
+        if ($eventFilter === 'event') {
+            $query->where('event', true);
+        } elseif ($eventFilter === 'regular') {
+            $query->where('event', false);
         }
 
         $categories = Auction::distinct()
@@ -49,6 +69,8 @@ class AuctionController extends Controller
             'filters' => [
                 'search' => $search,
                 'status' => $statusFilter,
+                'enabled' => $enabledFilter,
+                'event' => $eventFilter,
             ],
         ]);
     }
@@ -103,5 +125,27 @@ class AuctionController extends Controller
 
         return redirect()->route('admin.auctions.index')
             ->with('success', 'Auction closed successfully.');
+    }
+
+    public function toggleEnabled(Auction $auction): RedirectResponse
+    {
+        $auction->enabled
+            ? $this->auctionService->disable($auction)
+            : $this->auctionService->enable($auction);
+
+        return redirect()->route('admin.auctions.index')
+            ->with('success', $auction->enabled
+                ? 'Auction enabled successfully.'
+                : 'Auction disabled successfully.');
+    }
+
+    public function toggleEvent(Auction $auction): RedirectResponse
+    {
+        $this->auctionService->toggleEvent($auction);
+
+        return redirect()->route('admin.auctions.index')
+            ->with('success', $auction->event
+                ? 'Auction marked as an event item.'
+                : 'Auction unmarked as an event item.');
     }
 }

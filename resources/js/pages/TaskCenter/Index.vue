@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
-import { Form, Head, Link } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { Form, Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 import RewardClaimController from '@/actions/App/Http/Controllers/RewardClaimController';
 import AchievementBadgesSection from '@/components/rewards/AchievementBadgesSection.vue';
 import DailyCheckinSection from '@/components/rewards/DailyCheckinSection.vue';
 import SpinWheelSection from '@/components/rewards/SpinWheelSection.vue';
 import WeeklyLeaderboardSection from '@/components/rewards/WeeklyLeaderboardSection.vue';
+import { useTermsModal } from '@/composables/useTermsModal';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { home, profile } from '@/routes';
 
@@ -69,6 +69,8 @@ defineProps<{
 
 const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null);
 const copied = ref(false);
+const { open: openTermsModal } = useTermsModal();
+const claimForm = useForm({});
 
 function copyReferralLink(url: string) {
     navigator.clipboard.writeText(url).then(() => {
@@ -89,6 +91,8 @@ function showToast(message: string, type: 'success' | 'error' = 'success') {
 }
 
 const page = usePage();
+const user = computed(() => (page.props.auth as { user?: { terms_accepted_at?: string | null } })?.user);
+
 watch(
     () => page.props.flash as Record<string, string> | undefined,
     (flash) => {
@@ -100,6 +104,15 @@ watch(
     },
     { immediate: true },
 );
+
+function handleClaimSubmit(e: Event) {
+    if (user.value && !user.value.terms_accepted_at) {
+        e.preventDefault();
+        openTermsModal(() => {
+            claimForm.post(RewardClaimController.url());
+        });
+    }
+}
 
 function onSpun(pointsWon: number) {
     showToast(`You won ${pointsWon} bonus pts! Claim them above when ready.`);
@@ -155,17 +168,19 @@ function onSpun(pointsWon: number) {
                                 </p>
                             </div>
                         </div>
-                        <Form
+                        <form
+                            @submit="handleClaimSubmit"
                             :action="RewardClaimController.url()"
                             method="post"
                         >
                             <button
                                 type="submit"
-                                class="shrink-0 rounded-xl border-2 border-secondary bg-secondary px-4 py-2 text-sm font-black text-on-tertiary shadow-sm transition hover:opacity-90 active:scale-95"
+                                :disabled="claimForm.processing"
+                                class="shrink-0 rounded-xl border-2 border-secondary bg-secondary px-4 py-2 text-sm font-black text-on-tertiary shadow-sm transition hover:opacity-90 active:scale-95 disabled:opacity-50"
                             >
                                 Claim Now →
                             </button>
-                        </Form>
+                        </form>
                     </div>
                 </div>
             </Transition>

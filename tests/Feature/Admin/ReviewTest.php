@@ -53,8 +53,22 @@ test('public home feed only contains visible reviews', function () {
     $response = $this->get(route('home'));
     $response->assertOk();
 
-    // Verify database query level filtering
     $reviews = Review::visible()->get();
     expect($reviews->contains('id', $visibleReview->id))->toBeTrue();
     expect($reviews->contains('id', $hiddenReview->id))->toBeFalse();
+});
+
+test('admin can delete a review', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $this->actingAs($admin);
+
+    $review = Review::factory()->create();
+
+    $response = $this->delete(route('admin.reviews.destroy', $review));
+    $response->assertRedirect();
+
+    $this->assertDatabaseMissing('reviews', [
+        'id' => $review->id,
+    ]);
 });

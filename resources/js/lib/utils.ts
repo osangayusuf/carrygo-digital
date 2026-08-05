@@ -61,6 +61,44 @@ export function getRemainingTime(expiresAt: string | null | undefined): string {
     return `${hours} hour(s), ${minutes} minute(s)`;
 }
 
+/**
+ * Same as getRemainingTime(), but includes a seconds component. Intended for
+ * surfaces (like the persistent navbar banner) that want a live, per-second
+ * ticking countdown rather than the card grid's minute-granularity text.
+ */
+export function getRemainingTimeWithSeconds(
+    expiresAt: string | null | undefined,
+): string {
+    if (!expiresAt) {
+        return '';
+    }
+
+    const diffInMs = new Date(expiresAt).getTime() - now.value.getTime();
+
+    if (diffInMs <= 0) {
+        return '0 hour(s), 0 minute(s), 0 second(s)';
+    }
+
+    const totalSeconds = Math.floor(diffInMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours} hour(s), ${minutes} minute(s), ${seconds} second(s)`;
+}
+
+/**
+ * Reactively reports whether a given expires_at timestamp is in the past,
+ * ticking off the same shared clock as getRemainingTime().
+ */
+export function hasExpired(expiresAt: string | null | undefined): boolean {
+    if (!expiresAt) {
+        return true;
+    }
+
+    return new Date(expiresAt).getTime() - now.value.getTime() <= 0;
+}
+
 export function maskedMsisdnParts(msisdn: string): {
     prefix: string;
     suffix: string;

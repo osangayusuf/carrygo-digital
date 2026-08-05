@@ -1,10 +1,27 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import WalletController from '@/actions/App/Http/Controllers/WalletController';
+import { useTermsModal } from '@/composables/useTermsModal';
 
 defineProps<{
     bonusPoints: number;
 }>();
+
+const page = usePage();
+const user = computed(() => (page.props.auth as { user?: { terms_accepted_at?: string | null } })?.user);
+const { open: openTermsModal } = useTermsModal();
+
+const form = useForm({});
+
+function handleClaimSubmit(e: Event) {
+    if (user.value && !user.value.terms_accepted_at) {
+        e.preventDefault();
+        openTermsModal(() => {
+            form.post(WalletController.claimBonus.url());
+        });
+    }
+}
 </script>
 
 <template>
@@ -18,22 +35,23 @@ defineProps<{
             Convert all {{ bonusPoints.toLocaleString() }} bonus points to your
             spendable balance.
         </p>
-        <Form
-            v-bind="WalletController.claimBonus.form()"
+        <form
+            @submit="handleClaimSubmit"
+            :action="WalletController.claimBonus.url()"
+            method="post"
             class="mt-4"
-            v-slot="{ processing, errors }"
         >
-            <p v-if="errors.bonus" class="mb-2 text-xs font-medium text-error">
-                {{ errors.bonus }}
+            <p v-if="form.errors.terms || (form.errors as Record<string, string>).bonus" class="mb-2 text-xs font-medium text-error">
+                {{ form.errors.terms || (form.errors as Record<string, string>).bonus }}
             </p>
             <button
                 type="submit"
-                :disabled="processing || bonusPoints <= 0"
+                :disabled="form.processing || bonusPoints <= 0"
                 data-test="claim-bonus-button"
                 class="rounded-lg bg-primary px-8 py-3 text-xs font-bold text-on-primary shadow-md transition-all hover:bg-tertiary-container hover:shadow-lg disabled:opacity-60"
             >
                 Claim all bonus points
             </button>
-        </Form>
+        </form>
     </div>
 </template>

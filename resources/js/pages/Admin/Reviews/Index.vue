@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
-import { Star, Search, Eye, EyeOff, Play, X } from 'lucide-vue-next';
+import { Star, Search, Eye, EyeOff, Play, X, Trash2, AlertTriangle } from 'lucide-vue-next';
 import { ref } from 'vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import {
     index as reviewsIndex,
     toggleVisibility as toggleVisibilityRoute,
+    destroy as destroyRoute,
 } from '@/routes/admin/reviews';
 
 type Review = {
@@ -26,6 +27,8 @@ type Review = {
 
 const expandedImage = ref<string | null>(null);
 const expandedVideo = ref<string | null>(null);
+const reviewToDelete = ref<Review | null>(null);
+const isDeleting = ref(false);
 
 const props = defineProps<{
     reviews: {
@@ -65,6 +68,30 @@ const toggleReviewVisibility = (review: Review) => {
             preserveScroll: true,
         },
     );
+};
+
+const confirmDeleteReview = (review: Review) => {
+    reviewToDelete.value = review;
+};
+
+const closeDeleteModal = () => {
+    if (isDeleting.value) return;
+    reviewToDelete.value = null;
+};
+
+const executeDelete = () => {
+    if (!reviewToDelete.value) return;
+
+    isDeleting.value = true;
+    router.delete(destroyRoute.url(reviewToDelete.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            reviewToDelete.value = null;
+        },
+        onFinish: () => {
+            isDeleting.value = false;
+        },
+    });
 };
 </script>
 
@@ -157,7 +184,7 @@ const toggleReviewVisibility = (review: Review) => {
                                 <th class="w-1/3 px-6 py-4">Comment</th>
                                 <th class="px-6 py-4">Auction Item</th>
                                 <th class="px-6 py-4">Social Link</th>
-                                <th class="px-6 py-4 text-right">Visibility</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline-variant">
@@ -284,32 +311,52 @@ const toggleReviewVisibility = (review: Review) => {
                                     >
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <button
-                                        @click="toggleReviewVisibility(review)"
-                                        :class="[
-                                            'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase transition-colors',
-                                            review.is_visible
-                                                ? 'border-secondary/20 bg-secondary-container text-on-secondary-container hover:bg-secondary-container/85'
-                                                : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low hover:text-primary',
-                                        ]"
-                                        :title="
-                                            review.is_visible
-                                                ? 'Hide review from home page feed'
-                                                : 'Show review on home page feed'
-                                        "
+                                    <div
+                                        class="flex items-center justify-end gap-2"
                                     >
-                                        <component
-                                            :is="
-                                                review.is_visible ? Eye : EyeOff
+                                        <button
+                                            @click="
+                                                toggleReviewVisibility(review)
                                             "
-                                            class="h-3.5 w-3.5"
-                                        />
-                                        <span>{{
-                                            review.is_visible
-                                                ? 'Visible'
-                                                : 'Hidden'
-                                        }}</span>
-                                    </button>
+                                            :class="[
+                                                'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase transition-colors',
+                                                review.is_visible
+                                                    ? 'border-secondary/20 bg-secondary-container text-on-secondary-container hover:bg-secondary-container/85'
+                                                    : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-low hover:text-primary',
+                                            ]"
+                                            :title="
+                                                review.is_visible
+                                                    ? 'Hide review from home page feed'
+                                                    : 'Show review on home page feed'
+                                            "
+                                        >
+                                            <component
+                                                :is="
+                                                    review.is_visible
+                                                        ? Eye
+                                                        : EyeOff
+                                                "
+                                                class="h-3.5 w-3.5"
+                                            />
+                                            <span>{{
+                                                review.is_visible
+                                                    ? 'Visible'
+                                                    : 'Hidden'
+                                            }}</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            @click="
+                                                confirmDeleteReview(review)
+                                            "
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-[10px] font-bold text-red-600 uppercase transition-colors hover:bg-red-500/20 hover:text-red-700 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/30"
+                                            title="Delete review"
+                                        >
+                                            <Trash2 class="h-3.5 w-3.5" />
+                                            <span>Delete</span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-if="reviews.data.length === 0">
@@ -389,6 +436,65 @@ const toggleReviewVisibility = (review: Review) => {
                 >
                     <X class="h-4 w-4" />
                 </button>
+            </div>
+        </div>
+
+        <div
+            v-if="reviewToDelete"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            @click="closeDeleteModal"
+        >
+            <div
+                class="w-full max-w-md overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest p-6 shadow-2xl transition-all"
+                @click.stop
+            >
+                <div class="flex items-start gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+                    >
+                        <AlertTriangle class="h-6 w-6" />
+                    </div>
+                    <div class="flex-1">
+                        <h3
+                            class="text-base font-black text-on-surface uppercase tracking-wide"
+                        >
+                            Delete Review
+                        </h3>
+                        <p class="mt-2 text-xs text-on-surface-variant leading-relaxed">
+                            Are you sure you want to permanently delete review
+                            <span class="font-bold text-primary"
+                                >#{{ reviewToDelete.id }}</span
+                            >
+                            by
+                            <span class="font-bold text-primary">{{
+                                reviewToDelete.user?.name || 'Anonymous User'
+                            }}</span
+                            >? This action cannot be undone.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button
+                        type="button"
+                        @click="closeDeleteModal"
+                        :disabled="isDeleting"
+                        class="rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-xs font-bold text-on-surface-variant uppercase transition-colors hover:bg-surface-container-low hover:text-primary disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        @click="executeDelete"
+                        :disabled="isDeleting"
+                        class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-xs font-black text-white uppercase transition-colors hover:bg-red-700 disabled:opacity-50"
+                    >
+                        <Trash2 class="h-4 w-4" />
+                        <span>{{
+                            isDeleting ? 'Deleting...' : 'Delete Review'
+                        }}</span>
+                    </button>
+                </div>
             </div>
         </div>
     </Teleport>

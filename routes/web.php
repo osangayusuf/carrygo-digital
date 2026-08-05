@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\AuctionController as AdminAuctionController;
@@ -29,14 +30,19 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\SpinController;
 use App\Http\Controllers\TaskCenterController;
+use App\Http\Controllers\TermsController;
 use App\Http\Controllers\TrendingController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\WinnersController;
+use App\Http\Middleware\EnsureTermsAccepted;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('open-bids', [OpenBidsController::class, 'index'])->name('open-bids');
 Route::get('how-to-play', [HowToPlayController::class, 'index'])->name('how-to-play');
+Route::get('about', [AboutController::class, 'index'])->name('about');
+Route::get('terms', [TermsController::class, 'index'])->name('terms.index');
+Route::get('terms/{slug}', [TermsController::class, 'show'])->name('terms.show');
 Route::get('auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
 Route::get('auctions/{auction}/timeline', [AuctionTimelineController::class, 'index'])->name('auctions.timeline');
 Route::get('search', [SearchController::class, 'index'])->name('search');
@@ -51,6 +57,8 @@ Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback']
     ->whereIn('provider', ['google', 'facebook']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('terms/accept', [TermsController::class, 'accept'])->name('terms.accept');
+
     Route::get('winners', [WinnersController::class, 'index'])->name('winners');
     Route::get('leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
     Route::get('recommended', [RecommendedController::class, 'index'])->name('recommended');
@@ -62,11 +70,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('wallet', [WalletController::class, 'index'])->name('wallet');
     Route::get('wallet/payment/callback', [WalletController::class, 'paymentCallback'])->name('wallet.payment.callback');
     Route::post('wallet/deposit', [WalletController::class, 'deposit'])->name('wallet.deposit');
-    Route::post('wallet/claim-bonus', [WalletController::class, 'claimBonus'])->name('wallet.claim-bonus');
     Route::get('tasks', [TaskCenterController::class, 'index'])->name('tasks');
     Route::post('checkin', [CheckinController::class, 'store'])->name('checkin');
-    Route::post('spin', SpinController::class)->name('spin');
-    Route::post('rewards/claim', RewardClaimController::class)->name('rewards.claim');
     Route::get('profile', [ProfileController::class, 'index'])->name('profile');
     Route::get('profile/leaderboard', [ProfileController::class, 'leaderboard'])->name('profile.leaderboard');
     Route::get('security', [SecurityController::class, 'edit'])->name('security.edit');
@@ -77,6 +82,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
 
     Route::post('auctions/{auction}/reviews', [AuctionReviewController::class, 'store'])->name('auctions.reviews.store');
+
+    Route::post('spin', SpinController::class)->name('spin');
+
+    Route::middleware([EnsureTermsAccepted::class])->group(function () {
+        Route::post('wallet/claim-bonus', [WalletController::class, 'claimBonus'])->name('wallet.claim-bonus');
+        Route::post('rewards/claim', RewardClaimController::class)->name('rewards.claim');
+    });
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -90,6 +102,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             ->name('auctions.publish');
         Route::post('auctions/{auction}/close', [AdminAuctionController::class, 'close'])
             ->name('auctions.close');
+        Route::patch('auctions/{auction}/toggle-enabled', [AdminAuctionController::class, 'toggleEnabled'])
+            ->name('auctions.toggleEnabled');
+        Route::patch('auctions/{auction}/toggle-event', [AdminAuctionController::class, 'toggleEvent'])
+            ->name('auctions.toggleEvent');
 
         // Users Management
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -112,6 +128,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Reviews Moderation
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::post('reviews/{review}/toggle-visibility', [ReviewController::class, 'toggleVisibility'])->name('reviews.toggle-visibility');
+        Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
         // Rewards Config Management
         Route::get('rewards-config', [RewardsConfigController::class, 'index'])->name('rewards-config.index');
@@ -126,7 +143,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 
 Route::redirect('admin', '/admin/auctions', 301)->name('admin.dashboard');
 
-Route::middleware(['auth', 'verified', 'throttle:bid'])->group(function () {
+Route::middleware(['auth', 'verified', EnsureTermsAccepted::class, 'throttle:bid'])->group(function () {
     Route::post('auctions/{auction}/bids', [BidController::class, 'store'])
         ->name('auctions.bids.store');
 });

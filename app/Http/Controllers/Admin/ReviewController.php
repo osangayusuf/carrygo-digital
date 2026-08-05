@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -58,5 +59,22 @@ class ReviewController extends Controller
             ? __('Review is now visible to the public feed.')
             : __('Review is now hidden from the public feed.')
         );
+    }
+
+    public function destroy(Review $review): RedirectResponse
+    {
+        if (! empty($review->photos)) {
+            foreach ($review->photos as $photo) {
+                Storage::disk('public')->delete($photo);
+            }
+        }
+
+        if (! empty($review->video)) {
+            Storage::disk('public')->delete($review->video);
+        }
+
+        $review->delete();
+
+        return back()->with('success', __('Review deleted successfully.'));
     }
 }

@@ -242,6 +242,73 @@ test('approved agents can claim, chat, close and convert sessions', function () 
     Event::assertDispatched(ChatSessionClosed::class);
 });
 
+test('converting a guest chat session to a ticket provisions a customer account', function () {
+    Event::fake();
+
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $session = ChatSession::factory()->guest()->create([
+        'customer_name' => 'Guest User',
+        'customer_email' => 'guest_convert@example.com',
+        'agent_id' => $agent->id,
+        'status' => ChatSessionStatus::ACTIVE,
+    ]);
+
+    // Guest sends a message before the agent converts the session to a ticket.
+    $this->withSession(['active_chat_session' => $session->uuid])
+        ->post(route('support.chat.api.send', $session->uuid), [
+            'body' => 'How do I purchase points?',
+        ])
+        ->assertOk();
+
+    $this->actingAs($agent)
+        ->post(route('support.chat.convert', $session), [
+            'subject' => 'Inquiry on how to purchase points',
+            'category' => TicketCategory::AUCTION_DISPUTE->value,
+            'priority' => TicketPriority::HIGH->value,
+        ])
+        ->assertRedirect();
+
+    $guestUser = User::where('email', 'guest_convert@example.com')->first();
+    expect($guestUser)->not->toBeNull();
+    expect($session->fresh()->customer_id)->toBe($guestUser->id);
+
+    $ticket = $session->fresh()->ticket;
+    expect($ticket)->not->toBeNull()
+        ->and($ticket->customer_id)->toBe($guestUser->id);
+
+    $this->assertDatabaseHas('ticket_messages', [
+        'ticket_id' => $ticket->id,
+        'sender_id' => $guestUser->id,
+        'body' => 'How do I purchase points?',
+    ]);
+});
+
+test('converting a fully anonymous guest session without an email fails gracefully', function () {
+    $agent = User::factory()->approvedAgent()->create();
+    $agent->assignRole('agent');
+
+    $session = ChatSession::factory()->create([
+        'customer_id' => null,
+        'customer_name' => 'Anonymous',
+        'customer_email' => null,
+        'agent_id' => $agent->id,
+        'status' => ChatSessionStatus::ACTIVE,
+    ]);
+
+    $this->actingAs($agent)
+        ->post(route('support.chat.convert', $session), [
+            'subject' => 'Some inquiry',
+            'category' => TicketCategory::GENERAL->value,
+            'priority' => TicketPriority::NORMAL->value,
+        ])
+        ->assertRedirect()
+        ->assertSessionHasErrors('error');
+
+    expect($session->fresh()->ticket_id)->toBeNull();
+});
+
 test('agents can update status manually', function () {
     $agent = User::factory()->approvedAgent()->create();
     $agent->assignRole('agent');

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import PointsBadge from '@/components/PointsBadge.vue';
+import { useAuctionCountdown } from '@/composables/useAuctionCountdown';
 import auctions from '@/routes/auctions/index';
 import CountdownBadge from './CountdownBadge.vue';
 import ProgressBar from './ProgressBar.vue';
@@ -12,6 +14,11 @@ const props = defineProps({
         required: true,
     },
 });
+
+const { expiresAt } = useAuctionCountdown(
+    computed(() => props.auction.id ?? null),
+    computed(() => props.auction.expires_at),
+);
 </script>
 
 <template>
@@ -51,9 +58,9 @@ const props = defineProps({
 
             <div
                 class="absolute right-3 bottom-3"
-                v-if="auction.status === 'triggered' && auction.expires_at"
+                v-if="auction.status === 'triggered' && expiresAt"
             >
-                <CountdownBadge :expires-at="auction.expires_at" />
+                <CountdownBadge :expires-at="expiresAt" />
             </div>
         </div>
 

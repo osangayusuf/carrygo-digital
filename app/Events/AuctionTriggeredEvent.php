@@ -34,6 +34,11 @@ class AuctionTriggeredEvent implements ShouldBroadcastNow
         ];
     }
 
+    public function broadcastAs(): string
+    {
+        return 'AuctionTriggered';
+    }
+
     /**
      * @return array<string, mixed>
      */

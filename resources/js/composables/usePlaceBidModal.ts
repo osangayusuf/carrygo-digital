@@ -1,6 +1,7 @@
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { store as storeBid } from '@/actions/App/Http/Controllers/BidController';
+import { useTermsModal } from '@/composables/useTermsModal';
 import { login } from '@/routes/index';
 import type { Bid } from '@/types/auction';
 
@@ -11,13 +12,16 @@ let form: ReturnType<typeof useForm<{ points: number }>> | null = null;
 
 export function usePlaceBidModal() {
     const page = usePage();
+    const { open: openTermsModal } = useTermsModal();
 
     if (!form) {
         form = useForm({ points: 0 });
     }
 
     function open(bid: Bid, userPoints: number | null): void {
-        if (!page.props.auth?.user) {
+        const user = (page.props.auth as { user?: { terms_accepted_at?: string | null } })?.user;
+
+        if (!user) {
             sessionStorage.setItem('pendingBidId', bid.id.toString());
             router.get(login.url());
 
@@ -25,6 +29,17 @@ export function usePlaceBidModal() {
         }
 
         activeBid.value = bid;
+
+        if (!user.terms_accepted_at) {
+            openTermsModal(() => {
+                form!.points = userPoints ?? 0;
+                form!.clearErrors();
+                isOpen.value = true;
+            });
+
+            return;
+        }
+
         form!.points = userPoints ?? 0;
         form!.clearErrors();
         isOpen.value = true;

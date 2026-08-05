@@ -21,6 +21,8 @@ import {
     publish as auctionsPublish,
     close as auctionsClose,
     destroy as auctionsDestroy,
+    toggleEnabled as auctionsToggleEnabled,
+    toggleEvent as auctionsToggleEvent,
 } from '@/routes/admin/auctions';
 
 type Auction = {
@@ -32,6 +34,8 @@ type Auction = {
     opening_points: number;
     current_points: number;
     status: 'draft' | 'active' | 'triggered' | 'closed';
+    enabled: boolean;
+    event: boolean;
     image: string | null;
     external_url: string | null;
     bid_count: number;
@@ -52,12 +56,16 @@ const props = defineProps<{
     filters: {
         search: string | null;
         status: string | null;
+        enabled: string | null;
+        event: string | null;
     };
 }>();
 
 const searchForm = useForm({
     search: props.filters?.search || '',
     status: props.filters?.status || '',
+    enabled: props.filters?.enabled || '',
+    event: props.filters?.event || '',
 });
 
 const handleSearch = () => {
@@ -71,9 +79,21 @@ const setStatusFilter = (status: string) => {
     handleSearch();
 };
 
+const setEnabledFilter = (enabled: string) => {
+    searchForm.enabled = enabled;
+    handleSearch();
+};
+
+const setEventFilter = (event: string) => {
+    searchForm.event = event;
+    handleSearch();
+};
+
 const clearSearch = () => {
     searchForm.search = '';
     searchForm.status = '';
+    searchForm.enabled = '';
+    searchForm.event = '';
     handleSearch();
 };
 
@@ -231,6 +251,31 @@ const deleteAuction = (id: number) => {
     }
 };
 
+const toggleEnabled = (auction: Auction) => {
+    if (
+        auction.enabled &&
+        !confirm(
+            'Disable this auction? It will be hidden from users and stop accepting bids immediately.',
+        )
+    ) {
+        return;
+    }
+
+    router.patch(
+        auctionsToggleEnabled.url(auction.id),
+        {},
+        { preserveScroll: true },
+    );
+};
+
+const toggleEvent = (auction: Auction) => {
+    router.patch(
+        auctionsToggleEvent.url(auction.id),
+        {},
+        { preserveScroll: true },
+    );
+};
+
 const handleImageChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
 
@@ -304,23 +349,68 @@ const handleImageChange = (e: Event) => {
                     </div>
                 </form>
 
-                <!-- Status Filter Tabs from Mockup -->
-                <div
-                    class="flex w-fit items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-low p-1"
-                >
-                    <button
-                        v-for="statusOpt in ['', 'active', 'closed', 'draft']"
-                        :key="statusOpt"
-                        @click="setStatusFilter(statusOpt)"
-                        :class="[
-                            'rounded-md px-4 py-1.5 text-[10px] font-bold uppercase transition-all',
-                            searchForm.status === statusOpt
-                                ? 'bg-surface-container-lowest font-black text-primary shadow-sm'
-                                : 'text-on-surface-variant hover:bg-surface-variant/40',
-                        ]"
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Status Filter Tabs from Mockup -->
+                    <div
+                        class="flex w-fit items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-low p-1"
                     >
-                        {{ statusOpt === '' ? 'ALL' : statusOpt }}
-                    </button>
+                        <button
+                            v-for="statusOpt in [
+                                '',
+                                'active',
+                                'closed',
+                                'draft',
+                            ]"
+                            :key="statusOpt"
+                            @click="setStatusFilter(statusOpt)"
+                            :class="[
+                                'rounded-md px-4 py-1.5 text-[10px] font-bold uppercase transition-all',
+                                searchForm.status === statusOpt
+                                    ? 'bg-surface-container-lowest font-black text-primary shadow-sm'
+                                    : 'text-on-surface-variant hover:bg-surface-variant/40',
+                            ]"
+                        >
+                            {{ statusOpt === '' ? 'ALL' : statusOpt }}
+                        </button>
+                    </div>
+
+                    <!-- Enabled Filter Tabs -->
+                    <div
+                        class="flex w-fit items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-low p-1"
+                    >
+                        <button
+                            v-for="enabledOpt in ['', 'enabled', 'disabled']"
+                            :key="enabledOpt"
+                            @click="setEnabledFilter(enabledOpt)"
+                            :class="[
+                                'rounded-md px-4 py-1.5 text-[10px] font-bold uppercase transition-all',
+                                searchForm.enabled === enabledOpt
+                                    ? 'bg-surface-container-lowest font-black text-primary shadow-sm'
+                                    : 'text-on-surface-variant hover:bg-surface-variant/40',
+                            ]"
+                        >
+                            {{ enabledOpt === '' ? 'ALL' : enabledOpt }}
+                        </button>
+                    </div>
+
+                    <!-- Event Filter Tabs -->
+                    <div
+                        class="flex w-fit items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-low p-1"
+                    >
+                        <button
+                            v-for="eventOpt in ['', 'event', 'regular']"
+                            :key="eventOpt"
+                            @click="setEventFilter(eventOpt)"
+                            :class="[
+                                'rounded-md px-4 py-1.5 text-[10px] font-bold uppercase transition-all',
+                                searchForm.event === eventOpt
+                                    ? 'bg-surface-container-lowest font-black text-primary shadow-sm'
+                                    : 'text-on-surface-variant hover:bg-surface-variant/40',
+                            ]"
+                        >
+                            {{ eventOpt === '' ? 'ALL' : eventOpt }}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -341,6 +431,8 @@ const handleImageChange = (e: Event) => {
                                 <th class="px-6 py-4">Item Details</th>
                                 <th class="px-6 py-4">Category</th>
                                 <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Enabled</th>
+                                <th class="px-6 py-4">Event</th>
                                 <th class="px-6 py-4">Threshold</th>
                                 <th class="w-48 px-6 py-4">Progress</th>
                                 <th class="px-6 py-4 text-right">Actions</th>
@@ -411,6 +503,62 @@ const handleImageChange = (e: Event) => {
                                     >
                                         {{ auction.status }}
                                     </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        :aria-checked="auction.enabled"
+                                        :title="
+                                            auction.enabled
+                                                ? 'Disable auction'
+                                                : 'Enable auction'
+                                        "
+                                        @click="toggleEnabled(auction)"
+                                        :class="[
+                                            'relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors',
+                                            auction.enabled
+                                                ? 'bg-secondary'
+                                                : 'bg-surface-variant',
+                                        ]"
+                                    >
+                                        <span
+                                            :class="[
+                                                'inline-block h-3.5 w-3.5 transform rounded-full bg-surface-container-lowest shadow transition-transform',
+                                                auction.enabled
+                                                    ? 'translate-x-[18px]'
+                                                    : 'translate-x-[3px]',
+                                            ]"
+                                        ></span>
+                                    </button>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        :aria-checked="auction.event"
+                                        :title="
+                                            auction.event
+                                                ? 'Unmark as event item'
+                                                : 'Mark as event item'
+                                        "
+                                        @click="toggleEvent(auction)"
+                                        :class="[
+                                            'relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors',
+                                            auction.event
+                                                ? 'bg-secondary'
+                                                : 'bg-surface-variant',
+                                        ]"
+                                    >
+                                        <span
+                                            :class="[
+                                                'inline-block h-3.5 w-3.5 transform rounded-full bg-surface-container-lowest shadow transition-transform',
+                                                auction.event
+                                                    ? 'translate-x-[18px]'
+                                                    : 'translate-x-[3px]',
+                                            ]"
+                                        ></span>
+                                    </button>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-bold text-primary">
@@ -504,6 +652,13 @@ const handleImageChange = (e: Event) => {
                                             "
                                         >
                                             <button
+                                                @click="openEditModal(auction)"
+                                                class="rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
+                                                title="Edit Auction"
+                                            >
+                                                <Edit class="h-4 w-4" />
+                                            </button>
+                                            <button
                                                 @click="
                                                     closeAuction(auction.id)
                                                 "
@@ -528,7 +683,7 @@ const handleImageChange = (e: Event) => {
                             </tr>
                             <tr v-if="auctions.data.length === 0">
                                 <td
-                                    colspan="6"
+                                    colspan="8"
                                     class="px-6 py-12 text-center font-bold tracking-wider text-on-surface-variant uppercase"
                                 >
                                     No auctions found matching criteria.
@@ -777,7 +932,11 @@ const handleImageChange = (e: Event) => {
                     <h2
                         class="text-sm font-black tracking-widest text-primary uppercase"
                     >
-                        Edit Draft Auction
+                        {{
+                            selectedAuction?.status === 'draft'
+                                ? 'Edit Draft Auction'
+                                : 'Edit Auction'
+                        }}
                     </h2>
                     <button
                         @click="showEditModal = false"
@@ -927,6 +1086,7 @@ const handleImageChange = (e: Event) => {
                                 Save Changes
                             </button>
                             <button
+                                v-if="selectedAuction?.status === 'draft'"
                                 type="button"
                                 @click="submitEdit(true)"
                                 :disabled="form.processing"
