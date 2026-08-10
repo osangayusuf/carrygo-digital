@@ -330,12 +330,12 @@ const bannerTimeLeft = computed(() =>
             >
                 <Link
                     :href="home.url()"
-                    class="order-1 flex shrink-0 items-center rounded-lg no-underline focus:ring-2 focus:ring-primary focus:outline-none"
+                    class="order-1 flex h-12 overflow-hidden shrink-0 items-center no-underline focus:ring-2 focus:ring-primary focus:outline-none"
                     aria-label="Bidora Home"
                     title="Go to Bidora Home"
                 >
                     <img
-                        class="block h-7 w-auto sm:h-10"
+                        class="block h-auto w-36 max-w-none object-cover"
                         :src="`${$page.props.asset_url}logo.png`"
                         alt="Bidora"
                     />

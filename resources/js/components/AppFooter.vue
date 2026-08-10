@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { useTermsModal } from '@/composables/useTermsModal';
 import {
     about,
     eventItems,
@@ -11,7 +12,6 @@ import {
     trending,
     winners,
 } from '@/routes/index';
-import { useTermsModal } from '@/composables/useTermsModal';
 
 const year = new Date().getFullYear();
 const { open: openTermsModal } = useTermsModal();
@@ -29,14 +29,14 @@ function openSupportChat(): void {
 <template>
     <footer class="mt-7 bg-[#050e05] text-[#8aaa80]">
         <div
-            class="mx-auto grid max-w-[1300px] grid-cols-1 gap-8 px-4 pt-10 pb-6 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.5fr]"
+            class="mx-auto grid max-w-325 grid-cols-1 gap-8 px-4 pt-10 pb-6 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.5fr]"
         >
             <div>
-                <div class="mb-2 h-12 w-auto">
+                <div class="mb-2 h-12 flex items-center overflow-hidden w-auto">
                     <img
-                        :src="`${$page.props.asset_url}logo.png`"
+                        :src="`${$page.props.asset_url}footer-logo.png`"
                         alt="Bidora"
-                        class="h-full w-auto"
+                        class="h-auto w-36"
                     />
                 </div>
                 <div class="mb-3.5 text-sm leading-relaxed text-[#4a6a40]">

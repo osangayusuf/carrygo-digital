@@ -3,7 +3,12 @@ import { Link } from '@inertiajs/vue3';
 import { useIntervalFn } from '@vueuse/core';
 import { computed, ref } from 'vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
-import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
+import {
+    formatPrice,
+    formatSlashedPrice,
+    calcProgress,
+    getRemainingTime,
+} from '@/lib/utils';
 import auctions from '@/routes/auctions/index';
 import type { Bid } from '@/types/auction';
 
@@ -127,6 +132,9 @@ function activeBidders(bidId: number, bidCount: number): number {
                         <div class="slide-price-row">
                             <span class="slide-price">{{
                                 formatPrice(bid.price)
+                            }}</span>
+                            <span class="slide-price-slashed">{{
+                                formatSlashedPrice(bid.price)
                             }}</span>
                             <span class="slide-price-label">Market Price</span>
                         </div>
@@ -467,6 +475,12 @@ function activeBidders(bidId: number, bidCount: number): number {
     font-size: 1.75rem;
     font-weight: 900;
     color: var(--color-lemon, #fde047);
+}
+.slide-price-slashed {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: line-through;
 }
 .slide-price-label {
     font-size: 0.6875rem;

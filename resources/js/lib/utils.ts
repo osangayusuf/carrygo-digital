@@ -27,6 +27,18 @@ export function formatPrice(price: string | number): string {
     return isNaN(num) ? price.toString() : `₦ ${num.toLocaleString()}`;
 }
 
+/**
+ * Returns the item price marked up by 110%, formatted for display as the
+ * slashed/strikethrough "original" price next to the real price on bid cards.
+ */
+export function formatSlashedPrice(price: string | number): string {
+    const cleanPrice =
+        typeof price === 'string' ? price.replace(/,/g, '') : price;
+    const num = parseFloat(cleanPrice.toString());
+
+    return isNaN(num) ? formatPrice(price) : formatPrice(num * 1.1);
+}
+
 export function calcProgress(bid: Bid): number {
     if (!bid.opening_points) {
         return 0;

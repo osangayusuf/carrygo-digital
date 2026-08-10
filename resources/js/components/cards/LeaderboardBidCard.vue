@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { formatMsisdn, formatPrice } from '@/lib/utils';
+import { formatMsisdn, formatPrice, formatSlashedPrice } from '@/lib/utils';
 import type { LeaderboardAuction } from '@/types/auction';
 
 defineProps<{ bid: LeaderboardAuction }>();
@@ -57,6 +57,11 @@ const expandedImage = ref<string | null>(null);
                     </p>
                     <p class="text-sm font-black whitespace-nowrap text-forest">
                         ₦{{ formatPrice(bid.price) }}
+                    </p>
+                    <p
+                        class="whitespace-nowrap text-[9px] font-bold text-muted-green/70 line-through"
+                    >
+                        {{ formatSlashedPrice(bid.price) }}
                     </p>
                     <p class="mt-0.5 text-[9px] font-bold text-muted-green/80">
                         {{ bid.bid_count ?? 0 }} bids

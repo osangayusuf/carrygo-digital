@@ -8,7 +8,12 @@ import AuctionHistoryFeed from '@/components/modals/AuctionHistoryFeed.vue';
 import ShareModal from '@/components/modals/ShareModal.vue';
 import { useAuctionCountdown } from '@/composables/useAuctionCountdown';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { calcProgress, formatPrice, getRemainingTime } from '@/lib/utils';
+import {
+    calcProgress,
+    formatPrice,
+    formatSlashedPrice,
+    getRemainingTime,
+} from '@/lib/utils';
 import { home, login } from '@/routes/index';
 import type { Bid, Bidder } from '@/types/auction';
 
@@ -284,8 +289,15 @@ function submitBid(): void {
                                 <i class="pi pi-share-alt"></i> Share
                             </button>
                         </div>
-                        <p class="mb-4 text-2xl font-black text-forest">
-                            {{ formatPrice(auction.price) }}
+                        <p class="mb-4 flex items-baseline gap-2">
+                            <span class="text-2xl font-black text-forest">
+                                {{ formatPrice(auction.price) }}
+                            </span>
+                            <span
+                                class="text-sm font-bold text-muted-green/70 line-through"
+                            >
+                                {{ formatSlashedPrice(auction.price) }}
+                            </span>
                         </p>
 
                         <div

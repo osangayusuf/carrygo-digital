@@ -3,7 +3,12 @@ import { Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import ShareModal from '@/components/modals/ShareModal.vue';
 import { usePlaceBidModal } from '@/composables/usePlaceBidModal';
-import { formatPrice, calcProgress, getRemainingTime } from '@/lib/utils';
+import {
+    formatPrice,
+    formatSlashedPrice,
+    calcProgress,
+    getRemainingTime,
+} from '@/lib/utils';
 import auctions from '@/routes/auctions/index';
 import type { Bid } from '@/types/auction';
 
@@ -123,9 +128,15 @@ function buttonLabel(bid: Bid): string {
                 {{ bid.name }}
             </div>
             <div class="mb-1.5 flex items-center justify-between">
-                <span class="text-lg font-black text-forest">{{
-                    formatPrice(bid.price)
-                }}</span>
+                <div class="flex items-baseline gap-1.5">
+                    <span class="text-lg font-black text-forest">{{
+                        formatPrice(bid.price)
+                    }}</span>
+                    <span
+                        class="text-[10px] font-bold text-muted-green/70 line-through"
+                        >{{ formatSlashedPrice(bid.price) }}</span
+                    >
+                </div>
                 <span class="text-[10px] font-bold text-muted-green"
                     >{{ bid.bid_count ?? 0 }} bids</span
                 >
