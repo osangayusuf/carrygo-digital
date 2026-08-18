@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\LaunchPromotion;
 use App\Models\User;
 use App\Services\WalletService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -67,3 +68,73 @@ it('throws exception when claiming more bonus points than available', function (
 
     $service->claimBonusPoints($user, 100);
 })->throws(InvalidArgumentException::class);
+
+it('awards the launch bonus and consumes a slot', function () {
+    $promo = LaunchPromotion::query()->updateOrCreate(['slug' => 'launch_first_100'], [
+        'slots_total' => 100,
+        'slots_claimed' => 0,
+        'amount' => 5000,
+        'is_active' => true,
+    ]);
+    $user = User::factory()->create(['points_balance' => 0]);
+    $service = new WalletService;
+
+    $transaction = $service->awardLaunchBonus($user);
+
+    expect($transaction->type->value)->toBe('launch_bonus')
+        ->and($transaction->amount)->toEqual(5000)
+        ->and($transaction->metadata['slot'])->toBe(1);
+
+    expect($user->fresh()->points_balance)->toEqual(5000)
+        ->and($promo->fresh()->slots_claimed)->toBe(1);
+});
+
+it('does not award the launch bonus twice to the same user', function () {
+    LaunchPromotion::query()->updateOrCreate(['slug' => 'launch_first_100'], [
+        'slots_total' => 100,
+        'slots_claimed' => 0,
+        'amount' => 5000,
+        'is_active' => true,
+    ]);
+    $user = User::factory()->create(['points_balance' => 0]);
+    $service = new WalletService;
+
+    $service->awardLaunchBonus($user);
+    $second = $service->awardLaunchBonus($user);
+
+    expect($second)->toBeNull()
+        ->and($user->fresh()->points_balance)->toEqual(5000);
+});
+
+it('stops awarding the launch bonus once all slots are claimed', function () {
+    $promo = LaunchPromotion::query()->updateOrCreate(['slug' => 'launch_first_100'], [
+        'slots_total' => 2,
+        'slots_claimed' => 2,
+        'amount' => 5000,
+        'is_active' => true,
+    ]);
+    $user = User::factory()->create(['points_balance' => 0]);
+    $service = new WalletService;
+
+    $transaction = $service->awardLaunchBonus($user);
+
+    expect($transaction)->toBeNull()
+        ->and($user->fresh()->points_balance)->toEqual(0)
+        ->and($promo->fresh()->slots_claimed)->toBe(2);
+});
+
+it('does not award the launch bonus when the promotion is inactive', function () {
+    LaunchPromotion::query()->updateOrCreate(['slug' => 'launch_first_100'], [
+        'slots_total' => 100,
+        'slots_claimed' => 0,
+        'amount' => 5000,
+        'is_active' => false,
+    ]);
+    $user = User::factory()->create(['points_balance' => 0]);
+    $service = new WalletService;
+
+    $transaction = $service->awardLaunchBonus($user);
+
+    expect($transaction)->toBeNull()
+        ->and($user->fresh()->points_balance)->toEqual(0);
+});

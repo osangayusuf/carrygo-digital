@@ -9,4 +9,5 @@ enum TransactionType: string
     case BONUS_AWARD = 'bonus_award';
     case BONUS_CLAIM = 'bonus_claim';
     case WELCOME_BONUS = 'welcome_bonus';
+    case LAUNCH_BONUS = 'launch_bonus';
 }

@@ -15,5 +15,6 @@ class AwardWelcomePointsOnVerification
     public function handle(Verified $event): void
     {
         $this->walletService->awardWelcomePoints($event->user);
+        $this->walletService->awardLaunchBonus($event->user);
     }
 }

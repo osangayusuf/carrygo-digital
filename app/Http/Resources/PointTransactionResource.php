@@ -39,6 +39,7 @@ class PointTransactionResource extends JsonResource
             TransactionType::BONUS_AWARD => 'Bonus Award',
             TransactionType::BONUS_CLAIM => 'Bonus Claim',
             TransactionType::WELCOME_BONUS => 'Welcome Bonus',
+            TransactionType::LAUNCH_BONUS => 'Launch Bonus',
         };
     }
 

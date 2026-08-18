@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Enums\RewardSource;
 use App\Enums\TransactionType;
+use App\Models\LaunchPromotion;
 use App\Models\PaystackTransaction;
 use App\Models\PointTransaction;
 use App\Models\User;
 use App\Notifications\BonusPointsAwarded;
 use App\Notifications\BonusPointsClaimed;
+use App\Notifications\LaunchBonusAwarded;
 use App\Notifications\PaymentConfirmed;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\DB;
@@ -243,5 +245,65 @@ class WalletService
 
             return $transaction;
         });
+    }
+
+    /**
+     * Award the launch-week "first 100 users" bonus, if a slot is still
+     * available. Safe under concurrent claims: slot allocation happens via
+     * a row lock on the singleton LaunchPromotion record, which serializes
+     * every concurrent claim attempt instead of racing on a COUNT(*).
+     */
+    public function awardLaunchBonus(User $user, string $slug = LaunchPromotion::FIRST_HUNDRED_SLUG): ?PointTransaction
+    {
+        $result = DB::transaction(function () use ($user, $slug) {
+            $promo = LaunchPromotion::query()
+                ->where('slug', $slug)
+                ->lockForUpdate()
+                ->first();
+
+            if ($promo === null || ! $promo->hasSlotsRemaining()) {
+                return null;
+            }
+
+            $alreadyAwarded = PointTransaction::query()
+                ->where('user_id', $user->id)
+                ->where('type', TransactionType::LAUNCH_BONUS)
+                ->exists();
+
+            if ($alreadyAwarded) {
+                return null;
+            }
+
+            $promo->slots_claimed++;
+            $promo->save();
+            $slot = $promo->slots_claimed;
+
+            $user = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+            $user->points_balance += $promo->amount;
+            $user->save();
+
+            $transaction = PointTransaction::create([
+                'user_id' => $user->id,
+                'type' => TransactionType::LAUNCH_BONUS,
+                'amount' => $promo->amount,
+                'exchange_rate' => 1.0,
+                'status' => 'completed',
+                'metadata' => [
+                    'description' => 'Launch promo: first 100 users bonus',
+                    'promo_slug' => $slug,
+                    'slot' => $slot,
+                ],
+            ]);
+
+            return ['transaction' => $transaction, 'slot' => $slot];
+        });
+
+        if ($result === null) {
+            return null;
+        }
+
+        $user->notify(new LaunchBonusAwarded($result['transaction'], $result['slot']));
+
+        return $result['transaction'];
     }
 }

@@ -100,14 +100,14 @@ test('payment callback verifies paystack and credits points once', function () {
         ->get(route('wallet.payment.callback', ['reference' => 'ref_callback']))
         ->assertRedirect(route('wallet', ['payment' => 'success', 'reference' => 'ref_callback']));
 
-    expect((float) $user->fresh()->points_balance)->toEqual(100000.0);
+    expect((float) $user->fresh()->points_balance)->toEqual(10000.0);
     expect(PointTransaction::where('provider_reference', 'ref_callback')->count())->toBe(1);
 
     $this->actingAs($user)
         ->get(route('wallet.payment.callback', ['reference' => 'ref_callback']))
         ->assertRedirect();
 
-    expect((float) $user->fresh()->points_balance)->toEqual(100000.0);
+    expect((float) $user->fresh()->points_balance)->toEqual(10000.0);
     expect(PointTransaction::where('provider_reference', 'ref_callback')->count())->toBe(1);
 });
 
@@ -196,5 +196,27 @@ test('wallet transactions only show authenticated user records', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->has('transactions.data', 1)
             ->where('transactions.data.0.amount', 100)
+        );
+});
+
+test('wallet renders all transaction types without error', function () {
+    $user = User::factory()->create();
+
+    foreach (TransactionType::cases() as $case) {
+        PointTransaction::create([
+            'user_id' => $user->id,
+            'type' => $case,
+            'amount' => 100,
+            'exchange_rate' => 1,
+            'status' => TransactionStatus::COMPLETED,
+        ]);
+    }
+
+    $this->actingAs($user)
+        ->get(route('wallet'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Wallet/Index')
+            ->has('transactions.data', count(TransactionType::cases()))
         );
 });

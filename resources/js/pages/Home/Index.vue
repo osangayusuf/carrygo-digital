@@ -7,6 +7,7 @@ import FeaturedAuctionsCarousel from '@/components/home/FeaturedAuctionsCarousel
 import HomeBidItemsSection from '@/components/home/HomeBidItemsSection.vue';
 import HomeEventPopup from '@/components/home/HomeEventPopup.vue';
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue';
+import HomeLaunchNoticeModal from '@/components/home/HomeLaunchNoticeModal.vue';
 import HomeLeaderboardWidget from '@/components/home/HomeLeaderboardWidget.vue';
 import HomePromoSection from '@/components/home/HomePromoSection.vue';
 import HomeTestimonialsSection from '@/components/home/HomeTestimonialsSection.vue';
@@ -150,6 +151,7 @@ const getCategoryIcon = (category: string): string => {
 <template>
     <Head title="Home" />
 
+    <HomeLaunchNoticeModal />
     <HomeWinnerPopup v-if="props.winnerPopup" :winner="props.winnerPopup" />
     <HomeEventPopup
         v-if="props.eventPopupBid"

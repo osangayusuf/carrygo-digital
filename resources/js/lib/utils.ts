@@ -111,6 +111,45 @@ export function hasExpired(expiresAt: string | null | undefined): boolean {
     return new Date(expiresAt).getTime() - now.value.getTime() <= 0;
 }
 
+/** Public launch date/time — bids placed before this are voided and non-refundable. */
+export const LAUNCH_DATE = '2026-08-24T00:00:00Z';
+
+export type LaunchCountdownParts = {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+};
+
+/**
+ * Reactively reports whether the launch date has passed, ticking off the same
+ * shared clock as getRemainingTime().
+ */
+export function hasLaunched(): boolean {
+    return new Date(LAUNCH_DATE).getTime() - now.value.getTime() <= 0;
+}
+
+/**
+ * Live day/hour/minute/second breakdown of the time remaining until launch,
+ * for the pre-launch notice countdown.
+ */
+export function getLaunchCountdownParts(): LaunchCountdownParts {
+    const diffInMs = new Date(LAUNCH_DATE).getTime() - now.value.getTime();
+
+    if (diffInMs <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+
+    const totalSeconds = Math.floor(diffInMs / 1000);
+
+    return {
+        days: Math.floor(totalSeconds / 86400),
+        hours: Math.floor((totalSeconds % 86400) / 3600),
+        minutes: Math.floor((totalSeconds % 3600) / 60),
+        seconds: totalSeconds % 60,
+    };
+}
+
 export function maskedMsisdnParts(msisdn: string): {
     prefix: string;
     suffix: string;

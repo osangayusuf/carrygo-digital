@@ -11,6 +11,8 @@ const badgeClass =
         bonus_award: 'bg-amber/20 text-ink border-amber/40',
         bonus_claim:
             'bg-secondary-container text-on-secondary-container border-secondary/30',
+        welcome_bonus: 'bg-forest/15 text-forest border-forest/30',
+        launch_bonus: 'bg-amber/20 text-ink border-amber/40',
     }[props.type] ??
     'bg-surface-container text-on-surface-variant border-outline-variant';
 </script>
