@@ -38,6 +38,10 @@ return [
     'paystack' => [
         'public' => env('PAYSTACK_PUBLIC_KEY'),
         'secret' => env('PAYSTACK_SECRET_KEY'),
+        // Fanscorner's webhook endpoint. Bidora and Fanscorner share a single
+        // Paystack account/webhook URL; events tagged metadata.app=fanscorner
+        // are forwarded here raw (untouched body + original signature header).
+        'fanscorner_webhook_url' => env('FANSCORNER_PAYSTACK_WEBHOOK_URL'),
     ],
 
     'google' => [

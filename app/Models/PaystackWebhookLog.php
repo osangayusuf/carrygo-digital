@@ -8,9 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'event',
     'reference',
+    'destination',
     'payload',
+    'raw_body',
     'ip_address',
     'status',
+    'forward_status',
+    'forward_attempts',
+    'forwarded_at',
     'error_message',
 ])]
 class PaystackWebhookLog extends Model
@@ -19,6 +24,7 @@ class PaystackWebhookLog extends Model
     {
         return [
             'payload' => 'array',
+            'forwarded_at' => 'datetime',
         ];
     }
 }

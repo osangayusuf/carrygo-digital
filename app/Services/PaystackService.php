@@ -40,6 +40,7 @@ class PaystackService
                 'amount' => (int) ($amount * 100), // Convert Naira to Kobo
                 'callback_url' => $callbackUrl,
                 'metadata' => [
+                    'app' => 'bidora',
                     'user_id' => $user->id,
                 ],
             ]);
