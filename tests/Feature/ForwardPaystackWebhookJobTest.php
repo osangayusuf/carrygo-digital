@@ -65,6 +65,34 @@ it('marks the log failed and throws when fanscorner responds with an error', fun
     expect($log->fresh()->forward_status)->toBe('failed');
 });
 
+it('does not silently follow a redirect and fails loudly instead', function () {
+    // A redirect at Fanscorner's URL would otherwise convert this POST into
+    // a GET and silently drop the body/signature -- surfacing as a
+    // confusing "invalid signature" 400 on Fanscorner's end instead of the
+    // real problem (a wrong FANSCORNER_PAYSTACK_WEBHOOK_URL).
+    config(['services.paystack.fanscorner_webhook_url' => 'http://fanscorner.test/paystack/webhook']);
+
+    $log = PaystackWebhookLog::create([
+        'event' => 'charge.success',
+        'reference' => 'psk_abc123',
+        'destination' => 'fanscorner',
+        'payload' => [],
+        'raw_body' => '{}',
+        'status' => 'pending',
+    ]);
+
+    Http::fake([
+        'fanscorner.test/*' => Http::response('', 301, ['Location' => 'https://fanscorner.test/paystack/webhook']),
+    ]);
+
+    expect(fn () => (new ForwardPaystackWebhookJob($log->id, 'sig_123'))->handle())
+        ->toThrow(RuntimeException::class);
+
+    expect($log->fresh()->forward_status)->toBe('failed');
+
+    Http::assertSentCount(1); // never followed the redirect to a second request
+});
+
 it('skips re-forwarding a log that was already forwarded', function () {
     config(['services.paystack.fanscorner_webhook_url' => 'https://fanscorner.test/paystack/webhook']);
 

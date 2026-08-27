@@ -67,6 +67,14 @@ class ForwardPaystackWebhookJob implements ShouldQueue
         ])
             ->withBody($log->raw_body, 'application/json')
             ->timeout(10)
+            // A redirect here would silently convert this POST to a GET and
+            // drop the body/signature, producing an "invalid signature"
+            // rejection on Fanscorner's end that looks like a secret
+            // mismatch. Disable auto-follow so a misconfigured
+            // FANSCORNER_PAYSTACK_WEBHOOK_URL (missing https, wrong host,
+            // trailing slash, etc.) shows up as an explicit 301/302 below
+            // instead of a confusing downstream 400.
+            ->withOptions(['allow_redirects' => false])
             ->post($url);
 
         if ($response->successful()) {
@@ -81,8 +89,12 @@ class ForwardPaystackWebhookJob implements ShouldQueue
 
         Log::warning('Forwarding Paystack webhook to Fanscorner failed.', [
             'log_id' => $log->id,
+            'url' => $url,
             'status' => $response->status(),
             'body' => $response->body(),
+            'redirect_location' => $response->header('Location') ?: null, // non-null means FANSCORNER_PAYSTACK_WEBHOOK_URL needs fixing
+            'sent_raw_body_length' => strlen($log->raw_body ?? ''),
+            'sent_signature_present' => ! empty($this->signature),
         ]);
 
         $log->update(['forward_status' => 'failed']);
