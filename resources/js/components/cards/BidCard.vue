@@ -128,12 +128,12 @@ function buttonLabel(bid: Bid): string {
                 {{ bid.name }}
             </div>
             <div class="mb-1.5 flex items-center justify-between">
-                <div class="flex items-baseline gap-1.5">
-                    <span class="text-lg font-black text-forest">{{
+                <div class="flex flex-col items-baseline gap-0.5">
+                    <span class="text-xs font-black whitespace-nowrap text-forest">{{
                         formatPrice(bid.price)
                     }}</span>
                     <span
-                        class="text-[10px] font-bold text-muted-green/70 line-through"
+                        class="text-[9px] font-bold whitespace-nowrap text-muted-green/70 line-through"
                         >{{ formatSlashedPrice(bid.price) }}</span
                     >
                 </div>
@@ -141,21 +141,21 @@ function buttonLabel(bid: Bid): string {
                     >{{ bid.bid_count ?? 0 }} bids</span
                 >
             </div>
-            <div class="mb-1.5 h-1 overflow-hidden rounded-sm bg-sage-mid">
+            <div class="mb-1.5 h-2 overflow-hidden rounded-sm bg-sage-mid">
                 <div
-                    class="h-full rounded-sm bg-linear-to-r from-forest to-lemon"
+                    class="h-full rounded-sm bg-forest"
                     :style="{ width: calcProgress(bid) + '%' }"
                 ></div>
             </div>
             <div class="mb-2 flex items-center justify-between">
-                <span class="text-[9px] font-bold text-forest sm:text-[10px]">
+                <span class="text-[10px] font-black text-forest sm:text-xs">
                     Progress: {{ bid.current_points ?? 0 }}/{{
                         bid.opening_points
                     }}
                     Points
                 </span>
                 <span
-                    class="text-[9px] font-black sm:text-[10px]"
+                    class="text-[10px] font-black sm:text-xs"
                     :class="
                         calcProgress(bid) >= 100 ? 'text-error' : 'text-primary'
                     "
@@ -192,14 +192,14 @@ function buttonLabel(bid: Bid): string {
                 <div class="flex gap-2">
                     <span
                         v-if="isPreview"
-                        class="flex-1 cursor-not-allowed rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold text-ink/50"
+                        class="flex-1 cursor-not-allowed rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold whitespace-nowrap text-ink/50"
                     >
                         View more details
                     </span>
                     <Link
                         v-else
                         :href="auctions.show.url(bid.id)"
-                        class="flex-1 rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold text-ink no-underline transition-colors hover:border-lemon hover:text-forest"
+                        class="flex-1 rounded-md border-2 border-sage-border bg-white p-2 text-center text-xs font-extrabold whitespace-nowrap text-ink no-underline transition-colors hover:border-lemon hover:text-forest"
                     >
                         View more details
                     </Link>
@@ -215,7 +215,7 @@ function buttonLabel(bid: Bid): string {
                         title="Share"
                         @click="!isPreview && (isShareOpen = true)"
                     >
-                        <i class="pi pi-share-alt"></i>
+                        <i class="pi pi-share-alt text-sm"></i>
                     </button>
                 </div>
             </div>

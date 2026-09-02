@@ -17,7 +17,11 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
-const user = computed(() => (page.props.auth as { user?: { terms_accepted_at?: string | null } })?.user);
+const user = computed(
+    () =>
+        (page.props.auth as { user?: { terms_accepted_at?: string | null } })
+            ?.user,
+);
 
 const hasAccepted = computed(() => !!user.value?.terms_accepted_at);
 
@@ -37,15 +41,22 @@ function acceptTerms() {
         <div class="mx-auto max-w-4xl">
             <!-- Header -->
             <div class="mb-8 border-b border-outline-variant/30 pb-6">
-                <div class="flex items-center gap-3 text-primary mb-2">
-                    <span class="material-symbols-outlined text-3xl">gavel</span>
-                    <span class="text-xs font-bold uppercase tracking-wider">Bidora Digital Platform</span>
+                <div class="mb-2 flex items-center gap-3 text-primary">
+                    <span class="material-symbols-outlined text-3xl"
+                        >gavel</span
+                    >
+                    <span class="text-xs font-bold tracking-wider uppercase"
+                        >Bidora Digital Platform</span
+                    >
                 </div>
-                <h1 class="font-headline text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
+                <h1
+                    class="font-headline text-3xl font-black tracking-tight text-on-surface sm:text-4xl"
+                >
                     Terms &amp; Conditions
                 </h1>
                 <p class="mt-2 text-on-surface-variant">
-                    All legal policies, bidding regulations, winner allocations, and platform guidelines governing your use of Bidora.
+                    All legal policies, bidding regulations, winner allocations,
+                    and platform guidelines governing your use of Bidora.
                 </p>
             </div>
 
@@ -56,11 +67,19 @@ function acceptTerms() {
                     class="flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/10 p-5 text-on-surface"
                 >
                     <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-2xl text-primary">verified</span>
+                        <span
+                            class="material-symbols-outlined text-2xl text-primary"
+                            >verified</span
+                        >
                         <div>
-                            <p class="font-bold text-sm">Terms Accepted</p>
+                            <p class="text-sm font-bold">Terms Accepted</p>
                             <p class="text-xs text-on-surface-variant">
-                                You accepted the platform terms on {{ new Date(user.terms_accepted_at!).toLocaleDateString() }}.
+                                You accepted the platform terms on
+                                {{
+                                    new Date(
+                                        user.terms_accepted_at!,
+                                    ).toLocaleDateString()
+                                }}.
                             </p>
                         </div>
                     </div>
@@ -68,22 +87,29 @@ function acceptTerms() {
 
                 <div
                     v-else
-                    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border-2 border-primary bg-primary/15 p-5 text-on-surface shadow-md"
+                    class="flex flex-col items-start justify-between gap-4 rounded-2xl border-2 border-primary bg-primary/15 p-5 text-on-surface shadow-md sm:flex-row sm:items-center"
                 >
                     <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-2xl text-primary">warning</span>
+                        <span
+                            class="material-symbols-outlined text-2xl text-primary"
+                            >warning</span
+                        >
                         <div>
-                            <p class="font-bold text-sm">Acceptance Required</p>
+                            <p class="text-sm font-bold">Acceptance Required</p>
                             <p class="text-xs text-on-surface-variant">
-                                You must accept these terms before you can place bids or claim prizes on Bidora.
+                                You must accept these terms before you can place
+                                bids or claim prizes on Bidora.
                             </p>
                         </div>
                     </div>
-                    <form @submit.prevent="acceptTerms" class="w-full sm:w-auto shrink-0">
+                    <form
+                        @submit.prevent="acceptTerms"
+                        class="w-full shrink-0 sm:w-auto"
+                    >
                         <button
                             type="submit"
                             :disabled="form.processing"
-                            class="w-full sm:w-auto rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-on-primary shadow-sm hover:bg-tertiary-container transition-all active:scale-95 disabled:opacity-50"
+                            class="w-full rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-on-primary shadow-sm transition-all hover:bg-tertiary-container active:scale-95 disabled:opacity-50 sm:w-auto"
                         >
                             Accept Terms Now
                         </button>
@@ -103,15 +129,24 @@ function acceptTerms() {
                         class="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface p-5 transition-all hover:border-primary/50 hover:shadow-md"
                     >
                         <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="material-symbols-outlined text-primary text-xl">description</span>
-                                <h3 class="font-bold text-sm text-on-surface line-clamp-2">
+                            <div class="mb-2 flex items-center gap-2">
+                                <span
+                                    class="material-symbols-outlined text-xl text-primary"
+                                    >description</span
+                                >
+                                <h3
+                                    class="line-clamp-2 text-sm font-bold text-on-surface"
+                                >
                                     {{ doc.name }}
                                 </h3>
                             </div>
                         </div>
-                        <div class="mt-4 flex items-center justify-between pt-3 border-t border-outline-variant/20">
-                            <span class="text-[11px] font-semibold text-outline uppercase tracking-wider">
+                        <div
+                            class="mt-4 flex items-center justify-between border-t border-outline-variant/20 pt-3"
+                        >
+                            <span
+                                class="text-[11px] font-semibold tracking-wider text-outline uppercase"
+                            >
                                 Official Governance
                             </span>
                             <Link
@@ -119,7 +154,9 @@ function acceptTerms() {
                                 class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
                             >
                                 <span>Read Policy</span>
-                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    >arrow_forward</span
+                                >
                             </Link>
                         </div>
                     </div>

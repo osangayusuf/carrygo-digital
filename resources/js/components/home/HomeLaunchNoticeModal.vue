@@ -14,7 +14,10 @@ function dismiss(): void {
     isVisible.value = false;
 }
 
-const units: { key: keyof ReturnType<typeof getLaunchCountdownParts>; label: string }[] = [
+const units: {
+    key: keyof ReturnType<typeof getLaunchCountdownParts>;
+    label: string;
+}[] = [
     { key: 'days', label: 'Days' },
     { key: 'hours', label: 'Hrs' },
     { key: 'minutes', label: 'Min' },
@@ -92,10 +95,10 @@ const units: { key: keyof ReturnType<typeof getLaunchCountdownParts>; label: str
                             class="flex flex-col items-center rounded-xl bg-surface-container px-2 py-3"
                         >
                             <span
-                                class="font-headline text-2xl font-extrabold tabular-nums text-forest"
+                                class="font-headline text-2xl font-extrabold text-forest tabular-nums"
                                 >{{
-                                    getLaunchCountdownParts()[unit.key]
-                                        .toString()
+                                    getLaunchCountdownParts()
+                                        [unit.key].toString()
                                         .padStart(2, '0')
                                 }}</span
                             >

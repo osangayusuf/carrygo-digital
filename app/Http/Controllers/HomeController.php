@@ -36,19 +36,19 @@ class HomeController extends Controller
 
             'bids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('created_at', 'desc')
-                ->limit(6)
+                ->limit(4)
                 ->get()
                 ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'trendingBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('bid_count', 'desc')
-                ->limit(10)
+                ->limit(4)
                 ->get()
                 ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'recentlyAddedBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('created_at', 'desc')
-                ->limit(10)
+                ->limit(4)
                 ->get()
                 ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
@@ -63,13 +63,13 @@ class HomeController extends Controller
 
             'luxuryBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('price', 'desc')
-                ->limit(10)
+                ->limit(4)
                 ->get()
                 ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
             'featuredBids' => Inertia::defer(fn () => $this->activeAuctionsQuery($search)
                 ->orderBy('price', 'desc')
-                ->limit(5)
+                ->limit(4)
                 ->get()
                 ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))),
 
@@ -174,7 +174,7 @@ class HomeController extends Controller
             $result[$category] = $this->activeAuctionsQuery($search)
                 ->where('category', $category)
                 ->orderBy('created_at', 'desc')
-                ->limit(10)
+                ->limit(4)
                 ->get()
                 ->map(fn (Auction $auction) => $this->auctionListing->mapAuction($auction))
                 ->all();

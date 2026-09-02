@@ -519,9 +519,7 @@ const getBadgeStyle = (type: string) => {
                                         class="flex items-center"
                                     >
                                         <button
-                                            @click="
-                                                toggleUserActive(act.user)
-                                            "
+                                            @click="toggleUserActive(act.user)"
                                             :class="[
                                                 'flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[9px] font-bold uppercase transition-colors',
                                                 act.user.is_active

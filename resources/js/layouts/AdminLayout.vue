@@ -14,6 +14,7 @@ import {
     ListFilter,
     BarChart3,
     ShieldAlert,
+    Trophy,
 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
@@ -28,6 +29,7 @@ import { index as pointTransactionsIndex } from '@/routes/admin/point-transactio
 import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as rewardsConfigIndex } from '@/routes/admin/rewards-config';
 import { index as usersIndex } from '@/routes/admin/users';
+import { index as winnersIndex } from '@/routes/admin/winners';
 
 type Breadcrumb = {
     title: string;
@@ -49,6 +51,7 @@ const navItems = [
     { name: 'Metrics', href: metricsIndex.url(), icon: BarChart3 },
     { name: 'Activity Log', href: activityLogIndex.url(), icon: ShieldAlert },
     { name: 'Auctions', href: auctionsIndex.url(), icon: Gavel },
+    { name: 'Winners', href: winnersIndex.url(), icon: Trophy },
     { name: 'Users', href: usersIndex.url(), icon: Users },
     { name: 'Agents', href: agentsIndex.url(), icon: UserCheck },
     { name: 'Bids Audit', href: bidsIndex.url(), icon: ListFilter },

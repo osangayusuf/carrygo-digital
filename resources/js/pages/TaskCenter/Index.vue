@@ -91,7 +91,11 @@ function showToast(message: string, type: 'success' | 'error' = 'success') {
 }
 
 const page = usePage();
-const user = computed(() => (page.props.auth as { user?: { terms_accepted_at?: string | null } })?.user);
+const user = computed(
+    () =>
+        (page.props.auth as { user?: { terms_accepted_at?: string | null } })
+            ?.user,
+);
 
 watch(
     () => page.props.flash as Record<string, string> | undefined,

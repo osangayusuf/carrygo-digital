@@ -2,11 +2,11 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import BidCard from '@/components/cards/BidCard.vue';
-import HomeGridAdCard from '@/components/cards/HomeGridAdCard.vue';
 import FeaturedAuctionsCarousel from '@/components/home/FeaturedAuctionsCarousel.vue';
 import HomeBidItemsSection from '@/components/home/HomeBidItemsSection.vue';
 import HomeEventPopup from '@/components/home/HomeEventPopup.vue';
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue';
+import HomeHowToPlaySection from '@/components/home/HomeHowToPlaySection.vue';
 import HomeLaunchNoticeModal from '@/components/home/HomeLaunchNoticeModal.vue';
 import HomeLeaderboardWidget from '@/components/home/HomeLeaderboardWidget.vue';
 import HomePromoSection from '@/components/home/HomePromoSection.vue';
@@ -265,12 +265,12 @@ const getCategoryIcon = (category: string): string => {
                         <div
                             :class="
                                 props.openBids.length > 1
-                                    ? 'grid grid-cols-2 gap-2.5 md:grid-cols-3'
+                                    ? 'grid grid-cols-2 gap-2.5'
                                     : 'grid-cols-1'
                             "
                         >
                             <BidCard
-                                v-for="bid in props.openBids.slice(0, 6)"
+                                v-for="bid in props.openBids.slice(0, 4)"
                                 :key="bid.id"
                                 :bid="bid"
                                 :user-points="props.userPoints ?? null"
@@ -315,9 +315,9 @@ const getCategoryIcon = (category: string): string => {
                             ></span>
                             For You
                         </div>
-                        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                        <div class="grid grid-cols-2 gap-2.5">
                             <BidCard
-                                v-for="bid in props.bids.slice(0, 9)"
+                                v-for="bid in props.bids.slice(0, 4)"
                                 :key="bid.id"
                                 :bid="bid"
                                 :user-points="props.userPoints ?? null"
@@ -350,7 +350,7 @@ const getCategoryIcon = (category: string): string => {
                         class="inline-block h-2 w-2 rounded-full bg-lemon"
                     ></span>
                     {{ bid.name }}
-                    <span class="font-extrabold text-white">{{
+                    <span class="font-extrabold whitespace-nowrap text-white">{{
                         formatPrice(bid.price)
                     }}</span>
                     <span
@@ -361,6 +361,9 @@ const getCategoryIcon = (category: string): string => {
                 </span>
             </div>
         </div>
+
+        <!-- HOW TO PLAY VIDEO & STEPS SECTION -->
+        <HomeHowToPlaySection />
 
         <!-- CATEGORIES -->
         <div
@@ -427,14 +430,13 @@ const getCategoryIcon = (category: string): string => {
                     >View More →</Link
                 >
             </div>
-            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                 <BidCard
-                    v-for="bid in props.trendingBids.slice(0, 8)"
+                    v-for="bid in props.trendingBids.slice(0, 4)"
                     :key="bid.id"
                     :bid="bid"
                     :user-points="props.userPoints ?? null"
                 />
-                <HomeGridAdCard class="col-span-2" />
             </div>
             <div class="mt-4 flex justify-center">
                 <Link
@@ -469,9 +471,9 @@ const getCategoryIcon = (category: string): string => {
                     >View More →</Link
                 >
             </div>
-            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                 <BidCard
-                    v-for="bid in props.recentlyAddedBids.slice(0, 10)"
+                    v-for="bid in props.recentlyAddedBids.slice(0, 4)"
                     :key="bid.id"
                     :bid="bid"
                     :user-points="props.userPoints ?? null"
@@ -574,9 +576,9 @@ const getCategoryIcon = (category: string): string => {
                     >View All →</Link
                 >
             </div>
-            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+            <div class="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                 <BidCard
-                    v-for="bid in props.luxuryBids.slice(0, 10)"
+                    v-for="bid in props.luxuryBids.slice(0, 4)"
                     :key="bid.id"
                     :bid="bid"
                     :user-points="props.userPoints ?? null"
@@ -892,9 +894,9 @@ const getCategoryIcon = (category: string): string => {
                             >View All →</Link
                         >
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+                    <div class="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                         <BidCard
-                            v-for="bid in bids"
+                            v-for="bid in bids.slice(0, 4)"
                             :key="bid.id"
                             :bid="bid"
                             :user-points="props.userPoints ?? null"

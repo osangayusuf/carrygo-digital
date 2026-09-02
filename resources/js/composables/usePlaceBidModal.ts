@@ -19,7 +19,9 @@ export function usePlaceBidModal() {
     }
 
     function open(bid: Bid, userPoints: number | null): void {
-        const user = (page.props.auth as { user?: { terms_accepted_at?: string | null } })?.user;
+        const user = (
+            page.props.auth as { user?: { terms_accepted_at?: string | null } }
+        )?.user;
 
         if (!user) {
             sessionStorage.setItem('pendingBidId', bid.id.toString());

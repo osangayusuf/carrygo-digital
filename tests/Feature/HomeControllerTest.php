@@ -3,6 +3,7 @@
 use App\Enums\AuctionStatus;
 use App\Http\Controllers\HomeController;
 use App\Models\Auction;
+use App\Models\User;
 use App\Services\AuctionListingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -87,12 +88,12 @@ test('homepage active auctions query excludes disabled auctions', function () {
 test('closed-with-winner query used by the homepage winners block excludes disabled auctions', function () {
     Auction::factory()->closed()->create([
         'name' => 'Visible Winner',
-        'winner_id' => \App\Models\User::factory()->create()->id,
+        'winner_id' => User::factory()->create()->id,
         'enabled' => true,
     ]);
     Auction::factory()->closed()->create([
         'name' => 'Disabled Winner',
-        'winner_id' => \App\Models\User::factory()->create()->id,
+        'winner_id' => User::factory()->create()->id,
         'enabled' => false,
     ]);
 
@@ -124,4 +125,18 @@ test('homepage category bids respect search keyword', function () {
         ->not->toHaveKey('Electronics')
         ->and($categoryBids['Fashion'])->toHaveCount(1)
         ->and($categoryBids['Fashion'][0]['name'])->toBe('Gucci Leather Bag');
+});
+
+test('homepage category bids limits items to 4 per category', function () {
+    Auction::factory()->active()->count(6)->create([
+        'category' => 'Electronics',
+    ]);
+
+    $controller = app(HomeController::class);
+    $method = new ReflectionMethod($controller, 'resolveCategoryBids');
+    $categoryBids = $method->invoke($controller, null);
+
+    expect($categoryBids)
+        ->toHaveKey('Electronics')
+        ->and($categoryBids['Electronics'])->toHaveCount(4);
 });

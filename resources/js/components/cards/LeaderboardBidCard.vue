@@ -55,11 +55,11 @@ const expandedImage = ref<string | null>(null);
                     >
                         Value
                     </p>
-                    <p class="text-sm font-black whitespace-nowrap text-forest">
-                        ₦{{ formatPrice(bid.price) }}
+                    <p class="text-[10px] font-black whitespace-nowrap text-forest">
+                        {{ formatPrice(bid.price) }}
                     </p>
                     <p
-                        class="whitespace-nowrap text-[9px] font-bold text-muted-green/70 line-through"
+                        class="text-[8px] font-bold whitespace-nowrap text-muted-green/70 line-through"
                     >
                         {{ formatSlashedPrice(bid.price) }}
                     </p>
@@ -108,7 +108,7 @@ const expandedImage = ref<string | null>(null);
                             </span>
                         </div>
                         <span
-                            class="text-[10px] font-black sm:text-xs"
+                            class="text-xs font-black sm:text-sm"
                             :class="
                                 index === 0 ? 'text-forest' : 'text-muted-green'
                             "
@@ -140,7 +140,7 @@ const expandedImage = ref<string | null>(null);
     <Teleport to="body">
         <div
             v-if="expandedImage"
-            class="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            class="fixed inset-0 z-100 flex cursor-pointer items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
             @click="expandedImage = null"
         >
             <img

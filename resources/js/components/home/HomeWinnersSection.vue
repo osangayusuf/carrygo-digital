@@ -110,7 +110,7 @@ function relativeTime(dateStr: string): string {
                     class="mt-1 text-xs font-bold text-secondary"
                 >
                     Market Price:
-                    <span class="text-primary">{{
+                    <span class="text-primary whitespace-nowrap">{{
                         formatPrice(latestWinner.bid.price)
                     }}</span>
                 </div>
@@ -196,7 +196,7 @@ function relativeTime(dateStr: string): string {
                             class="mt-1 text-xs font-bold text-secondary"
                         >
                             Market Price:
-                            <span class="text-primary">{{
+                            <span class="text-primary whitespace-nowrap">{{
                                 formatPrice(winner.bid.price)
                             }}</span>
                         </div>

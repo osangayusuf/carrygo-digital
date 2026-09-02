@@ -33,7 +33,7 @@ defineProps<{
                     <img
                         :src="`${$page.props.asset_url}logo.png`"
                         alt="Bidora"
-                        class="h-12 w-auto"
+                        class="h-30 w-auto"
                     />
                 </Link>
             </div>

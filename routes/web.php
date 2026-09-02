@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PointTransactionController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RewardsConfigController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WinnerController as AdminWinnerController;
 use App\Http\Controllers\AuctionController;
 use App\Http\Controllers\AuctionReviewController;
 use App\Http\Controllers\AuctionTimelineController;
@@ -106,6 +107,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             ->name('auctions.toggleEnabled');
         Route::patch('auctions/{auction}/toggle-event', [AdminAuctionController::class, 'toggleEvent'])
             ->name('auctions.toggleEvent');
+
+        // Winners Ledger
+        Route::get('winners', [AdminWinnerController::class, 'index'])->name('winners.index');
 
         // Users Management
         Route::get('users', [UserController::class, 'index'])->name('users.index');

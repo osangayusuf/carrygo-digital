@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
-import { Star, Search, Eye, EyeOff, Play, X, Trash2, AlertTriangle } from 'lucide-vue-next';
+import {
+    Star,
+    Search,
+    Eye,
+    EyeOff,
+    Play,
+    X,
+    Trash2,
+    AlertTriangle,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import {
@@ -347,9 +356,7 @@ const executeDelete = () => {
 
                                         <button
                                             type="button"
-                                            @click="
-                                                confirmDeleteReview(review)
-                                            "
+                                            @click="confirmDeleteReview(review)"
                                             class="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-[10px] font-bold text-red-600 uppercase transition-colors hover:bg-red-500/20 hover:text-red-700 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/30"
                                             title="Delete review"
                                         >
@@ -456,11 +463,13 @@ const executeDelete = () => {
                     </div>
                     <div class="flex-1">
                         <h3
-                            class="text-base font-black text-on-surface uppercase tracking-wide"
+                            class="text-base font-black tracking-wide text-on-surface uppercase"
                         >
                             Delete Review
                         </h3>
-                        <p class="mt-2 text-xs text-on-surface-variant leading-relaxed">
+                        <p
+                            class="mt-2 text-xs leading-relaxed text-on-surface-variant"
+                        >
                             Are you sure you want to permanently delete review
                             <span class="font-bold text-primary"
                                 >#{{ reviewToDelete.id }}</span

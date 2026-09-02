@@ -130,10 +130,10 @@ function activeBidders(bidId: number, bidCount: number): number {
                         </p>
 
                         <div class="slide-price-row">
-                            <span class="slide-price">{{
+                            <span class="slide-price whitespace-nowrap">{{
                                 formatPrice(bid.price)
                             }}</span>
-                            <span class="slide-price-slashed">{{
+                            <span class="slide-price-slashed whitespace-nowrap">{{
                                 formatSlashedPrice(bid.price)
                             }}</span>
                             <span class="slide-price-label">Market Price</span>
@@ -472,15 +472,17 @@ function activeBidders(bidId: number, bidCount: number): number {
     gap: 0.5rem;
 }
 .slide-price {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 900;
     color: var(--color-lemon, #fde047);
+    white-space: nowrap;
 }
 .slide-price-slashed {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.45);
     text-decoration: line-through;
+    white-space: nowrap;
 }
 .slide-price-label {
     font-size: 0.6875rem;
@@ -501,11 +503,12 @@ function activeBidders(bidId: number, bidCount: number): number {
 .slide-progress-header {
     display: flex;
     justify-content: space-between;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 800;
 }
 .slide-progress-pts {
     color: var(--color-lemon, #fde047);
+    font-weight: 900;
 }
 .slide-progress-pct {
     color: #fff;

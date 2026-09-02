@@ -41,7 +41,7 @@ defineOptions({ layout: null });
                     <img
                         :src="`${$page.props.asset_url}logo.png`"
                         alt="Bidora"
-                        class="h-12 w-auto"
+                        class="h-30 w-auto"
                     />
                 </Link>
             </div>
@@ -233,7 +233,7 @@ defineOptions({ layout: null });
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 gap-3.5">
                         <!-- Google Login -->
                         <a
                             :href="redirect.url('google')"
@@ -266,7 +266,7 @@ defineOptions({ layout: null });
                             <span>Google</span>
                         </a>
 
-                        <!-- Facebook Login -->
+                        <!-- Facebook Login
                         <a
                             :href="redirect.url('facebook')"
                             class="flex items-center justify-center gap-2.5 rounded-lg border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-sm font-bold text-ink shadow-sm transition-all hover:border-outline-variant/80 hover:bg-surface-container-high active:scale-[0.98]"
@@ -281,7 +281,7 @@ defineOptions({ layout: null });
                                 />
                             </svg>
                             <span>Facebook</span>
-                        </a>
+                        </a> -->
                     </div>
                 </div>
 
@@ -292,7 +292,9 @@ defineOptions({ layout: null });
                 >
                     Don't have an account?
                     <Link
-                        :href="register.url() + (redirected ? '?redirected=1' : '')"
+                        :href="
+                            register.url() + (redirected ? '?redirected=1' : '')
+                        "
                         class="font-bold text-forest hover:underline"
                     >
                         Create one

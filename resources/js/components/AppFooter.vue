@@ -32,7 +32,7 @@ function openSupportChat(): void {
             class="mx-auto grid max-w-325 grid-cols-1 gap-8 px-4 pt-10 pb-6 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.5fr]"
         >
             <div>
-                <div class="mb-2 h-12 flex items-center overflow-hidden w-auto">
+                <div class="mb-2 flex h-12 w-auto items-center overflow-hidden">
                     <img
                         :src="`${$page.props.asset_url}footer-logo.png`"
                         alt="Bidora"
@@ -138,14 +138,7 @@ function openSupportChat(): void {
                     @click="handleOpenTerms"
                     class="mb-2 block cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-normal text-[#4a6a40] transition-colors hover:text-lemon"
                 >
-                    Privacy Policy
-                </button>
-                <button
-                    type="button"
-                    @click="handleOpenTerms"
-                    class="mb-2 block cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-normal text-[#4a6a40] transition-colors hover:text-lemon"
-                >
-                    Terms of Service
+                    Terms of Service &amp; Privacy Policy
                 </button>
                 <button
                     type="button"

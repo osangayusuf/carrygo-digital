@@ -38,9 +38,9 @@ defineProps<{
             </p>
         </div>
 
-        <div v-else class="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+        <div v-else class="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             <BidCard
-                v-for="bid in bids"
+                v-for="bid in bids.slice(0, 4)"
                 :key="bid.id"
                 :bid="bid"
                 :user-points="userPoints"

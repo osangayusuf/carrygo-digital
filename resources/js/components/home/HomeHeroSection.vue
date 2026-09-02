@@ -13,7 +13,7 @@ const categories = computed(() => (page.props.categories as string[]) ?? []);
 const bannerImages = [
     '/images/banner1.png',
     '/images/banner2.png',
-    '/images/banner3.png',
+    '/images/banner3.jpeg',
 ];
 const currentBannerIndex = ref(0);
 
@@ -40,6 +40,14 @@ const prevSlide = () => {
     currentBannerIndex.value =
         (currentBannerIndex.value - 1 + bannerImages.length) %
         bannerImages.length;
+};
+
+const scrollToHowToPlay = (e: MouseEvent) => {
+    const el = document.getElementById('how-to-play-section');
+    if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth' });
+    }
 };
 </script>
 
@@ -96,7 +104,8 @@ const prevSlide = () => {
                     </Link>
                     <Link
                         :href="howToPlay.url()"
-                        class="cursor-pointer rounded-lg border-2 border-lemon bg-transparent px-5 py-2 text-sm font-bold whitespace-nowrap text-lemon"
+                        class="cursor-pointer rounded-lg border-2 border-lemon bg-transparent px-5 py-2 text-sm font-bold whitespace-nowrap text-lemon transition-colors hover:bg-lemon/10"
+                        @click="scrollToHowToPlay"
                     >
                         How It Works
                     </Link>
