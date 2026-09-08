@@ -180,7 +180,7 @@ class HandleInertiaRequests extends Middleware
             return '***'.substr($digits, -4);
         }
 
-        $prefix = '+'.substr($digits, 0, 3).' '.substr($digits, 3, 3);
+        $prefix = substr($digits, 0, 3).' '.substr($digits, 3, 3);
         $suffix = substr($digits, -4);
 
         return $prefix.'***'.$suffix;

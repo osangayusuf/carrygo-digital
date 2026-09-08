@@ -81,7 +81,7 @@ class ChatService
             ]);
 
             // Add a system message notifying that the agent joined
-            $this->addMessage($session, null, "Agent {$agent->name} has joined the chat.", ChatSenderType::SYSTEM);
+            $this->addMessage($session, null, "{$agent->agent_display_name} has joined the chat.", ChatSenderType::SYSTEM);
 
             // Broadcast that the session has been claimed
             broadcast(new AgentClaimedSession($session))->toOthers();
@@ -178,7 +178,7 @@ class ChatService
      * link it back onto the session so future lookups/replies attribute correctly.
      *
      * @throws \Exception if the session is a guest session with no email on file, since
-     *                     there is then no identity to attach the ticket to.
+     *                    there is then no identity to attach the ticket to.
      */
     private function resolveCustomerForConversion(ChatSession $session): User
     {

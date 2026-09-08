@@ -2,6 +2,7 @@
 
 namespace App\Events\Support;
 
+use App\Enums\ChatSenderType;
 use App\Models\ChatMessage;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -40,6 +41,11 @@ class ChatMessageSent implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         $sender = $this->message->sender;
+        $senderName = $sender?->name;
+
+        if ($sender && $this->message->sender_type === ChatSenderType::AGENT) {
+            $senderName = $sender->agent_display_name;
+        }
 
         return [
             'id' => $this->message->id,
@@ -50,8 +56,7 @@ class ChatMessageSent implements ShouldBroadcastNow
             'created_at' => $this->message->created_at->toIso8601String(),
             'sender' => $sender ? [
                 'id' => $sender->id,
-                'name' => $sender->name,
-                'email' => $sender->email,
+                'name' => $senderName,
             ] : null,
         ];
     }

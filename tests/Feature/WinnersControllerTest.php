@@ -24,6 +24,7 @@ test('winners page renders closed auctions with winners only', function () {
 
     Bid::factory()->forAuction($auction)->forUser($winner)->winning()->create(['amount' => 250]);
     Bid::factory()->forAuction($auction)->forUser($winner)->create(['amount' => 50]);
+    Bid::factory()->forAuction($auction)->forUser($user)->create(['amount' => 40]);
 
     Auction::factory()->active()->create(['name' => 'Still Live']);
     Auction::factory()->closed()->create(['name' => 'No Winner', 'winner_id' => null]);
@@ -35,8 +36,8 @@ test('winners page renders closed auctions with winners only', function () {
             ->component('Winners/Index')
             ->has('winners.data', 1)
             ->where('winners.data.0.winner_name', 'Ada Winner')
-            ->where('winners.data.0.winning_pts', 250)
-            ->where('winners.data.0.total_pts_bid', 300)
+            ->where('winners.data.0.winning_pts', 300)
+            ->where('winners.data.0.total_pts_bid', 340)
             ->where('winners.data.0.bid_count', 12)
             ->where('winners.data.0.bid.name', 'Luxury Watch'));
 });

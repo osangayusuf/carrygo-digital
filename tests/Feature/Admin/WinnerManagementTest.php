@@ -54,6 +54,7 @@ test('admin users can access admin winners page and view stats & winners', funct
 
     Bid::factory()->forAuction($auction)->forUser($winner)->winning()->create(['amount' => 500]);
     Bid::factory()->forAuction($auction)->forUser($winner)->create(['amount' => 100]);
+    Bid::factory()->forAuction($auction)->forUser($admin)->create(['amount' => 200]);
 
     Review::factory()->create([
         'auction_id' => $auction->id,
@@ -76,11 +77,11 @@ test('admin users can access admin winners page and view stats & winners', funct
         ->where('winners.data.0.winner.name', 'Ada Winner')
         ->where('winners.data.0.winner.email', 'ada@example.com')
         ->where('winners.data.0.winner.phone', '08012345678')
-        ->where('winners.data.0.winning_pts', 500)
-        ->where('winners.data.0.total_pts_bid', 600)
+        ->where('winners.data.0.winning_pts', 600)
+        ->where('winners.data.0.total_pts_bid', 800)
         ->where('winners.data.0.review.rating', 5)
         ->where('stats.total_winners_count', 1)
-        ->where('stats.total_winning_points', 500)
+        ->where('stats.total_winning_points', 600)
         ->where('stats.total_retail_value', 150000)
         ->where('stats.total_reviews_count', 1)
         ->has('categories')

@@ -82,15 +82,22 @@ class CustomerChatController extends Controller
         $this->authorizeSessionAccess($session);
 
         $messages = $session->messages()
-            ->with('sender:id,name,email')
+            ->with('sender:id,name')
             ->orderBy('created_at', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($message) {
+                if ($message->sender_type === ChatSenderType::AGENT && $message->sender) {
+                    $message->sender->name = $message->sender->agent_display_name;
+                }
+
+                return $message;
+            });
 
         return response()->json([
             'status' => $session->status->value,
             'agent' => $session->agent ? [
                 'id' => $session->agent->id,
-                'name' => $session->agent->name,
+                'name' => $session->agent->agent_display_name,
             ] : null,
             'messages' => $messages,
         ]);
@@ -116,7 +123,11 @@ class CustomerChatController extends Controller
             ChatSenderType::CUSTOMER
         );
 
-        $message->load('sender:id,name,email');
+        $message->load('sender:id,name');
+
+        if ($message->sender_type === ChatSenderType::AGENT && $message->sender) {
+            $message->sender->name = $message->sender->agent_display_name;
+        }
 
         return response()->json($message);
     }

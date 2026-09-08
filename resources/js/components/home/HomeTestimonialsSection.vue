@@ -43,13 +43,13 @@ function maskedPhone(msisdn: string | undefined): {
     suffix: string;
 } {
     if (!msisdn) {
-        return { prefix: '+234', suffix: 'xxxx' };
+        return { prefix: '234', suffix: 'xxxx' };
     }
 
     const digits = msisdn.replace(/\D/g, '');
 
     return {
-        prefix: `+${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
+        prefix: `${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
         suffix: digits.slice(-4),
     };
 }

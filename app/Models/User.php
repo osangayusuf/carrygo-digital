@@ -145,6 +145,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isAgent() && $this->agent_approved_at !== null;
     }
 
+    /**
+     * Get the customer-facing agent display name (e.g., "Agent Musa", "Agent Esther").
+     */
+    public function getAgentDisplayNameAttribute(): string
+    {
+        $cleaned = preg_replace('/^(support\s+)?agent\s+/i', '', trim($this->name));
+        $firstName = explode(' ', trim($cleaned))[0] ?? $cleaned;
+
+        return 'Agent '.ucfirst($firstName);
+    }
+
     /** The admin who approved or rejected this agent account. */
     public function approvedBy(): BelongsTo
     {

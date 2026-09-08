@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\AgentStatus as AgentStatusEnum;
+use App\Enums\ChatSenderType;
 use App\Enums\ChatSessionStatus;
 use App\Enums\TicketCategory;
 use App\Enums\TicketPriority;
@@ -9,6 +10,7 @@ use App\Events\Support\ChatMessageSent;
 use App\Events\Support\ChatSessionClosed;
 use App\Events\Support\NewChatSessionCreated;
 use App\Models\AgentStatus;
+use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -323,4 +325,68 @@ test('agents can update status manually', function () {
     expect($status)->not->toBeNull()
         ->and($status->status)->toBe(AgentStatusEnum::AWAY)
         ->and($status->manual_override)->toBeTrue();
+});
+
+test('agent email address is hidden and name is displayed as Agent FirstName to customers', function () {
+    $agent = User::factory()->approvedAgent()->create([
+        'name' => 'Musa Ibrahim',
+        'email' => 'musa.agent@bidora.test',
+    ]);
+    $agent->assignRole('agent');
+
+    $customer = User::factory()->create([
+        'name' => 'Customer John',
+        'email' => 'john.customer@example.com',
+    ]);
+
+    $session = ChatSession::factory()->create([
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'customer_email' => $customer->email,
+        'agent_id' => $agent->id,
+        'status' => ChatSessionStatus::ACTIVE,
+    ]);
+
+    $message = ChatMessage::create([
+        'chat_session_id' => $session->id,
+        'sender_id' => $agent->id,
+        'sender_type' => ChatSenderType::AGENT,
+        'body' => 'Hello, how can I help you?',
+    ]);
+
+    // Test ChatMessageSent event broadcast payload
+    $event = new ChatMessageSent($message);
+    $payload = $event->broadcastWith();
+
+    expect($payload['sender'])->toHaveKey('name', 'Agent Musa')
+        ->and($payload['sender'])->not->toHaveKey('email');
+
+    // Test AgentClaimedSession event broadcast payload
+    $claimEvent = new AgentClaimedSession($session);
+    $claimPayload = $claimEvent->broadcastWith();
+    expect($claimPayload['agent_name'])->toBe('Agent Musa');
+
+    // Test GET messages API endpoint
+    $response = $this->actingAs($customer)
+        ->get(route('support.chat.api.messages', $session->uuid));
+
+    $response->assertOk();
+    $json = $response->json();
+
+    expect($json['agent'])->toHaveKey('name', 'Agent Musa')
+        ->and($json['agent'])->not->toHaveKey('email')
+        ->and($json['messages'][0]['sender'])->toHaveKey('name', 'Agent Musa')
+        ->and($json['messages'][0]['sender'])->not->toHaveKey('email');
+});
+
+test('user agent_display_name formats names as Agent FirstName correctly', function () {
+    $agent1 = new User(['name' => 'Musa Ibrahim']);
+    $agent2 = new User(['name' => 'Esther Okon']);
+    $agent3 = new User(['name' => 'Agent Esther']);
+    $agent4 = new User(['name' => 'Support Agent Jane']);
+
+    expect($agent1->agent_display_name)->toBe('Agent Musa')
+        ->and($agent2->agent_display_name)->toBe('Agent Esther')
+        ->and($agent3->agent_display_name)->toBe('Agent Esther')
+        ->and($agent4->agent_display_name)->toBe('Agent Jane');
 });

@@ -26,7 +26,7 @@ function maskedPhone(msisdn: string): { prefix: string; suffix: string } {
     const digits = msisdn.replace(/\D/g, '');
 
     return {
-        prefix: `+${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
+        prefix: `${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
         suffix: digits.slice(-4),
     };
 }

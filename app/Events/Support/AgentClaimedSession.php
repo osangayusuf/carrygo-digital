@@ -41,7 +41,7 @@ class AgentClaimedSession implements ShouldBroadcastNow
         return [
             'uuid' => $this->session->uuid,
             'agent_id' => $this->session->agent_id,
-            'agent_name' => $agent ? $agent->name : null,
+            'agent_name' => $agent ? $agent->agent_display_name : null,
             'status' => $this->session->status->value,
             'started_at' => $this->session->started_at?->toIso8601String(),
         ];

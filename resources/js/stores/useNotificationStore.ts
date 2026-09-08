@@ -1,4 +1,3 @@
-import { useHttp } from '@inertiajs/vue3';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 

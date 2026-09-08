@@ -40,9 +40,6 @@ class Auction extends Model
     {
         return [
             'price' => 'decimal:2',
-            // Cast so that a value arriving as a form-data string ("90") compares
-            // correctly against the stored integer — AuctionService::update()
-            // detects countdown changes by strict comparison.
             'countdown_duration_seconds' => 'integer',
             'opening_points' => 'integer',
             'current_points' => 'integer',

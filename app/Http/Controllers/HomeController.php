@@ -82,7 +82,7 @@ class HomeController extends Controller
                     ->whereNotNull('winner_id')
                     ->enabled()
                     ->with('winner')
-                    ->withSum('bids as total_points', 'amount')
+                    ->withSum(['bids as total_points' => fn ($q) => $q->whereColumn('bids.user_id', 'auctions.winner_id')], 'amount')
                     ->orderBy('updated_at', 'desc')
                     ->limit(10)
                     ->get()
@@ -199,7 +199,7 @@ class HomeController extends Controller
             ->whereNotNull('winner_id')
             ->enabled()
             ->with('winner')
-            ->withSum('bids as total_points', 'amount')
+            ->withSum(['bids as total_points' => fn ($q) => $q->whereColumn('bids.user_id', 'auctions.winner_id')], 'amount')
             ->find($auctionId);
 
         if (! $auction) {

@@ -21,10 +21,10 @@ class WinnerListingService
             ->enabled()
             ->with([
                 'winner',
-                'bids' => fn ($query) => $query->where('is_winning', true),
                 'reviews' => fn ($query) => $query->where('is_visible', true),
             ])
             ->withSum('bids as total_pts_bid', 'amount')
+            ->withSum(['bids as winner_pts_total' => fn ($query) => $query->whereColumn('bids.user_id', 'auctions.winner_id')], 'amount')
             ->orderByDesc('updated_at');
 
         if (filled($search)) {
@@ -61,10 +61,10 @@ class WinnerListingService
             ->whereNotNull('winner_id')
             ->with([
                 'winner',
-                'bids' => fn ($q) => $q->where('is_winning', true),
                 'reviews',
             ])
             ->withSum('bids as total_pts_bid', 'amount')
+            ->withSum(['bids as winner_pts_total' => fn ($q) => $q->whereColumn('bids.user_id', 'auctions.winner_id')], 'amount')
             ->orderByDesc('updated_at');
 
         if (filled($search)) {
@@ -124,9 +124,11 @@ class WinnerListingService
         $totalRetailValue = (float) (clone $baseQuery)->sum('price');
 
         $totalWinningPoints = (int) Bid::query()
-            ->where('is_winning', true)
-            ->whereHas('auction', fn ($q) => $q->where('status', AuctionStatus::CLOSED)->whereNotNull('winner_id'))
-            ->sum('amount');
+            ->join('auctions', 'auctions.id', '=', 'bids.auction_id')
+            ->where('auctions.status', AuctionStatus::CLOSED)
+            ->whereNotNull('auctions.winner_id')
+            ->whereColumn('bids.user_id', 'auctions.winner_id')
+            ->sum('bids.amount');
 
         $totalReviews = (int) (clone $baseQuery)
             ->whereHas('reviews', fn ($q) => $q->whereColumn('user_id', 'auctions.winner_id'))
@@ -145,14 +147,13 @@ class WinnerListingService
      */
     private function mapWinner(Auction $auction): array
     {
-        $winningBid = $auction->bids->first();
         $winnerReview = $auction->reviews->first(fn ($r) => $r->user_id === $auction->winner_id);
 
         return [
             'id' => $auction->id,
             'msisdn' => $auction->winner?->phone ?? '',
             'winner_name' => $auction->winner?->name ?? 'Anonymous',
-            'winning_pts' => (int) ($winningBid?->amount ?? 0),
+            'winning_pts' => (int) ($auction->winner_pts_total ?? 0),
             'total_pts_bid' => (int) ($auction->total_pts_bid ?? 0),
             'bid_count' => (int) $auction->bid_count,
             'created_at' => $auction->updated_at?->toISOString() ?? '',
@@ -179,7 +180,6 @@ class WinnerListingService
      */
     private function mapAdminWinner(Auction $auction): array
     {
-        $winningBid = $auction->bids->first();
         $winnerReview = $auction->reviews->first(fn ($r) => $r->user_id === $auction->winner_id);
 
         return [
@@ -191,7 +191,7 @@ class WinnerListingService
             'enabled' => (bool) $auction->enabled,
             'event' => (bool) $auction->event,
             'bid_count' => (int) $auction->bid_count,
-            'winning_pts' => (int) ($winningBid?->amount ?? 0),
+            'winning_pts' => (int) ($auction->winner_pts_total ?? 0),
             'total_pts_bid' => (int) ($auction->total_pts_bid ?? 0),
             'closed_at' => $auction->updated_at?->toISOString() ?? '',
             'winner' => $auction->winner ? [

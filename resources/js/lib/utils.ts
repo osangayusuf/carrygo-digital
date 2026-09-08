@@ -161,7 +161,7 @@ export function maskedMsisdnParts(msisdn: string): {
     }
 
     return {
-        prefix: `+${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
+        prefix: `${digits.slice(0, 3)} ${digits.slice(3, 6)}`,
         suffix: digits.slice(-4),
     };
 }

@@ -58,7 +58,7 @@ test('marquee items include live, active, and closed auctions with masked winner
             ->where('marquee_items.0.text', 'LIVE AUCTION: Rolex Daytona @ ₦12,000,000')
             ->where('marquee_items.1.text', 'Gucci Bag – 50% progress!')
             ->where('marquee_items.2.text', 'Gucci Bag – 12 bids so far')
-            ->where('marquee_items.3.text', 'Winner: +234 812***6789 won Prada Heels!')
+            ->where('marquee_items.3.text', 'Winner: 234 812***6789 won Prada Heels!')
             ->where('marquee_items.4.text', 'New auction drops every Monday!')
         );
 });
