@@ -22,7 +22,7 @@ class AuctionController extends Controller
         $hasBid = $user ? $auction->bids()->where('user_id', $user->id)->exists() : false;
         $hasReviewed = $user ? $auction->reviews()->where('user_id', $user->id)->exists() : false;
         $isWinner = $user ? ($auction->winner_id === $user->id) : false;
-        $canReview = $hasBid && ! $hasReviewed && $auction->status === AuctionStatus::CLOSED;
+        $canReview = $hasBid && $auction->status === AuctionStatus::CLOSED;
 
         $reviews = $auction->reviews()
             ->visible()

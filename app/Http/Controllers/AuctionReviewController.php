@@ -31,13 +31,6 @@ class AuctionReviewController extends Controller
             abort(403, 'Only users who participated in this auction can submit a review.');
         }
 
-        $hasReviewed = $auction->reviews()->where('user_id', $user->id)->exists();
-        if ($hasReviewed) {
-            throw ValidationException::withMessages([
-                'comment' => 'You have already submitted a review for this auction.',
-            ]);
-        }
-
         $isWinner = $auction->winner_id === $user->id;
 
         $rules = [
