@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 // Public Customer Chat Endpoints (no auth required for guest support)
 Route::middleware(['web'])->prefix('support/chat-api')->group(function () {
     Route::get('status', [CustomerChatController::class, 'status'])->name('support.chat.api.status');
+    Route::get('sessions', [CustomerChatController::class, 'sessions'])->name('support.chat.api.sessions');
     Route::post('initiate', [CustomerChatController::class, 'initiate'])->name('support.chat.api.initiate');
     Route::get('{uuid}/messages', [CustomerChatController::class, 'getMessages'])->name('support.chat.api.messages');
     Route::post('{uuid}/message', [CustomerChatController::class, 'sendMessage'])->name('support.chat.api.send');

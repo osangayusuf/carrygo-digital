@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
-#[Fillable(['uuid', 'customer_id', 'customer_name', 'customer_email', 'agent_id', 'ticket_id', 'status', 'started_at', 'closed_at'])]
+#[Fillable(['uuid', 'customer_id', 'customer_name', 'customer_email', 'guest_token', 'agent_id', 'ticket_id', 'status', 'started_at', 'closed_at'])]
 #[UseFactory(ChatSessionFactory::class)]
 class ChatSession extends Model
 {
@@ -67,6 +68,12 @@ class ChatSession extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
+    }
+
+    /** The most recent message in this session, used for conversation-list previews. */
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(ChatMessage::class)->latestOfMany();
     }
 
     public function isWaiting(): bool
