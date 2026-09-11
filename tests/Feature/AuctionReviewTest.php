@@ -62,7 +62,7 @@ test('cannot submit a review for non-closed auctions', function () {
         ])->assertSessionHasErrors('comment');
 });
 
-test('cannot submit a review twice', function () {
+test('participant can submit multiple reviews for the same auction', function () {
     $auction = Auction::factory()->create(['status' => AuctionStatus::CLOSED]);
     $participant = User::factory()->create();
 
@@ -72,8 +72,29 @@ test('cannot submit a review twice', function () {
     $this->actingAs($participant)
         ->post(route('auctions.reviews.store', $auction), [
             'rating' => 5,
-            'comment' => 'Great product!',
-        ])->assertSessionHasErrors('comment');
+            'comment' => 'Great product, following up again!',
+        ])->assertRedirect();
+
+    expect(Review::where('auction_id', $auction->id)->where('user_id', $participant->id)->count())->toBe(2);
+});
+
+test('winner can submit multiple reviews for the same auction', function () {
+    $winner = User::factory()->create();
+    $auction = Auction::factory()->create([
+        'status' => AuctionStatus::CLOSED,
+        'winner_id' => $winner->id,
+    ]);
+
+    Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $winner->id]);
+    Review::factory()->create(['auction_id' => $auction->id, 'user_id' => $winner->id]);
+
+    $this->actingAs($winner)
+        ->post(route('auctions.reviews.store', $auction), [
+            'rating' => 4,
+            'comment' => 'Following up with another review!',
+        ])->assertRedirect();
+
+    expect(Review::where('auction_id', $auction->id)->where('user_id', $winner->id)->count())->toBe(2);
 });
 
 test('regular participant cannot upload photos or videos', function () {
