@@ -5,6 +5,7 @@ import {
     X,
     Send,
     ChevronDown,
+    ChevronLeft,
     Clock,
     User,
     AlertCircle,
@@ -14,6 +15,7 @@ import {
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
 import {
     status as chatStatus,
+    sessions as chatSessions,
     initiate as chatInitiate,
     messages as chatMessages,
     send as chatSend,
@@ -27,15 +29,33 @@ type ChatMessage = {
     created_at: string;
 };
 
+type ChatConversation = {
+    uuid: string;
+    status: string;
+    agent: { id: number; name: string } | null;
+    last_message: string | null;
+    last_message_at: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+// Keep this in sync with ChatService::MAX_OPEN_SESSIONS on the backend.
+const MAX_OPEN_CONVERSATIONS = 3;
+
 const page = usePage();
 const currentUser = computed(() => page.props.auth?.user);
 
 const isOpen = ref(false);
 const isOnline = ref(false);
-const isLoading = ref(true);
 const isSubmitting = ref(false);
 
-const isChatActive = ref(false);
+// 'loading' while we work out what to show; 'list' shows past conversations; 'chat' is an
+// open conversation thread; 'prechat'/'offline' are the existing start-a-chat forms.
+const view = ref<'loading' | 'list' | 'chat' | 'prechat' | 'offline'>(
+    'loading',
+);
+const conversations = ref<ChatConversation[]>([]);
+
 const sessionUuid = ref<string | null>(null);
 const sessionStatus = ref('waiting');
 const agentName = ref<string | null>(null);
@@ -55,6 +75,34 @@ const offlineForm = ref({
 const messageText = ref('');
 const messageContainer = ref<HTMLDivElement | null>(null);
 
+const openConversationsCount = computed(
+    () => conversations.value.filter((c) => c.status !== 'closed').length,
+);
+const atOpenConversationsCap = computed(
+    () => openConversationsCount.value >= MAX_OPEN_CONVERSATIONS,
+);
+const canGoBack = computed(
+    () => view.value !== 'list' && conversations.value.length > 0,
+);
+
+const headerTitle = computed(() => {
+    if (view.value === 'chat') {
+        return agentName.value
+            ? `Chat with ${agentName.value}`
+            : 'Support queue';
+    }
+
+    if (view.value === 'list') {
+        return 'Your Conversations';
+    }
+
+    return 'Bidora Support';
+});
+
+const csrfToken = () =>
+    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)
+        ?.content || '';
+
 const scrollToBottom = () => {
     nextTick(() => {
         if (messageContainer.value) {
@@ -62,6 +110,19 @@ const scrollToBottom = () => {
                 messageContainer.value.scrollHeight;
         }
     });
+};
+
+const formatConversationTime = (iso: string | null) => {
+    if (!iso) {
+        return '';
+    }
+
+    const date = new Date(iso);
+    const sameDay = date.toDateString() === new Date().toDateString();
+
+    return sameDay
+        ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
 const checkStatus = async () => {
@@ -72,8 +133,34 @@ const checkStatus = async () => {
     } catch (e) {
         console.error('Failed to check support status', e);
         isOnline.value = false;
-    } finally {
-        isLoading.value = false;
+    }
+};
+
+// Loads (or refreshes) the visitor's list of past/ongoing conversations. This works for both
+// logged-in customers (matched server-side by their account) and guests (matched by a
+// long-lived cookie), so it survives closing the browser, not just reloading the page.
+// Pass autoRoute = false for a background refresh that shouldn't change what's on screen.
+const loadConversations = async (autoRoute = true) => {
+    try {
+        const res = await fetch(chatSessions.url());
+
+        if (res.ok) {
+            const data = await res.json();
+            conversations.value = data.sessions || [];
+        }
+    } catch (e) {
+        console.error('Failed to load conversations', e);
+    }
+
+    if (!autoRoute) {
+        return;
+    }
+
+    if (conversations.value.length > 0) {
+        view.value = 'list';
+    } else {
+        await checkStatus();
+        view.value = isOnline.value ? 'prechat' : 'offline';
     }
 };
 
@@ -111,20 +198,39 @@ const loadHistory = async (uuid: string) => {
             sessionStatus.value = data.status || 'waiting';
             agentName.value = data.agent ? data.agent.name : null;
             sessionUuid.value = uuid;
-            isChatActive.value = true;
             connectEcho(uuid);
+            view.value = 'chat';
             scrollToBottom();
         } else {
-            sessionStorage.removeItem('bidora_chat_session_uuid');
-            sessionUuid.value = null;
-            isChatActive.value = false;
+            view.value = 'list';
+            await loadConversations(false);
         }
     } catch (e) {
         console.error('Failed to load chat history', e);
-        sessionStorage.removeItem('bidora_chat_session_uuid');
-    } finally {
-        isLoading.value = false;
+        view.value = 'list';
     }
+};
+
+const openConversation = (uuid: string) => {
+    view.value = 'loading';
+    loadHistory(uuid);
+};
+
+const startNewConversation = async () => {
+    view.value = 'loading';
+    await checkStatus();
+    view.value = isOnline.value ? 'prechat' : 'offline';
+};
+
+const goBack = () => {
+    if (sessionUuid.value) {
+        window.Echo?.leave(`chat.${sessionUuid.value}`);
+    }
+
+    sessionUuid.value = null;
+    messages.value = [];
+    view.value = 'loading';
+    loadConversations();
 };
 
 const startChat = async () => {
@@ -135,12 +241,7 @@ const startChat = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    (
-                        document.querySelector(
-                            'meta[name="csrf-token"]',
-                        ) as HTMLMetaElement
-                    )?.content || '',
+                'X-CSRF-TOKEN': csrfToken(),
             },
             body: JSON.stringify({
                 name: prechatForm.value.name,
@@ -152,8 +253,7 @@ const startChat = async () => {
             const data = await res.json();
             sessionUuid.value = data.uuid;
             sessionStatus.value = data.status;
-            isChatActive.value = true;
-            sessionStorage.setItem('bidora_chat_session_uuid', data.uuid);
+            agentName.value = null;
             connectEcho(data.uuid);
 
             // Add a local welcome message
@@ -165,7 +265,19 @@ const startChat = async () => {
                     created_at: new Date().toISOString(),
                 },
             ];
+            view.value = 'chat';
             scrollToBottom();
+
+            // Refresh the conversation list in the background so it's up to date next time
+            // they go back to it.
+            loadConversations(false);
+        } else if (res.status === 422) {
+            const err = await res.json().catch(() => null);
+            alert(
+                err?.message ||
+                    'You already have too many open conversations. Please continue one of those first.',
+            );
+            await loadConversations();
         }
     } catch (e) {
         console.error('Failed to initiate support chat', e);
@@ -186,12 +298,7 @@ const sendChatMessage = async () => {
         const socketId = window.Echo?.socketId();
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN':
-                (
-                    document.querySelector(
-                        'meta[name="csrf-token"]',
-                    ) as HTMLMetaElement
-                )?.content || '',
+            'X-CSRF-TOKEN': csrfToken(),
         };
 
         if (socketId) {
@@ -217,6 +324,10 @@ const sendChatMessage = async () => {
                 });
                 scrollToBottom();
             }
+        } else {
+            // Send failed server-side (e.g. session closed, or a transient error) — restore
+            // the text so it isn't silently lost.
+            messageText.value = body;
         }
     } catch (e) {
         console.error('Failed to send message', e);
@@ -233,12 +344,7 @@ const submitOfflineForm = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN':
-                    (
-                        document.querySelector(
-                            'meta[name="csrf-token"]',
-                        ) as HTMLMetaElement
-                    )?.content || '',
+                'X-CSRF-TOKEN': csrfToken(),
             },
             body: JSON.stringify({
                 name: offlineForm.value.name,
@@ -262,21 +368,6 @@ const submitOfflineForm = async () => {
     }
 };
 
-const startNewChat = () => {
-    sessionStorage.removeItem('bidora_chat_session_uuid');
-
-    if (sessionUuid.value) {
-        window.Echo?.leave(`chat.${sessionUuid.value}`);
-    }
-
-    sessionUuid.value = null;
-    isChatActive.value = false;
-    messages.value = [];
-    sessionStatus.value = 'waiting';
-    agentName.value = null;
-    checkStatus();
-};
-
 const handleOpenSupportChat = (): void => {
     isOpen.value = true;
 };
@@ -292,14 +383,10 @@ onMounted(() => {
         offlineForm.value.email = currentUser.value.email;
     }
 
-    // Check if there is an active session UUID stored in sessionStorage
-    const storedUuid = sessionStorage.getItem('bidora_chat_session_uuid');
-
-    if (storedUuid) {
-        loadHistory(storedUuid);
-    } else {
-        checkStatus();
-    }
+    // Ask the server for this visitor's past/ongoing conversations (matched by account for
+    // logged-in customers, or by a persistent cookie for guests) so they persist across
+    // reloads and even a full browser restart.
+    loadConversations();
 });
 
 // Watch current user to prefill if they log in dynamically
@@ -345,6 +432,13 @@ onUnmounted(() => {
                 class="flex items-center justify-between bg-navy px-5 py-4 text-white shadow-sm"
             >
                 <div class="flex items-center gap-2">
+                    <button
+                        v-if="canGoBack"
+                        @click="goBack"
+                        class="-ml-1 cursor-pointer p-0.5 text-white/80 hover:text-white"
+                    >
+                        <ChevronLeft class="h-4 w-4" />
+                    </button>
                     <span
                         :class="[
                             'h-2 w-2 rounded-full',
@@ -354,13 +448,7 @@ onUnmounted(() => {
                     <span
                         class="text-[10px] font-extrabold tracking-wide uppercase"
                     >
-                        {{
-                            isChatActive
-                                ? agentName
-                                    ? `Chat with ${agentName}`
-                                    : 'Support queue'
-                                : 'Bidora Support'
-                        }}
+                        {{ headerTitle }}
                     </span>
                 </div>
                 <button
@@ -375,14 +463,91 @@ onUnmounted(() => {
             <div class="flex min-h-0 flex-1 flex-col bg-background">
                 <!-- 1. Loading State -->
                 <div
-                    v-if="isLoading"
+                    v-if="view === 'loading'"
                     class="flex flex-1 items-center justify-center"
                 >
                     <Loader2 class="h-8 w-8 animate-spin text-primary" />
                 </div>
 
-                <!-- 2. Active Chat Stream -->
-                <template v-else-if="isChatActive">
+                <!-- 2. Conversations List -->
+                <template v-else-if="view === 'list'">
+                    <div
+                        class="flex flex-1 flex-col gap-2.5 overflow-y-auto bg-[#fcfdfd] p-4"
+                    >
+                        <button
+                            v-for="conv in conversations"
+                            :key="conv.uuid"
+                            @click="openConversation(conv.uuid)"
+                            class="flex cursor-pointer flex-col gap-1 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-3 text-left transition-colors hover:border-navy/30 hover:bg-surface-container-low"
+                        >
+                            <div
+                                class="flex items-center justify-between gap-2"
+                            >
+                                <span
+                                    class="truncate text-[10px] font-black text-on-surface uppercase"
+                                >
+                                    {{
+                                        conv.agent
+                                            ? conv.agent.name
+                                            : conv.status === 'waiting'
+                                              ? 'Waiting for agent'
+                                              : 'Support Chat'
+                                    }}
+                                </span>
+                                <span
+                                    :class="[
+                                        'shrink-0 rounded-full px-2 py-0.5 text-[8px] font-extrabold tracking-wide uppercase',
+                                        conv.status === 'waiting'
+                                            ? 'bg-amber-100 text-amber-700'
+                                            : conv.status === 'active'
+                                              ? 'bg-green-100 text-green-700'
+                                              : 'bg-surface-container text-on-surface-variant',
+                                    ]"
+                                >
+                                    {{ conv.status }}
+                                </span>
+                            </div>
+                            <p
+                                class="truncate text-[10px] text-on-surface-variant"
+                            >
+                                {{ conv.last_message || 'No messages yet' }}
+                            </p>
+                            <span
+                                class="text-[8px] font-semibold text-on-surface-variant/60"
+                            >
+                                {{
+                                    formatConversationTime(
+                                        conv.last_message_at || conv.created_at,
+                                    )
+                                }}
+                            </span>
+                        </button>
+                    </div>
+
+                    <div
+                        class="border-t border-outline-variant/50 bg-surface p-3"
+                    >
+                        <button
+                            @click="startNewConversation"
+                            :disabled="atOpenConversationsCap"
+                            class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-navy py-3 text-[10px] font-black tracking-wider text-lemon uppercase transition-colors hover:bg-forest disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <MessageSquare class="h-3.5 w-3.5" />
+                            <span>Start New Conversation</span>
+                        </button>
+                        <p
+                            v-if="atOpenConversationsCap"
+                            class="mt-2 text-center text-[9px] text-on-surface-variant"
+                        >
+                            You have {{ openConversationsCount }} open
+                            conversations. Finish or wait on one of those before
+                            starting another.
+                        </p>
+                    </div>
+                </template>
+
+                <!-- 3. Active Chat Stream -->
+                <template v-else-if="view === 'chat'">
                     <div
                         ref="messageContainer"
                         class="flex flex-1 flex-col gap-3 overflow-y-auto bg-[#fcfdfd] p-5"
@@ -438,10 +603,10 @@ onUnmounted(() => {
                                 This chat has been closed.
                             </p>
                             <button
-                                @click="startNewChat"
+                                @click="goBack"
                                 class="cursor-pointer rounded-lg bg-navy px-4 py-2 text-[9px] font-black tracking-widest text-lemon uppercase"
                             >
-                                Start New Chat
+                                View Conversations
                             </button>
                         </div>
                         <form
@@ -465,9 +630,9 @@ onUnmounted(() => {
                     </div>
                 </template>
 
-                <!-- 3. Pre-Chat Form (Online) -->
+                <!-- 4. Pre-Chat Form (Online) -->
                 <div
-                    v-else-if="isOnline"
+                    v-else-if="view === 'prechat'"
                     class="flex flex-1 flex-col justify-center overflow-y-auto p-6"
                 >
                     <div class="mb-6 text-center">
@@ -528,7 +693,7 @@ onUnmounted(() => {
                     </form>
                 </div>
 
-                <!-- 4. Offline Contact Form (Offline) -->
+                <!-- 5. Offline Contact Form (Offline) -->
                 <div
                     v-else
                     class="flex flex-1 flex-col justify-center overflow-y-auto p-6"

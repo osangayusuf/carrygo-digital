@@ -151,6 +151,127 @@ test('customers/guests can send and retrieve messages', function () {
         ]);
 });
 
+test('a chat message is still saved and returned even if broadcasting it fails', function () {
+    // Simulate the real-time server (Reverb/Pusher) being unreachable or erroring, which
+    // previously rolled back the whole DB::transaction() and 500'd the request — losing the
+    // message even though the customer's fetch appeared to succeed. See ChatService::addMessage()
+    // and ::safeBroadcast().
+    app('Illuminate\Broadcasting\BroadcastManager')->extend('failing', function () {
+        return new class implements \Illuminate\Contracts\Broadcasting\Broadcaster
+        {
+            public function auth($request) {}
+
+            public function validAuthenticationResponse($request, $result) {}
+
+            public function broadcast(array $channels, $event, array $payload = [])
+            {
+                throw new \RuntimeException('Simulated broadcast server outage.');
+            }
+        };
+    });
+    config(['broadcasting.default' => 'failing']);
+
+    $customer = User::factory()->create();
+    $session = ChatSession::factory()->create([
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'customer_email' => $customer->email,
+        'status' => ChatSessionStatus::WAITING,
+    ]);
+
+    $response = $this->actingAs($customer)
+        ->post(route('support.chat.api.send', $session->uuid), [
+            'body' => 'This should still be saved despite the outage',
+        ]);
+
+    $response->assertOk()
+        ->assertJson(['body' => 'This should still be saved despite the outage']);
+
+    $this->assertDatabaseHas('chat_messages', [
+        'chat_session_id' => $session->id,
+        'sender_id' => $customer->id,
+        'body' => 'This should still be saved despite the outage',
+    ]);
+});
+
+test('guests get a persistent guest token cookie and can list their sessions across requests', function () {
+    Event::fake();
+
+    // A visitor with no guest token cookie yet (or none at all) sees no sessions.
+    $this->get(route('support.chat.api.sessions'))
+        ->assertOk()
+        ->assertJsonCount(0, 'sessions');
+
+    $first = $this->post(route('support.chat.api.initiate'), [
+        'name' => 'Returning Guest',
+        'email' => 'returning_guest@example.com',
+    ]);
+    $first->assertOk()->assertCookie('bidora_guest_token');
+
+    $guestToken = $first->getCookie('bidora_guest_token')->getValue();
+    expect($guestToken)->not->toBeEmpty();
+
+    $this->assertDatabaseHas('chat_sessions', [
+        'uuid' => $first->json('uuid'),
+        'guest_token' => $guestToken,
+    ]);
+
+    // Starting a second chat while sending the same guest token cookie back should be
+    // attributed to the same guest identity.
+    $second = $this->withCookie('bidora_guest_token', $guestToken)
+        ->post(route('support.chat.api.initiate'), [
+            'name' => 'Returning Guest',
+            'email' => 'returning_guest@example.com',
+        ]);
+    $second->assertOk();
+
+    $list = $this->withCookie('bidora_guest_token', $guestToken)
+        ->get(route('support.chat.api.sessions'));
+
+    $list->assertOk()->assertJsonCount(2, 'sessions');
+});
+
+test('logged-in customers can list all of their chat sessions', function () {
+    Event::fake();
+
+    $customer = User::factory()->create();
+
+    ChatSession::factory()->count(2)->create([
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'customer_email' => $customer->email,
+    ]);
+
+    // A session belonging to someone else must not show up.
+    ChatSession::factory()->create();
+
+    $response = $this->actingAs($customer)->get(route('support.chat.api.sessions'));
+
+    $response->assertOk()->assertJsonCount(2, 'sessions');
+});
+
+test('a customer or guest cannot exceed the maximum number of open chat sessions', function () {
+    Event::fake();
+
+    $customer = User::factory()->create();
+
+    ChatSession::factory()->count(3)->create([
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'customer_email' => $customer->email,
+        'status' => ChatSessionStatus::WAITING,
+    ]);
+
+    $response = $this->actingAs($customer)->post(route('support.chat.api.initiate'));
+
+    $response->assertStatus(422)->assertJsonStructure(['message']);
+
+    // A closed session doesn't count towards the cap.
+    ChatSession::where('customer_id', $customer->id)->first()->update(['status' => ChatSessionStatus::CLOSED]);
+
+    $this->actingAs($customer)->post(route('support.chat.api.initiate'))->assertOk();
+});
+
 test('submitting offline contact form creates a ticket', function () {
     // Guest submission
     $response = $this->post(route('support.chat.api.offline-ticket'), [

@@ -9,18 +9,26 @@ use App\Events\Support\AgentClaimedSession;
 use App\Events\Support\ChatMessageSent;
 use App\Events\Support\ChatSessionClosed;
 use App\Events\Support\NewChatSessionCreated;
+use App\Exceptions\ChatSessionLimitExceededException;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Notifications\NewChatSessionNotification;
 use App\Notifications\TicketConvertedFromChatNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class ChatService
 {
+    /**
+     * Maximum number of concurrent open (waiting or active) sessions a single customer or
+     * guest may have at once, to stop one visitor from flooding the queue.
+     */
+    public const MAX_OPEN_SESSIONS = 3;
+
     /**
      * Create a new ChatService instance.
      */
@@ -30,38 +38,59 @@ class ChatService
 
     /**
      * Initiate a new chat session for a customer or guest.
+     *
+     * $guestToken is a long-lived, cookie-backed identifier for anonymous visitors (see
+     * CustomerChatController), used in place of a customer_id to track ownership and enforce
+     * the open-session cap for guests.
+     *
+     * @throws ChatSessionLimitExceededException if the customer/guest already has
+     *                                           MAX_OPEN_SESSIONS open sessions.
      */
-    public function initiate(?User $customer, array $guestData): ChatSession
+    public function initiate(?User $customer, array $guestData, ?string $guestToken = null): ChatSession
     {
-        return DB::transaction(function () use ($customer, $guestData): ChatSession {
-            $session = ChatSession::create([
+        $session = DB::transaction(function () use ($customer, $guestData, $guestToken): ChatSession {
+            $openSessions = ChatSession::whereIn('status', [ChatSessionStatus::WAITING, ChatSessionStatus::ACTIVE])
+                ->when($customer, fn ($q) => $q->where('customer_id', $customer->id))
+                ->when(! $customer, fn ($q) => $q->where('guest_token', $guestToken))
+                ->count();
+
+            if ($openSessions >= self::MAX_OPEN_SESSIONS) {
+                throw new ChatSessionLimitExceededException(
+                    'You already have '.self::MAX_OPEN_SESSIONS.' open conversations. Please continue one of those, or wait for it to be resolved, before starting a new one.'
+                );
+            }
+
+            return ChatSession::create([
                 'uuid' => (string) Str::uuid(),
                 'customer_id' => $customer?->id,
                 'customer_name' => $customer ? $customer->name : ($guestData['name'] ?? 'Guest'),
                 'customer_email' => $customer ? $customer->email : ($guestData['email'] ?? null),
+                'guest_token' => $customer ? null : $guestToken,
                 'status' => ChatSessionStatus::WAITING,
             ]);
-
-            // Broadcast that a new chat session has been created to support agents
-            broadcast(new NewChatSessionCreated($session))->toOthers();
-
-            // Send notification to all online agents/admins
-            $onlineAgents = User::role(['agent', 'admin'])
-                ->where(function ($query) {
-                    $query->where(function ($q) {
-                        $q->whereHas('roles', fn ($r) => $r->where('name', 'agent'))
-                            ->whereNotNull('agent_approved_at');
-                    })->orWhereHas('roles', fn ($r) => $r->where('name', 'admin'));
-                })
-                ->whereHas('agentStatus', function ($query) {
-                    $query->where('status', AgentStatus::ONLINE);
-                })
-                ->get();
-
-            Notification::send($onlineAgents, new NewChatSessionNotification($session));
-
-            return $session;
         });
+
+        // Broadcast and notify only once the session is safely committed, so a hiccup in
+        // real-time delivery (the broadcast server being briefly unreachable, for example)
+        // can never roll back — or fail — the chat session itself.
+        $this->safeBroadcast(fn () => broadcast(new NewChatSessionCreated($session))->toOthers());
+
+        // Send notification to all online agents/admins
+        $onlineAgents = User::role(['agent', 'admin'])
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->whereHas('roles', fn ($r) => $r->where('name', 'agent'))
+                        ->whereNotNull('agent_approved_at');
+                })->orWhereHas('roles', fn ($r) => $r->where('name', 'admin'));
+            })
+            ->whereHas('agentStatus', function ($query) {
+                $query->where('status', AgentStatus::ONLINE);
+            })
+            ->get();
+
+        Notification::send($onlineAgents, new NewChatSessionNotification($session));
+
+        return $session;
     }
 
     /**
@@ -79,13 +108,14 @@ class ChatService
                 'status' => ChatSessionStatus::ACTIVE,
                 'started_at' => now(),
             ]);
-
-            // Add a system message notifying that the agent joined
-            $this->addMessage($session, null, "{$agent->agent_display_name} has joined the chat.", ChatSenderType::SYSTEM);
-
-            // Broadcast that the session has been claimed
-            broadcast(new AgentClaimedSession($session))->toOthers();
         });
+
+        // Add a system message notifying that the agent joined (this safely broadcasts its
+        // own ChatMessageSent event once committed — see addMessage()).
+        $this->addMessage($session, null, "{$agent->agent_display_name} has joined the chat.", ChatSenderType::SYSTEM);
+
+        // Broadcast that the session has been claimed, after the update is committed.
+        $this->safeBroadcast(fn () => broadcast(new AgentClaimedSession($session))->toOthers());
     }
 
     /**
@@ -93,19 +123,67 @@ class ChatService
      */
     public function addMessage(ChatSession $session, ?User $sender, string $body, ChatSenderType $type): ChatMessage
     {
-        return DB::transaction(function () use ($session, $sender, $body, $type): ChatMessage {
-            $message = ChatMessage::create([
+        $message = DB::transaction(function () use ($session, $sender, $body, $type): ChatMessage {
+            return ChatMessage::create([
                 'chat_session_id' => $session->id,
                 'sender_id' => $sender?->id,
                 'sender_type' => $type,
                 'body' => $body,
             ]);
-
-            // Broadcast the new message to participants
-            broadcast(new ChatMessageSent($message))->toOthers();
-
-            return $message;
         });
+
+        // Broadcast only after the message is safely committed, and never let a broadcast
+        // failure (e.g. the Reverb/Pusher server being briefly unreachable) surface as an
+        // error — the message is already saved either way.
+        $this->safeBroadcast(fn () => broadcast(new ChatMessageSent($message))->toOthers());
+
+        return $message;
+    }
+
+    /**
+     * Run a broadcast, logging (rather than throwing) if it fails. Real-time delivery is a
+     * best-effort convenience on top of already-persisted data — a broadcast server hiccup
+     * should never roll back a database write or turn into a 500 for the caller.
+     */
+    private function safeBroadcast(callable $broadcast): void
+    {
+        try {
+            $broadcast();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
+     * Get a summary of every chat session belonging to a customer or guest, most recently
+     * updated first, for the "your conversations" list in the chat widget.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function sessionsFor(?User $customer, ?string $guestToken): Collection
+    {
+        if (! $customer && ! $guestToken) {
+            return collect();
+        }
+
+        return ChatSession::query()
+            ->when($customer, fn ($q) => $q->where('customer_id', $customer->id))
+            ->when(! $customer, fn ($q) => $q->where('guest_token', $guestToken))
+            ->with(['agent:id,name', 'latestMessage'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn (ChatSession $session): array => [
+                'uuid' => $session->uuid,
+                'status' => $session->status->value,
+                'agent' => $session->agent ? [
+                    'id' => $session->agent->id,
+                    'name' => $session->agent->agent_display_name,
+                ] : null,
+                'last_message' => $session->latestMessage?->body,
+                'last_message_at' => $session->latestMessage?->created_at?->toIso8601String(),
+                'created_at' => $session->created_at->toIso8601String(),
+                'updated_at' => $session->updated_at->toIso8601String(),
+            ]);
     }
 
     /**
@@ -122,13 +200,14 @@ class ChatService
                 'status' => ChatSessionStatus::CLOSED,
                 'closed_at' => now(),
             ]);
-
-            // Add a system message notifying that the chat is closed
-            $this->addMessage($session, null, 'The chat session has been closed.', ChatSenderType::SYSTEM);
-
-            // Broadcast that the session has been closed
-            broadcast(new ChatSessionClosed($session))->toOthers();
         });
+
+        // Add a system message notifying that the chat is closed (safely broadcasts its own
+        // ChatMessageSent — see addMessage()).
+        $this->addMessage($session, null, 'The chat session has been closed.', ChatSenderType::SYSTEM);
+
+        // Broadcast that the session has been closed, after the update is committed.
+        $this->safeBroadcast(fn () => broadcast(new ChatSessionClosed($session))->toOthers());
     }
 
     /**
